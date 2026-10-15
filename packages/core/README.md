@@ -1,4 +1,4 @@
-# @calendar-kit/core
+# @calendrix/core
 
 Framework-agnostic calendar core. Zero runtime dependencies, no DOM.
 
@@ -7,7 +7,7 @@ Framework-agnostic calendar core. Zero runtime dependencies, no DOM.
 ## What is available today
 
 ```ts
-import { addDays, compareDates, convertDate, createDate, gregory } from '@calendar-kit/core';
+import { addDays, compareDates, convertDate, createDate, gregory } from '@calendrix/core';
 
 const d = createDate('gregory', 2024, 2, 28);
 
@@ -23,8 +23,8 @@ compareDates(d, addDays(d, 1)); // < 0
 Converting between systems goes through the epoch day, so it works for any registered calendar:
 
 ```ts
-import { convertDate, registerCalendar } from '@calendar-kit/core';
-// registerCalendar(persian)  // provided by @calendar-kit/persian (planned)
+import { convertDate, registerCalendar } from '@calendrix/core';
+// registerCalendar(persian)  // provided by @calendrix/persian (planned)
 // convertDate(d, 'persian')
 ```
 

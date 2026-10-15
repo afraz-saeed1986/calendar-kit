@@ -1,5 +1,5 @@
 /**
- * Public types of @calendar-kit/core.
+ * Public types of @calendrix/core.
  *
  * The full design rationale lives in docs/api.md and docs/adr/.
  * Types marked "planned" describe the contract of `createCalendar`,

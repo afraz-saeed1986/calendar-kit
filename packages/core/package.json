@@ -1,5 +1,5 @@
 {
-  "name": "@calendar-kit/core",
+  "name": "@calendrix/core",
   "version": "0.0.0",
   "description": "Framework-agnostic calendar core: calendar systems, state, selection and keyboard navigation.",
   "license": "MIT",

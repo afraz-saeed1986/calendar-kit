@@ -1,5 +1,5 @@
 {
-  "name": "calendar-kit",
+  "name": "calendrix",
   "private": true,
   "version": "0.0.0",
   "description": "Headless, framework-agnostic calendar toolkit with Persian and Gregorian support.",

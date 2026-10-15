@@ -1,14 +1,12 @@
-# calendar-kit
+# calendrix
 
 > Headless, framework-agnostic calendar toolkit with first-class **Persian (Jalali)** and **Gregorian** support, built for accessibility and, later, financial market calendars.
 
 **Status: pre-alpha.** The core types and the Gregorian calendar are implemented and tested. The calendar state machine (`createCalendar`), framework adapters and the Persian calendar are on the [roadmap](docs/roadmap.md).
 
-> `@calendar-kit/*` is a working name and will be replaced before the first release.
-
 ## Why another calendar?
 
-Most date pickers ship UI tied to one framework. calendar-kit separates **logic** from **rendering**:
+Most date pickers ship UI tied to one framework. calendrix separates **logic** from **rendering**:
 
 - **One core, many frameworks.** All logic (dates, calendars, selection, keyboard navigation, ARIA state) lives in a dependency-free TypeScript package. React, Angular and Vue adapters are thin layers over it.
 - **Multiple calendar systems.** Gregorian, Persian and Islamic through a small `CalendarImplementation` contract, built on `Intl` instead of a heavy date library.
@@ -18,14 +16,14 @@ Most date pickers ship UI tied to one framework. calendar-kit separates **logic*
 
 ## Packages
 
-| Package                               | Description                    | Status                |
-| ------------------------------------- | ------------------------------ | --------------------- |
-| [`@calendar-kit/core`](packages/core) | Dates, calendar systems, types | Gregorian implemented |
-| `@calendar-kit/persian`               | Persian (Jalali) calendar      | Planned               |
-| `@calendar-kit/react`                 | React adapter (`useCalendar`)  | Planned               |
-| `@calendar-kit/angular`               | Angular adapter (signals)      | Planned               |
-| `@calendar-kit/vue`                   | Vue adapter (composable)       | Planned               |
-| `@calendar-kit/finance`               | Market calendars and holidays  | Planned               |
+| Package                            | Description                    | Status                |
+| ---------------------------------- | ------------------------------ | --------------------- |
+| [`@calendrix/core`](packages/core) | Dates, calendar systems, types | Gregorian implemented |
+| `@calendrix/persian`               | Persian (Jalali) calendar      | Planned               |
+| `@calendrix/react`                 | React adapter (`useCalendar`)  | Planned               |
+| `@calendrix/angular`               | Angular adapter (signals)      | Planned               |
+| `@calendrix/vue`                   | Vue adapter (composable)       | Planned               |
+| `@calendrix/finance`               | Market calendars and holidays  | Planned               |
 
 ## Repository layout
 

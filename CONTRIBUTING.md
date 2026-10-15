@@ -1,6 +1,6 @@
 # Contributing
 
-Thanks for your interest in calendar-kit. This guide keeps contributions consistent and easy to review.
+Thanks for your interest in calendrix. This guide keeps contributions consistent and easy to review.
 
 ## Setup
 
