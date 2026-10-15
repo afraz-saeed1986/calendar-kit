@@ -20,6 +20,15 @@ const lastDay = createDate('persian', 1403, 12, 29);
 addDays(lastDay, 1); // { system: 'persian', year: 1403, month: 12, day: 30 } (1403 is a leap year)
 ```
 
+    import { createCalendar } from '@calendrix/core';
+    import { persianPlugin } from '@calendrix/persian';
+
+    const calendar = createCalendar({ system: 'persian', locale: 'fa-IR', plugins: [persianPlugin] });
+
+    calendar.getState().monthLabel; // "مهر ۱۴۰۵" (depends on the current date)
+    calendar.getState().weekdayLabels[0].long; // "شنبه" (the week starts on Saturday)
+    calendar.setOptions({ system: 'gregory', locale: 'en-US' }); // same day, other calendar
+
 ## What you get
 
 | Export          | Purpose                                                           |

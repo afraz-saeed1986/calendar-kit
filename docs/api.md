@@ -2,7 +2,7 @@
 
 Goal: a pure TypeScript core with no dependency on the DOM or any framework. Each adapter only subscribes to the state and spreads the `getXProps` results onto elements.
 
-> **Status:** design draft. Only the date helpers and the Gregorian calendar are implemented so far (see the [roadmap](roadmap.md)). Everything below describes the planned public API.
+> **Status:** design draft. Implemented so far: date helpers, the Gregorian and Persian calendars, and the navigation and month-grid part of `createCalendar` (see the [roadmap](roadmap.md)). Selection, keyboard handling and prop getters are still planned. Where the source differs from this draft, the source is the reference. Everything below describes the planned public API.
 
 ---
 
@@ -72,6 +72,8 @@ export interface CalendarOptions {
 ---
 
 ## 3. Output: read-only state
+
+> Implemented: `DayCell` currently has `date`, `label`, `isToday`, `isFocused`, `isOutsideMonth`, `isDisabled`, `isUnavailable` and `meta`. The selection fields (`isSelected`, `isInRange`, `isRangeStart`, `isRangeEnd`) arrive with selection. `CalendarState` has no `value` or `mode` yet.
 
 ```ts
 export interface CalendarState {

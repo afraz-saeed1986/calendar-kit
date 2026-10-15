@@ -28,6 +28,22 @@ import { convertDate, registerCalendar } from '@calendrix/core';
 // convertDate(d, 'persian')
 ```
 
+`createCalendar` holds the visible month and everything needed to render it. It knows nothing about the DOM or a framework.
+import { createCalendar } from '@calendrix/core';
+
+    const calendar = createCalendar({ locale: 'en-US' });
+
+    const state = calendar.getState();
+    state.monthLabel; // "October 2026"
+    state.weekdayLabels; // [{ short: 'Sun', long: 'Sunday' }, ...]
+    state.weeks; // 6 weeks of 7 DayCell objects (date, label, isToday, isOutsideMonth, ...)
+
+    const unsubscribe = calendar.subscribe(() => console.log(calendar.getState().monthLabel));
+    calendar.nextMonth(); // logs "November 2026"
+    unsubscribe();
+
+    `getState()` returns the same object until something changes, so it works directly with `useSyncExternalStore`. For tests, pass a fixed clock: `createCalendar({ now: () => new Date('2026-10-14T10:00:00Z'), timeZone: 'UTC' })`. Design notes: [ADR 0005](../../docs/adr/0005-calendar-store-and-clock.md).
+
 ## API
 
 | Export                                       | Purpose                                                               |
@@ -37,6 +53,9 @@ import { convertDate, registerCalendar } from '@calendrix/core';
 | `convertDate(date, system)`                  | Convert to another calendar system                                    |
 | `compareDates(a, b)`                         | Ordering, works across systems                                        |
 | `isSameDay(a, b)`                            | Equality by day                                                       |
+| `createCalendar(options)`                    | Calendar store: month grid, labels, navigation                        |
+| `addMonths(date, n)` / `addYears(date, n)`   | Add months or years, clamping the day                                 |
+| `dayOfWeek(date)`                            | 0 = Sunday ... 6 = Saturday                                           |
 | `gregory`                                    | Gregorian `CalendarImplementation`                                    |
 | `registerCalendar(impl)` / `getCalendar(id)` | Calendar registry used by plugins                                     |
 

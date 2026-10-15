@@ -15,8 +15,9 @@ Dates are intentionally omitted; milestones are ordered by dependency, not by ca
 ## M1: Core state machine
 
 - [x] Persian calendar (`Intl`-backed, verified against known conversions)
-- [ ] `createCalendar`: visible month, `weeks` grid, locale-aware labels
-- [ ] Navigation and `single` selection
+- [x] `createCalendar`: visible month, `weeks` grid, locale-aware labels
+- [x] Navigation: month, year, today, `goTo`
+- [ ] `single` selection
 - [ ] `handleKeyDown` (ARIA grid pattern)
 - [ ] Prop getters
 
