@@ -16,14 +16,14 @@ Most date pickers ship UI tied to one framework. calendrix separates **logic** f
 
 ## Packages
 
-| Package                                  | Description                    | Status                 |
-| ---------------------------------------- | ------------------------------ | ---------------------- |
-| [`@calendrix/core`](packages/core)       | Dates, calendar systems, types | Month grid, navigation |
-| [`@calendrix/persian`](packages/persian) | Persian (Jalali) calendar      | Implemented            |
-| `@calendrix/react`                       | React adapter (`useCalendar`)  | Planned                |
-| `@calendrix/angular`                     | Angular adapter (signals)      | Planned                |
-| `@calendrix/vue`                         | Vue adapter (composable)       | Planned                |
-| `@calendrix/finance`                     | Market calendars and holidays  | Planned                |
+| Package                                  | Description                    | Status                          |
+| ---------------------------------------- | ------------------------------ | ------------------------------- |
+| [`@calendrix/core`](packages/core)       | Dates, calendar systems, types | Month grid, selection, keyboard |
+| [`@calendrix/persian`](packages/persian) | Persian (Jalali) calendar      | Implemented                     |
+| `@calendrix/react`                       | React adapter (`useCalendar`)  | Planned                         |
+| `@calendrix/angular`                     | Angular adapter (signals)      | Planned                         |
+| `@calendrix/vue`                         | Vue adapter (composable)       | Planned                         |
+| `@calendrix/finance`                     | Market calendars and holidays  | Planned                         |
 
 ## Repository layout
 

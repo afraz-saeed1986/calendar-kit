@@ -2,7 +2,7 @@
 
 Goal: a pure TypeScript core with no dependency on the DOM or any framework. Each adapter only subscribes to the state and spreads the `getXProps` results onto elements.
 
-> **Status:** design draft. Implemented so far: date helpers, the Gregorian and Persian calendars, and the navigation and month-grid part of `createCalendar` (see the [roadmap](roadmap.md)). Selection, keyboard handling and prop getters are still planned. Where the source differs from this draft, the source is the reference.
+> **Status:** design draft. Implemented so far: date helpers, the Gregorian and Persian calendars, and `createCalendar` with the month grid, navigation, `single` selection, keyboard handling and prop getters (see the [roadmap](roadmap.md)). Range and multiple selection, time and the plugin extras are still planned. Where the source differs from this draft, the source is the reference.
 
 ---
 
@@ -73,7 +73,7 @@ export interface CalendarOptions {
 
 ## 3. Output: read-only state
 
-> Implemented: `DayCell` currently has `date`, `label`, `isToday`, `isFocused`, `isOutsideMonth`, `isDisabled`, `isUnavailable` and `meta`. The selection fields (`isSelected`, `isInRange`, `isRangeStart`, `isRangeEnd`) arrive with selection. `CalendarState` has no `value` or `mode` yet.
+> Implemented: `DayCell` has `date`, `label`, `isToday`, `isSelected`, `isFocused`, `isOutsideMonth`, `isDisabled`, `isUnavailable` and `meta`. The range fields (`isInRange`, `isRangeStart`, `isRangeEnd`) arrive with range selection. `CalendarState` has `value` (a single day or `null`) but no `mode` yet.
 
 ```ts
 export interface CalendarState {
@@ -163,7 +163,7 @@ export interface KeyEventLike {
 export function createCalendar(options?: CalendarOptions): Calendar;
 ```
 
-**Prop getter contract:** the result of `getDayProps` includes `role="gridcell"`, `aria-selected`, `aria-disabled`, `aria-label` (the full date text in the active locale), `tabIndex` (`0` only for the focused day), `data-*` attributes for styling, and `onClick` / `onKeyDown` handlers. Handler names are camelCase in the core; the Vue adapter would map them to `@click` and the Angular adapter to `(click)`. Alternatively the core can return handlers separately from attributes; see **open decision 2** below.
+**Prop getter contract (implemented):** every prop getter returns `{ attrs, handlers }`. `attrs` use DOM attribute names and `handlers` use DOM event names, so each adapter maps them to its own syntax (React `onClick` and `tabIndex`, Vue `@click`, Angular `(click)`). `getDayProps` returns `role="gridcell"`, `tabindex` (`0` only for the focused day), `aria-selected`, `aria-disabled`, `aria-current`, `aria-label` (the full date in the active locale), `data-*` attributes for styling and a `click` handler. `getGridProps` returns `role="grid"` and the single `keydown` handler. Attributes with the value `undefined` are left off. See [ADR 0006](adr/0006-selection-keyboard-props.md).
 
 ---
 
@@ -255,7 +255,7 @@ export function useCalendar(options: CalendarOptions) {
 These are intentionally left open. Find the answers by building the Angular and Vue prototypes.
 
 1. **Internal date representation:** a `CalendarDate` triple (year/month/day) with a `system` field, or an epoch-day number? The triple is more readable; the epoch day makes conversion simpler. Proposal: triple in the public API, epoch day only inside calendar implementations.
-2. **Prop getters and handlers:** one single object (convenient for React) or separate `attrs` and `handlers` (easier for Vue/Angular, where event names differ)? Proposal: separate them; in React a small helper merges them.
+2. **Prop getters and handlers:** one single object (convenient for React) or separate `attrs` and `handlers` (easier for Vue/Angular, where event names differ)? **Decided in M1c:** separate them, with DOM attribute and event names (see [ADR 0006](adr/0006-selection-keyboard-props.md)); to be validated by the Angular and Vue prototypes.
 3. **Time zone safety:** "today" in which time zone? Add a `timeZone` option and an injectable `now()` for tests.
 4. **Temporal API:** for now rely on `Intl.DateTimeFormat` with `calendar: 'persian'` and hide it behind `CalendarImplementation`, so a later migration needs no API change.
 5. **Multiple months:** showing 2 or 3 months side by side (for range selection). In `state`, should this be `months: MonthGrid[]` or a single month? If you plan to support it, make it an array now.

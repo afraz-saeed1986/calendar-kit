@@ -17,9 +17,9 @@ Dates are intentionally omitted; milestones are ordered by dependency, not by ca
 - [x] Persian calendar (`Intl`-backed, verified against known conversions)
 - [x] `createCalendar`: visible month, `weeks` grid, locale-aware labels
 - [x] Navigation: month, year, today, `goTo`
-- [ ] `single` selection
-- [ ] `handleKeyDown` (ARIA grid pattern)
-- [ ] Prop getters
+- [x] `single` selection
+- [x] `handleKeyDown` (ARIA grid pattern)
+- [x] Prop getters
 
 ## M2: React adapter
 

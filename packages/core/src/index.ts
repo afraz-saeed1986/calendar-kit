@@ -1,7 +1,9 @@
 export type {
+  AttributeValue,
   Calendar,
   CalendarDate,
   CalendarImplementation,
+  CalendarLabels,
   CalendarOptions,
   CalendarPlugin,
   CalendarState,
@@ -9,6 +11,8 @@ export type {
   DateRange,
   DayCell,
   Direction,
+  ElementProps,
+  KeyEventLike,
   PluginContext,
   Selection,
   SelectionMode,
