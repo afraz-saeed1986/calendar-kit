@@ -28,21 +28,26 @@ import { convertDate, registerCalendar } from '@calendrix/core';
 // convertDate(d, 'persian')
 ```
 
+## Month grid and navigation
+
 `createCalendar` holds the visible month and everything needed to render it. It knows nothing about the DOM or a framework.
+
+```ts
 import { createCalendar } from '@calendrix/core';
 
-    const calendar = createCalendar({ locale: 'en-US' });
+const calendar = createCalendar({ locale: 'en-US' });
 
-    const state = calendar.getState();
-    state.monthLabel; // "October 2026"
-    state.weekdayLabels; // [{ short: 'Sun', long: 'Sunday' }, ...]
-    state.weeks; // 6 weeks of 7 DayCell objects (date, label, isToday, isOutsideMonth, ...)
+const state = calendar.getState();
+state.monthLabel; // "October 2026"
+state.weekdayLabels; // [{ short: 'Sun', long: 'Sunday' }, ...]
+state.weeks; // 6 weeks of 7 DayCell objects (date, label, isToday, isOutsideMonth, ...)
 
-    const unsubscribe = calendar.subscribe(() => console.log(calendar.getState().monthLabel));
-    calendar.nextMonth(); // logs "November 2026"
-    unsubscribe();
+const unsubscribe = calendar.subscribe(() => console.log(calendar.getState().monthLabel));
+calendar.nextMonth(); // logs "November 2026"
+unsubscribe();
+```
 
-    `getState()` returns the same object until something changes, so it works directly with `useSyncExternalStore`. For tests, pass a fixed clock: `createCalendar({ now: () => new Date('2026-10-14T10:00:00Z'), timeZone: 'UTC' })`. Design notes: [ADR 0005](../../docs/adr/0005-calendar-store-and-clock.md).
+`getState()` returns the same object until something changes, so it works directly with `useSyncExternalStore`. For tests, pass a fixed clock: `createCalendar({ now: () => new Date('2026-10-14T10:00:00Z'), timeZone: 'UTC' })`. Design notes: [ADR 0005](../../docs/adr/0005-calendar-store-and-clock.md).
 
 ## API
 

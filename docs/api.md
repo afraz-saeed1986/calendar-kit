@@ -2,7 +2,7 @@
 
 Goal: a pure TypeScript core with no dependency on the DOM or any framework. Each adapter only subscribes to the state and spreads the `getXProps` results onto elements.
 
-> **Status:** design draft. Implemented so far: date helpers, the Gregorian and Persian calendars, and the navigation and month-grid part of `createCalendar` (see the [roadmap](roadmap.md)). Selection, keyboard handling and prop getters are still planned. Where the source differs from this draft, the source is the reference. Everything below describes the planned public API.
+> **Status:** design draft. Implemented so far: date helpers, the Gregorian and Persian calendars, and the navigation and month-grid part of `createCalendar` (see the [roadmap](roadmap.md)). Selection, keyboard handling and prop getters are still planned. Where the source differs from this draft, the source is the reference.
 
 ---
 
