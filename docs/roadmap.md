@@ -20,6 +20,9 @@ Dates are intentionally omitted; milestones are ordered by dependency, not by ca
 - [x] `single` selection
 - [x] `handleKeyDown` (ARIA grid pattern)
 - [x] Prop getters
+- [x] Time model: `TimeValue`, `DateTimeValue`, `toInstant` and `fromInstant`, ISO helpers
+- [x] `createTimeField`: segments, typing, arrow keys, 12 and 24-hour clock
+- [ ] Text input: format and parse a date, a time and a date-time in each locale
 
 ## M2: React adapter
 
@@ -57,6 +60,6 @@ Tracked here until an ADR settles them. Details in [api.md](api.md), section 7.
 
 1. Public date representation: triple vs epoch day (current direction: triple publicly, epoch day internally).
 2. Prop getters: single object vs separate `attrs` and `handlers`.
-3. Time zone handling for "today" (injectable clock).
+3. Time zone handling for "today" (injectable clock). Settled for wall-clock values in [ADR 0007](adr/0007-time-model.md).
 4. Temporal API migration path.
 5. Multi-month views in `state`.

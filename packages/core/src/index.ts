@@ -21,6 +21,20 @@ export type {
 } from './types';
 
 export { createCalendar } from './calendar';
+export { formatISODate, formatISOTime, parseISODate, parseISOTime } from './iso';
+export { createTimeField } from './time-field';
+export type {
+  DateTimeValue,
+  HourCycle,
+  TimeField,
+  TimeFieldLabels,
+  TimeFieldOptions,
+  TimeFieldState,
+  TimeSegment,
+  TimeSegmentType,
+  TimeValue,
+} from './time-types';
+export { fromInstant, toInstant } from './timezone';
 export { gregory } from './calendars/gregory';
 export { getCalendar, registerCalendar } from './calendars/registry';
 export {

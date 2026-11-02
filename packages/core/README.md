@@ -86,20 +86,27 @@ const day = calendar.getDayProps(cell.date); // role, tabindex, aria-selected, a
 
 After a keyboard move, an adapter must focus the day whose `tabindex` is `0`. Design notes: [ADR 0006](../../docs/adr/0006-selection-keyboard-props.md).
 
+## Time
+
+Wall-clock times, time zones, ISO helpers and the time input are described in [docs/time.md](../../docs/time.md).
+
 ## API
 
-| Export                                       | Purpose                                                               |
-| -------------------------------------------- | --------------------------------------------------------------------- |
-| `createCalendar(options)`                    | Calendar store: month grid, labels, navigation, selection, keyboard   |
-| `createDate(system, y, m, d)`                | Create a validated `CalendarDate` (throws `RangeError` if impossible) |
-| `addDays(date, n)`                           | Add or subtract days across any boundary                              |
-| `addMonths(date, n)` / `addYears(date, n)`   | Add months or years, clamping the day                                 |
-| `convertDate(date, system)`                  | Convert to another calendar system                                    |
-| `compareDates(a, b)`                         | Ordering, works across systems                                        |
-| `isSameDay(a, b)`                            | Equality by day                                                       |
-| `dayOfWeek(date)`                            | 0 = Sunday ... 6 = Saturday                                           |
-| `gregory`                                    | Gregorian `CalendarImplementation`                                    |
-| `registerCalendar(impl)` / `getCalendar(id)` | Calendar registry used by plugins                                     |
+| Export                                                              | Purpose                                                                |
+| ------------------------------------------------------------------- | ---------------------------------------------------------------------- |
+| `createCalendar(options)`                                           | Calendar store: month grid, labels, navigation, selection, keyboard    |
+| `createDate(system, y, m, d)`                                       | Create a validated `CalendarDate` (throws `RangeError` if impossible)  |
+| `addDays(date, n)`                                                  | Add or subtract days across any boundary                               |
+| `addMonths(date, n)` / `addYears(date, n)`                          | Add months or years, clamping the day                                  |
+| `convertDate(date, system)`                                         | Convert to another calendar system                                     |
+| `compareDates(a, b)`                                                | Ordering, works across systems                                         |
+| `isSameDay(a, b)`                                                   | Equality by day                                                        |
+| `dayOfWeek(date)`                                                   | 0 = Sunday ... 6 = Saturday                                            |
+| `gregory`                                                           | Gregorian `CalendarImplementation`                                     |
+| `registerCalendar(impl)` / `getCalendar(id)`                        | Calendar registry used by plugins                                      |
+| `createTimeField(options)`                                          | Time input store: segments, typing, keyboard, ARIA props               |
+| `toInstant(value, tz?)` / `fromInstant(date, tz?, system?)`         | Wall-clock `{ date, time }` to a `Date` and back, daylight-saving safe |
+| `formatISODate` / `parseISODate` / `formatISOTime` / `parseISOTime` | ISO 8601 text for forms and servers                                    |
 
 Types (`CalendarDate`, `CalendarOptions`, `CalendarState`, `DayCell`, `Calendar`, `ElementProps`, `KeyEventLike`, `CalendarPlugin`, ...) are exported from the package root. The full API design is in [docs/api.md](../../docs/api.md).
 
