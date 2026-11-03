@@ -1,5 +1,5 @@
 import { describe, expect, it, vi } from 'vitest';
-import { createTimeField, type TimeField, type TimeSegmentType } from '../src';
+import { createTimeField, type TimeField, type TimeSegmentType, type TimeValue } from '../src';
 
 const press = (
   field: TimeField,
@@ -203,6 +203,27 @@ describe('time field: typing', () => {
 });
 
 describe('time field: limits, control and subscriptions', () => {
+  it('keeps typed digits when a parent re-renders with the new value after each key', () => {
+    let reported: TimeValue | null = null;
+    const field = createTimeField({
+      locale: 'de-DE',
+      value: null,
+      onChange: (next) => {
+        reported = next;
+      },
+    });
+    const parentRerenders = () => field.setOptions({ value: reported });
+
+    for (const key of '14') {
+      press(field, 'hour', key);
+      parentRerenders();
+    }
+    for (const key of '22') {
+      press(field, 'minute', key);
+      parentRerenders();
+    }
+    expect(value(field)).toEqual({ hour: 14, minute: 22, second: 0 });
+  });
   it('rejects values outside minTime and maxTime', () => {
     const onChange = vi.fn();
     const field = createTimeField({
@@ -287,7 +308,7 @@ describe('time field: props', () => {
     expect(field.getRootProps().attrs).toMatchObject({
       role: 'group',
       'aria-label': 'زمان',
-      dir: 'rtl',
+      dir: 'ltr', // times are read left to right, also in Persian
     });
   });
 

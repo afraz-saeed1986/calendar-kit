@@ -1,0 +1,121 @@
+body {
+  margin: 0;
+  font-family:
+    system-ui,
+    -apple-system,
+    'Segoe UI',
+    Roboto,
+    'Vazirmatn',
+    sans-serif;
+  color: #1f2328;
+  background: #f6f8fa;
+}
+
+@media (prefers-color-scheme: dark) {
+  :root:not([data-theme='light']) body {
+    color: #e6edf3;
+    background: #010409;
+  }
+}
+
+[data-theme='dark'] body {
+  color: #e6edf3;
+  background: #010409;
+}
+
+.demo {
+  max-inline-size: 760px;
+  margin-inline: auto;
+  padding: 2rem 1rem 4rem;
+}
+
+.demo h1 {
+  margin-block: 0 0.25rem;
+}
+
+.demo-lead {
+  margin-block: 0 1.5rem;
+  opacity: 0.7;
+}
+
+.demo-toolbar {
+  display: flex;
+  flex-wrap: wrap;
+  gap: 1.5rem;
+  margin-block-end: 1.5rem;
+}
+
+.demo-group {
+  display: flex;
+  gap: 0.25rem;
+}
+
+.demo-group button {
+  padding: 0.4rem 0.8rem;
+  font: inherit;
+  color: inherit;
+  background: transparent;
+  border: 1px solid #8b949e;
+  cursor: pointer;
+}
+
+.demo-group button:first-child {
+  border-start-start-radius: 8px;
+  border-end-start-radius: 8px;
+}
+
+.demo-group button:last-child {
+  border-start-end-radius: 8px;
+  border-end-end-radius: 8px;
+}
+
+.demo-group button[aria-pressed='true'] {
+  color: #fff;
+  background: #2563eb;
+  border-color: #2563eb;
+}
+
+.demo-row {
+  display: flex;
+  flex-wrap: wrap;
+  gap: 2rem;
+  align-items: flex-start;
+}
+
+.demo-section {
+  margin-block-end: 2rem;
+}
+
+.demo-section h2 {
+  margin-block: 0 0.75rem;
+  font-size: 1rem;
+}
+
+.demo-input {
+  padding: 0.5rem 0.75rem;
+  font: inherit;
+  color: inherit;
+  background: transparent;
+  border: 1px solid #8b949e;
+  border-radius: 8px;
+}
+
+.demo-input[aria-invalid='true'] {
+  border-color: #d1242f;
+}
+
+.demo-summary {
+  display: grid;
+  grid-template-columns: max-content 1fr;
+  gap: 0.35rem 1rem;
+  margin: 0;
+}
+
+.demo-summary dt {
+  opacity: 0.7;
+}
+
+.demo-summary dd {
+  margin: 0;
+  font-variant-numeric: tabular-nums;
+}

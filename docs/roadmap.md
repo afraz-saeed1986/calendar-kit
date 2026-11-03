@@ -22,7 +22,7 @@ Dates are intentionally omitted; milestones are ordered by dependency, not by ca
 - [x] Prop getters
 - [x] Time model: `TimeValue`, `DateTimeValue`, `toInstant` and `fromInstant`, ISO helpers
 - [x] `createTimeField`: segments, typing, arrow keys, 12 and 24-hour clock
-- [ ] Text input: format and parse a date, a time and a date-time in each locale
+- [x] Text input: format and parse a date, a time and a date-time in each locale
 
 ## M2: React adapter
 

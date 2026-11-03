@@ -23,6 +23,11 @@ export type {
 export { createCalendar } from './calendar';
 export { formatISODate, formatISOTime, parseISODate, parseISOTime } from './iso';
 export { createTimeField } from './time-field';
+export { normalizeDigits } from './digits';
+export { datePatternOf, formatDate, parseDate } from './text-date';
+export type { DatePattern, TextDateOptions } from './text-date';
+export { formatDateTime, formatTime, parseDateTime, parseTime } from './text-time';
+export type { TextTimeOptions } from './text-time';
 export type {
   DateTimeValue,
   HourCycle,

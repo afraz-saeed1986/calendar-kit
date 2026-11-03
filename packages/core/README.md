@@ -90,6 +90,8 @@ After a keyboard move, an adapter must focus the day whose `tabindex` is `0`. De
 
 Wall-clock times, time zones, ISO helpers and the time input are described in [docs/time.md](../../docs/time.md).
 
+Reading and writing dates and times as text, in any locale and calendar, is described in [docs/text-input.md](../../docs/text-input.md).
+
 ## API
 
 | Export                                                              | Purpose                                                                |

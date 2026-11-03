@@ -237,8 +237,15 @@ export function createTimeField(initial: TimeFieldOptions = {}): TimeField {
     setOptions(partial) {
       const keys = Object.keys(partial) as Array<keyof TimeFieldOptions>;
       if (keys.every((key) => Object.is(options[key], partial[key]))) return;
+      // Typed digits survive a new `value` (a parent re-renders after each digit), but not a
+      // change that reshapes the segments.
+      const reshaped = keys.some(
+        (key) =>
+          !Object.is(options[key], partial[key]) &&
+          (key === 'locale' || key === 'hourCycle' || key === 'showSeconds'),
+      );
       options = { ...options, ...partial };
-      buffer = '';
+      if (reshaped) buffer = '';
       refresh();
     },
 
@@ -291,7 +298,8 @@ export function createTimeField(initial: TimeFieldOptions = {}): TimeField {
         attrs: {
           role: 'group',
           'aria-label': timeLabelsFor(state.locale, options.labels).time,
-          dir: state.direction,
+          // Times are read left to right, hour first, also in right-to-left languages.
+          dir: 'ltr',
         },
         handlers: {},
       };
