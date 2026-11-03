@@ -12,7 +12,7 @@ Dates are intentionally omitted; milestones are ordered by dependency, not by ca
 - [x] Date helpers: `createDate`, `addDays`, `convertDate`, `compareDates`
 - [x] Documentation skeleton and ADRs
 
-## M1: Core state machine
+## M1: Core state machine (done)
 
 - [x] Persian calendar (`Intl`-backed, verified against known conversions)
 - [x] `createCalendar`: visible month, `weeks` grid, locale-aware labels
@@ -24,11 +24,13 @@ Dates are intentionally omitted; milestones are ordered by dependency, not by ca
 - [x] `createTimeField`: segments, typing, arrow keys, 12 and 24-hour clock
 - [x] Text input: format and parse a date, a time and a date-time in each locale
 
-## M2: React adapter
+## M2: React adapter (done)
 
-- [ ] `useCalendar` hook
-- [ ] Default unstyled components and a base stylesheet
-- [ ] Demo page
+- [x] `useCalendar` and `useTimeField` hooks with stable options
+- [x] `Calendar` and `TimeField` components
+- [x] `DateTimePicker`: text input, popover, typed and picked values
+- [x] Base stylesheet (CSS variables, dark mode, RTL)
+- [x] Demo app (`apps/demo`)
 
 ## M3: API validation
 
@@ -39,6 +41,8 @@ Dates are intentionally omitted; milestones are ordered by dependency, not by ca
 
 - [ ] Angular and Vue adapters complete
 - [ ] `range` and `multiple` selection
+- [ ] Popover: flip near the viewport edge, focus handling
+- [ ] Time field on touch devices (hidden input for the on-screen keyboard)
 - [ ] Screen reader testing and automated a11y checks
 - [ ] RTL and Persian numerals verified in all adapters
 
@@ -59,7 +63,7 @@ Dates are intentionally omitted; milestones are ordered by dependency, not by ca
 Tracked here until an ADR settles them. Details in [api.md](api.md), section 7.
 
 1. Public date representation: triple vs epoch day (current direction: triple publicly, epoch day internally).
-2. Prop getters: single object vs separate `attrs` and `handlers`.
+2. Prop getters: single object vs separate `attrs` and `handlers`. Settled in [ADR 0006](adr/0006-selection-keyboard-props.md).
 3. Time zone handling for "today" (injectable clock). Settled for wall-clock values in [ADR 0007](adr/0007-time-model.md).
 4. Temporal API migration path.
 5. Multi-month views in `state`.

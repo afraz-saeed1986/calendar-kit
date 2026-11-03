@@ -1,5 +1,8 @@
 export { Calendar } from './calendar';
 export type { CalendarProps } from './calendar';
+export { DateTimePicker } from './date-time-picker';
+export type { DateTimePickerProps } from './date-time-picker';
+export type { PickerLabels } from './messages';
 export { toReactProps } from './props';
 export { TimeField } from './time-field';
 export type { TimeFieldProps } from './time-field';

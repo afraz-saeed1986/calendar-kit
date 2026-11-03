@@ -1,10 +1,12 @@
 /*
- * Optional base styles for @calendrix/react. Override any --calendrix-* variable to restyle.
- * Dark mode follows the system, or set data-theme="dark" on any ancestor (data-theme="light" to force light).
+ * Optional base styles for @calendrix/react.
+ *
+ * Restyle by overriding any --calendrix-* variable on :root or on any ancestor.
+ * Dark mode follows the system; set data-theme="dark" or data-theme="light" on any element
+ * to force a theme for everything inside it.
  */
 
-.calendrix-calendar,
-.calendrix-time-field {
+:root {
   --calendrix-font: system-ui, -apple-system, 'Segoe UI', Roboto, 'Vazirmatn', sans-serif;
   --calendrix-bg: #ffffff;
   --calendrix-fg: #1f2328;
@@ -13,21 +15,14 @@
   --calendrix-hover: #f3f4f6;
   --calendrix-accent: #2563eb;
   --calendrix-accent-fg: #ffffff;
+  --calendrix-danger: #d1242f;
   --calendrix-radius: 8px;
   --calendrix-cell-size: 2.75rem;
   --calendrix-gap: 0.25rem;
-
-  font-family: var(--calendrix-font);
-  color: var(--calendrix-fg);
-  background: var(--calendrix-bg);
-  border: 1px solid var(--calendrix-border);
-  border-radius: var(--calendrix-radius);
-  box-sizing: border-box;
 }
 
 @media (prefers-color-scheme: dark) {
-  :root:not([data-theme='light']) .calendrix-calendar,
-  :root:not([data-theme='light']) .calendrix-time-field {
+  :root:not([data-theme='light']) {
     --calendrix-bg: #0d1117;
     --calendrix-fg: #e6edf3;
     --calendrix-muted: #8b949e;
@@ -35,11 +30,11 @@
     --calendrix-hover: #1c2128;
     --calendrix-accent: #4c8dff;
     --calendrix-accent-fg: #0d1117;
+    --calendrix-danger: #ff7b72;
   }
 }
 
-[data-theme='dark'] .calendrix-calendar,
-[data-theme='dark'] .calendrix-time-field {
+[data-theme='dark'] {
   --calendrix-bg: #0d1117;
   --calendrix-fg: #e6edf3;
   --calendrix-muted: #8b949e;
@@ -47,6 +42,33 @@
   --calendrix-hover: #1c2128;
   --calendrix-accent: #4c8dff;
   --calendrix-accent-fg: #0d1117;
+  --calendrix-danger: #ff7b72;
+}
+
+[data-theme='light'] {
+  --calendrix-bg: #ffffff;
+  --calendrix-fg: #1f2328;
+  --calendrix-muted: #6b7280;
+  --calendrix-border: #d0d7de;
+  --calendrix-hover: #f3f4f6;
+  --calendrix-accent: #2563eb;
+  --calendrix-accent-fg: #ffffff;
+  --calendrix-danger: #d1242f;
+}
+
+.calendrix-calendar,
+.calendrix-time-field,
+.calendrix-picker {
+  font-family: var(--calendrix-font);
+  color: var(--calendrix-fg);
+  box-sizing: border-box;
+}
+
+.calendrix-calendar,
+.calendrix-time-field {
+  background: var(--calendrix-bg);
+  border: 1px solid var(--calendrix-border);
+  border-radius: var(--calendrix-radius);
 }
 
 /* Calendar */
@@ -194,6 +216,124 @@
 
 .calendrix-segment[data-segment='period'] {
   margin-inline-start: 0.25rem;
+}
+
+/* Date-time picker */
+
+.calendrix-picker {
+  position: relative;
+  display: inline-block;
+}
+
+.calendrix-picker-field {
+  display: flex;
+  align-items: center;
+  background: var(--calendrix-bg);
+  border: 1px solid var(--calendrix-border);
+  border-radius: var(--calendrix-radius);
+}
+
+.calendrix-picker-field:focus-within {
+  border-color: var(--calendrix-accent);
+}
+
+.calendrix-picker-field:has(.calendrix-input[aria-invalid='true']) {
+  border-color: var(--calendrix-danger);
+}
+
+.calendrix-input {
+  flex: 1;
+  min-inline-size: 13rem;
+  padding: 0.5rem 0.75rem;
+  font: inherit;
+  color: inherit;
+  background: transparent;
+  border: 0;
+  outline: none;
+}
+
+.calendrix-input::placeholder {
+  color: var(--calendrix-muted);
+}
+
+.calendrix-toggle {
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  inline-size: 2.25rem;
+  block-size: 2.25rem;
+  padding: 0;
+  color: var(--calendrix-muted);
+  background: transparent;
+  border: 0;
+  border-radius: var(--calendrix-radius);
+  cursor: pointer;
+}
+
+.calendrix-toggle:hover {
+  color: var(--calendrix-fg);
+  background: var(--calendrix-hover);
+}
+
+.calendrix-toggle:focus-visible,
+.calendrix-action:focus-visible {
+  outline: 2px solid var(--calendrix-accent);
+  outline-offset: 2px;
+}
+
+.calendrix-popover {
+  position: absolute;
+  z-index: 10;
+  inset-block-start: calc(100% + 0.25rem);
+  inset-inline-start: 0;
+  padding: 0.25rem 0 0.75rem;
+  background: var(--calendrix-bg);
+  border: 1px solid var(--calendrix-border);
+  border-radius: calc(var(--calendrix-radius) + 4px);
+  box-shadow: 0 8px 24px rgb(0 0 0 / 0.18);
+}
+
+.calendrix-popover .calendrix-calendar {
+  border: 0;
+}
+
+.calendrix-popover-footer {
+  display: flex;
+  flex-wrap: wrap;
+  align-items: center;
+  justify-content: space-between;
+  gap: 0.75rem;
+  padding-inline: 1rem;
+}
+
+.calendrix-actions {
+  display: flex;
+  gap: 0.5rem;
+}
+
+.calendrix-action {
+  padding: 0.4rem 0.8rem;
+  font: inherit;
+  color: inherit;
+  background: transparent;
+  border: 1px solid var(--calendrix-border);
+  border-radius: var(--calendrix-radius);
+  cursor: pointer;
+}
+
+.calendrix-action:hover {
+  background: var(--calendrix-hover);
+}
+
+.calendrix-action-primary {
+  color: var(--calendrix-accent-fg);
+  background: var(--calendrix-accent);
+  border-color: var(--calendrix-accent);
+}
+
+.calendrix-action-primary:hover {
+  background: var(--calendrix-accent);
+  opacity: 0.9;
 }
 
 @media (forced-colors: active) {

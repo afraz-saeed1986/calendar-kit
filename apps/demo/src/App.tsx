@@ -7,11 +7,12 @@ import {
   parseDate,
   toInstant,
   type CalendarDate,
+  type DateTimeValue,
   type TimeValue,
 } from '@calendrix/core';
 import { registerCalendar } from '@calendrix/core';
 import { persian, persianPlugin } from '@calendrix/persian';
-import { Calendar, TimeField } from '@calendrix/react';
+import { Calendar, DateTimePicker, TimeField } from '@calendrix/react';
 import '@calendrix/react/styles.css';
 import { useEffect, useState } from 'react';
 import './demo.css';
@@ -52,6 +53,7 @@ export function App() {
   const [date, setDate] = useState<CalendarDate | null>(null);
   const [time, setTime] = useState<TimeValue | null>(null);
   const [text, setText] = useState('');
+  const [picked, setPicked] = useState<DateTimeValue | null>(null);
 
   const profile = PROFILES[mode];
 
@@ -119,6 +121,19 @@ export function App() {
           ))}
         </div>
       </div>
+
+      <section className="demo-section">
+        <h2>DateTimePicker</h2>
+        <DateTimePicker
+          system={profile.system}
+          locale={profile.locale}
+          hourCycle={profile.hourCycle}
+          plugins={[persianPlugin]}
+          value={picked}
+          onChange={setPicked}
+        />
+        <p>{picked ? `${formatISODate(picked.date)}T${formatISOTime(picked.time)}` : '—'}</p>
+      </section>
 
       <div className="demo-row">
         <section className="demo-section">
