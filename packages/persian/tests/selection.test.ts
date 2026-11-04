@@ -16,10 +16,13 @@ const options: CalendarOptions = {
   timeZone: 'UTC',
 };
 
-const press = (calendar: ReturnType<typeof createCalendar>, key: string, shiftKey = false) =>
-  calendar.handleKeyDown({ key, shiftKey, preventDefault: vi.fn() } as KeyEventLike);
+const press = (
+  calendar: ReturnType<typeof createCalendar<'single'>>,
+  key: string,
+  shiftKey = false,
+) => calendar.handleKeyDown({ key, shiftKey, preventDefault: vi.fn() } as KeyEventLike);
 
-const focused = (calendar: ReturnType<typeof createCalendar>) => {
+const focused = (calendar: ReturnType<typeof createCalendar<'single'>>) => {
   const { year, month, day } = calendar.getState().focusedDate;
   return [year, month, day];
 };

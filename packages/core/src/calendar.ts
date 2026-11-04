@@ -18,11 +18,14 @@ import type {
   CalendarPlugin,
   CalendarState,
   CalendarSystem,
+  DateRange,
   DayCell,
   Direction,
   ElementProps,
   KeyEventLike,
   PluginContext,
+  Selection,
+  SelectionMode,
   WeekdayLabel,
   WeekStart,
 } from './types';
@@ -82,17 +85,95 @@ function utcDate(epochDay: number): Date {
   return new Date(epochDay * MS_PER_DAY);
 }
 
+// --- Selection values ---
+
+const dateKey = (date: CalendarDate): number => getCalendar(date.system).toEpochDay(date);
+
+function isRange(value: unknown): value is DateRange {
+  return typeof value === 'object' && value !== null && 'start' in value && 'end' in value;
+}
+
+/** What "nothing selected" looks like in a mode. */
+function emptyValue(mode: SelectionMode): Selection {
+  return mode === 'multiple' ? [] : null;
+}
+
+function isEmptySelection(value: Selection | undefined): boolean {
+  if (value === null || value === undefined) return true;
+  return Array.isArray(value) && value.length === 0;
+}
+
+/** The earliest day of a selection, used to decide which month to show. */
+function firstDateOf(value: Selection | undefined): CalendarDate | null {
+  if (value === null || value === undefined) return null;
+  if (Array.isArray(value)) return value[0] ?? null;
+  if (isRange(value)) return value.start;
+  return value;
+}
+
+/** A string that is equal for equal selections, whatever calendar system they are written in. */
+function selectionKey(value: Selection | undefined): string {
+  if (value === null || value === undefined) return '';
+  if (Array.isArray(value)) return value.map(dateKey).join(',');
+  if (isRange(value)) return `${dateKey(value.start)}~${dateKey(value.end)}`;
+  return String(dateKey(value));
+}
+
+/**
+ * The value as the calendar shows it: in the displayed system, a range with its ends in order,
+ * a list sorted and without duplicates. A value of the wrong shape for the mode means "nothing".
+ */
+function normalizeSelection(
+  mode: SelectionMode,
+  raw: Selection | undefined,
+  system: CalendarSystem,
+): Selection {
+  if (mode === 'multiple') {
+    if (!Array.isArray(raw)) return [];
+    const seen = new Set<number>();
+    const list: CalendarDate[] = [];
+    for (const item of raw) {
+      const date = convertDate(item, system);
+      const key = dateKey(date);
+      if (seen.has(key)) continue;
+      seen.add(key);
+      list.push(date);
+    }
+    return list.sort(compareDates);
+  }
+  if (mode === 'range') {
+    if (!isRange(raw)) return null;
+    const start = convertDate(raw.start, system);
+    const end = convertDate(raw.end, system);
+    return compareDates(start, end) > 0 ? { start: end, end: start } : { start, end };
+  }
+  if (raw === null || raw === undefined || Array.isArray(raw) || isRange(raw)) return null;
+  return convertDate(raw, system);
+}
+
 /** Everything that is calculated once per state, so each day cell is cheap to build. */
 interface View {
   system: CalendarSystem;
   locale: string;
   cal: CalendarImplementation;
+  mode: SelectionMode;
   weekStart: WeekStart;
   direction: Direction;
   today: number;
   focusedEpoch: number;
-  value: CalendarDate | null;
-  selectedEpoch: number | null;
+  /** The committed selection, in the displayed system. */
+  value: Selection;
+  /** Epoch days that are shown as selected: one day, or the ends of a range. */
+  selectedFrom: number | null;
+  selectedTo: number | null;
+  /** Multiple mode: the selected days. */
+  selectedSet: Set<number> | null;
+  /** Epoch days that decide which months and years are marked as selected. */
+  marks: number[];
+  /** Range mode: the range that is drawn (a pending start and its preview, or the value). */
+  rangeFrom: number | null;
+  rangeTo: number | null;
+  previewing: boolean;
   monthStart: number;
   monthLength: number;
   min: number | null;
@@ -120,24 +201,40 @@ function isOutOfBounds(v: View, [start, end]: [number, number]): boolean {
   return (v.min !== null && end < v.min) || (v.max !== null && start > v.max);
 }
 
+/** True when a selected day (or an end of the selected range) is inside the range. */
+function touchesSelection(v: View, [start, end]: [number, number]): boolean {
+  return v.marks.some((epochDay) => epochDay >= start && epochDay <= end);
+}
+
 /**
- * Create a calendar: a small external store holding the visible month, the selected day and
+ * Create a calendar: a small external store holding the visible month, the selected days and
  * everything needed to render and operate it. It knows nothing about the DOM or any framework.
+ * The `selection` option picks one day (default), a range or any number of days.
  */
-export function createCalendar(initial: CalendarOptions = {}): Calendar {
-  let options: CalendarOptions = { ...initial };
+export function createCalendar<M extends SelectionMode = 'single'>(
+  initial: CalendarOptions<M> = {},
+): Calendar<M> {
+  // Inside, the mode is the union of all modes; the signature above gives callers the exact type.
+  let options = { ...initial } as unknown as CalendarOptions<SelectionMode>;
   const listeners = new Set<() => void>();
-  let snapshot: CalendarState | null = null;
+  let snapshot: CalendarState<SelectionMode> | null = null;
   let view: View | null = null;
   let currentView: CalendarView = 'days';
-  let internalValue: CalendarDate | null = options.defaultValue ?? null;
+  /** Range mode: the first day of a range that is not complete yet. */
+  let anchor: CalendarDate | null = null;
+  /** Range mode: epoch day of the day the pointer or focus is on while an anchor is pending. */
+  let previewEpoch: number | null = null;
   let dayFormatter: { key: string; format: Intl.DateTimeFormat } | null = null;
 
   const getSystem = () => options.system ?? DEFAULT_SYSTEM;
   const getLocale = () => options.locale ?? DEFAULT_LOCALE;
+  const getMode = (): SelectionMode => options.selection ?? 'single';
   const getToday = () => todayEpochDay(options.now ?? (() => new Date()), options.timeZone);
+
+  let internalValue: Selection = options.defaultValue ?? emptyValue(getMode());
   /** Controlled when `value` is passed (even as null), otherwise the value we keep ourselves. */
-  const getValue = () => (options.value !== undefined ? options.value : internalValue);
+  const getRawValue = (): Selection =>
+    options.value !== undefined ? options.value : internalValue;
 
   function registerPlugins(plugins: CalendarPlugin[] | undefined): void {
     for (const plugin of plugins ?? []) {
@@ -148,7 +245,7 @@ export function createCalendar(initial: CalendarOptions = {}): Calendar {
   registerPlugins(options.plugins);
 
   // Fails here, with a helpful message, if the system is unknown.
-  const initialFocus = options.focusedDate ?? getValue();
+  const initialFocus = options.focusedDate ?? firstDateOf(getRawValue());
   let focused: CalendarDate = initialFocus
     ? convertDate(initialFocus, getSystem())
     : getCalendar(getSystem()).fromEpochDay(getToday());
@@ -171,21 +268,57 @@ export function createCalendar(initial: CalendarOptions = {}): Calendar {
     const system = getSystem();
     const locale = getLocale();
     const cal = getCalendar(system);
-    const rawValue = getValue();
-    const value = rawValue ? convertDate(rawValue, system) : null;
+    const mode = getMode();
+    const value = normalizeSelection(mode, getRawValue(), system);
     const monthStart = cal.toEpochDay({ system, year: focused.year, month: focused.month, day: 1 });
     const { minDate, maxDate } = options;
+
+    let selectedFrom: number | null = null;
+    let selectedTo: number | null = null;
+    let selectedSet: Set<number> | null = null;
+    let marks: number[] = [];
+    let rangeFrom: number | null = null;
+    let rangeTo: number | null = null;
+
+    if (mode === 'single' && value && !Array.isArray(value) && !isRange(value)) {
+      selectedFrom = selectedTo = cal.toEpochDay(value);
+      marks = [selectedFrom];
+    } else if (mode === 'range') {
+      if (anchor) {
+        // A range in the making: only its first day is selected, the rest is drawn as a preview.
+        const first = cal.toEpochDay(anchor);
+        const second = previewEpoch ?? first;
+        selectedFrom = selectedTo = first;
+        marks = [first];
+        rangeFrom = Math.min(first, second);
+        rangeTo = Math.max(first, second);
+      } else if (isRange(value)) {
+        selectedFrom = rangeFrom = cal.toEpochDay(value.start);
+        selectedTo = rangeTo = cal.toEpochDay(value.end);
+        marks = [selectedFrom, selectedTo];
+      }
+    } else if (mode === 'multiple' && Array.isArray(value)) {
+      marks = value.map((date) => cal.toEpochDay(date));
+      selectedSet = new Set(marks);
+    }
 
     view = {
       system,
       locale,
       cal,
+      mode,
       weekStart: options.weekStart ?? defaultWeekStart(locale, system),
       direction: options.direction ?? directionOf(locale),
       today: getToday(),
       focusedEpoch: cal.toEpochDay(focused),
       value,
-      selectedEpoch: value ? cal.toEpochDay(value) : null,
+      selectedFrom,
+      selectedTo,
+      selectedSet,
+      marks,
+      rangeFrom,
+      rangeTo,
+      previewing: mode === 'range' && anchor !== null && previewEpoch !== null,
       monthStart,
       monthLength: cal.daysInMonth(focused.year, focused.month),
       min: minDate ? getCalendar(minDate.system).toEpochDay(minDate) : null,
@@ -207,11 +340,23 @@ export function createCalendar(initial: CalendarOptions = {}): Calendar {
       if (plugin.isDateUnavailable?.(date, v.context) === true) isUnavailable = true;
     }
 
+    const inRangeMode = v.mode === 'range' && v.rangeFrom !== null && v.rangeTo !== null;
+    const isSelected = v.selectedSet
+      ? v.selectedSet.has(epochDay)
+      : v.selectedFrom !== null &&
+        v.selectedTo !== null &&
+        epochDay >= v.selectedFrom &&
+        epochDay <= v.selectedTo;
+
     return {
       date,
       label: v.numbers.format(date.day),
       isToday: epochDay === v.today,
-      isSelected: epochDay === v.selectedEpoch,
+      isSelected,
+      isRangeStart: inRangeMode && epochDay === v.rangeFrom,
+      isRangeEnd: inRangeMode && epochDay === v.rangeTo,
+      isInRange: inRangeMode && epochDay > (v.rangeFrom ?? 0) && epochDay < (v.rangeTo ?? 0),
+      isInPreview: v.previewing && epochDay >= (v.rangeFrom ?? 0) && epochDay <= (v.rangeTo ?? 0),
       isFocused: epochDay === v.focusedEpoch,
       isOutsideMonth: epochDay < v.monthStart || epochDay >= v.monthStart + v.monthLength,
       isDisabled: (v.min !== null && epochDay < v.min) || (v.max !== null && epochDay > v.max),
@@ -220,7 +365,7 @@ export function createCalendar(initial: CalendarOptions = {}): Calendar {
     };
   }
 
-  function buildState(): CalendarState {
+  function buildState(): CalendarState<SelectionMode> {
     const v = getView();
     const leading = (weekdayOfEpochDay(v.monthStart) - v.weekStart + DAYS_PER_WEEK) % DAYS_PER_WEEK;
     const gridStart = v.monthStart - leading;
@@ -267,7 +412,7 @@ export function createCalendar(initial: CalendarOptions = {}): Calendar {
         month,
         label: monthName(range[0]),
         isCurrent: todayDate.year === focused.year && todayDate.month === month,
-        isSelected: v.value !== null && v.value.year === focused.year && v.value.month === month,
+        isSelected: touchesSelection(v, range),
         isFocused: focused.month === month,
         isDisabled: isOutOfBounds(v, range),
       });
@@ -278,7 +423,7 @@ export function createCalendar(initial: CalendarOptions = {}): Calendar {
       year,
       label: yearNumbers.format(year),
       isCurrent: todayDate.year === year,
-      isSelected: v.value !== null && v.value.year === year,
+      isSelected: touchesSelection(v, yearRange(v, year)),
       isFocused: focused.year === year,
       isDisabled: isOutOfBounds(v, yearRange(v, year)),
       isOutsideDecade: index === 0 || index === page.length - 1,
@@ -291,7 +436,9 @@ export function createCalendar(initial: CalendarOptions = {}): Calendar {
       locale: v.locale,
       direction: v.direction,
       weekStart: v.weekStart,
+      selection: v.mode,
       value: v.value,
+      anchor,
       focusedDate: focused,
       visibleMonth: { year: focused.year, month: focused.month },
       weeks,
@@ -306,7 +453,7 @@ export function createCalendar(initial: CalendarOptions = {}): Calendar {
     };
   }
 
-  function getState(): CalendarState {
+  function getState(): CalendarState<SelectionMode> {
     snapshot ??= buildState();
     return snapshot;
   }
@@ -334,13 +481,58 @@ export function createCalendar(initial: CalendarOptions = {}): Calendar {
 
   // --- Selection ---
 
-  function commitValue(date: CalendarDate | null): void {
+  /** Store and report a new value. `focusOn` is the day the user acted on: the view follows it. */
+  function commitValue(next: Selection, focusOn: CalendarDate | null): void {
     const previousFocus = focused;
-    if (options.value === undefined) internalValue = date;
-    if (date) focused = date;
+    if (options.value === undefined) internalValue = next;
+    if (focusOn) focused = focusOn;
     emit();
-    options.onChange?.(date);
-    if (date && !isSameDay(previousFocus, date)) options.onFocusedDateChange?.(date);
+    options.onChange?.(next);
+    if (focusOn && !isSameDay(previousFocus, focusOn)) options.onFocusedDateChange?.(focusOn);
+  }
+
+  /** Range mode: the first click sets the start, the second completes the range. */
+  function selectInRange(v: View, target: CalendarDate): void {
+    if (anchor === null) {
+      anchor = target;
+      previewEpoch = null;
+      setFocused(target);
+      return;
+    }
+
+    const first = v.cal.toEpochDay(anchor);
+    const second = v.cal.toEpochDay(target);
+    const from = Math.min(first, second);
+    const to = Math.max(first, second);
+
+    if (options.allowUnavailableInRange === false) {
+      for (let epochDay = from; epochDay <= to; epochDay++) {
+        if (makeCell(v, v.cal.fromEpochDay(epochDay), epochDay).isUnavailable) return;
+      }
+    }
+
+    const range: DateRange =
+      first <= second ? { start: anchor, end: target } : { start: target, end: anchor };
+    anchor = null;
+    previewEpoch = null;
+    commitValue(range, target);
+  }
+
+  /** Multiple mode: a day that is selected becomes unselected and the other way round. */
+  function toggleInList(v: View, target: CalendarDate): void {
+    const current = Array.isArray(v.value) ? v.value : [];
+    const epochDay = v.cal.toEpochDay(target);
+    const selected = current.some((date) => v.cal.toEpochDay(date) === epochDay);
+
+    if (selected) {
+      commitValue(
+        current.filter((date) => v.cal.toEpochDay(date) !== epochDay),
+        target,
+      );
+      return;
+    }
+    if (options.maxSelected !== undefined && current.length >= options.maxSelected) return;
+    commitValue([...current, target].sort(compareDates), target);
   }
 
   function select(date: CalendarDate): void {
@@ -348,12 +540,29 @@ export function createCalendar(initial: CalendarOptions = {}): Calendar {
     const target = convertDate(date, v.system);
     const cell = makeCell(v, target, v.cal.toEpochDay(target));
     if (cell.isDisabled || cell.isUnavailable) return;
-    commitValue(target);
+
+    if (v.mode === 'range') selectInRange(v, target);
+    else if (v.mode === 'multiple') toggleInList(v, target);
+    else commitValue(target, target);
   }
 
   function clear(): void {
-    if (getValue() === null) return;
-    commitValue(null);
+    const hadAnchor = anchor !== null;
+    anchor = null;
+    previewEpoch = null;
+    if (isEmptySelection(getRawValue())) {
+      if (hadAnchor) emit();
+      return;
+    }
+    commitValue(emptyValue(getMode()), null);
+  }
+
+  function previewTo(date: CalendarDate | null): void {
+    if (getMode() !== 'range' || anchor === null) return;
+    const next = date ? getCalendar(getSystem()).toEpochDay(convertDate(date, getSystem())) : null;
+    if (next === previewEpoch) return;
+    previewEpoch = next;
+    emit();
   }
 
   // --- Months and years ---
@@ -410,6 +619,10 @@ export function createCalendar(initial: CalendarOptions = {}): Calendar {
 
   function moveFocus(event: KeyEventLike, date: CalendarDate): boolean {
     event.preventDefault();
+    // A range in the making follows the keyboard, like it follows the pointer.
+    if (currentView === 'days' && getMode() === 'range' && anchor !== null) {
+      previewEpoch = getCalendar(getSystem()).toEpochDay(date);
+    }
     setFocused(date);
     return true;
   }
@@ -500,12 +713,20 @@ export function createCalendar(initial: CalendarOptions = {}): Calendar {
         event.preventDefault();
         select(focused);
         return true;
+      case 'Escape':
+        // A range that is waiting for its end is cancelled. Otherwise the key is not ours.
+        if (anchor === null) return false;
+        event.preventDefault();
+        anchor = null;
+        previewEpoch = null;
+        emit();
+        return true;
       default:
         return false;
     }
   }
 
-  return {
+  const calendar: Calendar<SelectionMode> = {
     getState,
 
     subscribe(listener) {
@@ -516,28 +737,38 @@ export function createCalendar(initial: CalendarOptions = {}): Calendar {
     },
 
     setOptions(next) {
-      const keys = Object.keys(next) as (keyof CalendarOptions)[];
+      const keys = Object.keys(next) as (keyof CalendarOptions<SelectionMode>)[];
       // Adapters call this on every render, so doing nothing for unchanged options matters.
       if (keys.every((key) => Object.is(options[key], next[key]))) return;
 
       const previousSystem = getSystem();
-      const previousValue = getValue();
+      const previousMode = getMode();
+      const previousKey = selectionKey(getRawValue());
       options = { ...options, ...next };
       registerPlugins(next.plugins);
 
       const system = getSystem();
-      const value = getValue();
-      const valueChanged =
-        value !== null && (previousValue === null || compareDates(previousValue, value) !== 0);
+      const mode = getMode();
+      if (mode !== previousMode) {
+        // A range or a list means nothing in another mode.
+        anchor = null;
+        previewEpoch = null;
+        if (options.value === undefined) internalValue = emptyValue(mode);
+      }
+
+      const rawValue = getRawValue();
+      const target = firstDateOf(normalizeSelection(mode, rawValue, system));
+      // Show the new value. An unchanged value must not pull the user back from other months.
+      const valueChanged = target !== null && selectionKey(rawValue) !== previousKey;
 
       if (next.focusedDate) {
         focused = convertDate(next.focusedDate, system);
       } else if (valueChanged) {
-        // Show the new value. An unchanged value must not pull the user back from other months.
-        focused = convertDate(value, system);
+        focused = target;
       } else if (system !== previousSystem) {
         focused = convertDate(focused, system);
       }
+      if (system !== previousSystem && anchor) anchor = convertDate(anchor, system);
       emit();
     },
 
@@ -550,6 +781,7 @@ export function createCalendar(initial: CalendarOptions = {}): Calendar {
 
     select,
     clear,
+    previewTo,
     handleKeyDown,
 
     setView,
@@ -573,7 +805,12 @@ export function createCalendar(initial: CalendarOptions = {}): Calendar {
             ? state.yearLabel
             : state.yearsLabel;
       return {
-        attrs: { role: 'grid', 'aria-label': label },
+        attrs: {
+          role: 'grid',
+          'aria-label': label,
+          'aria-multiselectable':
+            currentView === 'days' && getMode() !== 'single' ? true : undefined,
+        },
         handlers: {
           keydown: (event) => {
             handleKeyDown(event);
@@ -598,6 +835,10 @@ export function createCalendar(initial: CalendarOptions = {}): Calendar {
           'aria-label': formatDay(v, epochDay),
           'data-today': cell.isToday || undefined,
           'data-selected': cell.isSelected || undefined,
+          'data-range-start': cell.isRangeStart || undefined,
+          'data-range-end': cell.isRangeEnd || undefined,
+          'data-in-range': cell.isInRange || undefined,
+          'data-in-preview': cell.isInPreview || undefined,
           'data-focused': cell.isFocused || undefined,
           'data-outside-month': cell.isOutsideMonth || undefined,
           'data-disabled': cell.isDisabled || undefined,
@@ -683,4 +924,6 @@ export function createCalendar(initial: CalendarOptions = {}): Calendar {
       listeners.clear();
     },
   };
+
+  return calendar as unknown as Calendar<M>;
 }

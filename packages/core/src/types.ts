@@ -33,6 +33,16 @@ export interface DateRange {
 
 export type Selection = CalendarDate | DateRange | CalendarDate[] | null;
 
+/** The value of a calendar for each selection mode. */
+export interface SelectionValueMap {
+  single: CalendarDate | null;
+  range: DateRange | null;
+  /** An empty array means that nothing is selected. */
+  multiple: CalendarDate[];
+}
+
+export type SelectionValue<M extends SelectionMode = 'single'> = SelectionValueMap[M];
+
 /**
  * Contract every calendar system must implement.
  * `epochDay` is the number of days since 1970-01-01 (Gregorian), which is
@@ -62,7 +72,7 @@ export interface CalendarPlugin {
 }
 
 /** Options accepted by `createCalendar` and `Calendar.setOptions`. */
-export interface CalendarOptions {
+export interface CalendarOptions<M extends SelectionMode = 'single'> {
   /** Calendar system to display. Default: 'gregory'. */
   system?: CalendarSystem;
   /** BCP 47 locale for names and numerals, for example 'fa-IR', 'en-US', 'de-DE'. Default: 'en-US'. */
@@ -80,11 +90,21 @@ export interface CalendarOptions {
    * The selected day. Passing it makes the calendar controlled: it only changes when you
    * pass a new value. `null` means "controlled, nothing selected". Leave it out for uncontrolled use.
    */
-  value?: CalendarDate | null;
+  value?: SelectionValue<M>;
   /** Initial selected day for an uncontrolled calendar. */
-  defaultValue?: CalendarDate | null;
+  defaultValue?: SelectionValue<M>;
   /** Called with the day the user selected, or `null` when the selection is cleared. */
-  onChange?: (value: CalendarDate | null) => void;
+  onChange?: (value: SelectionValue<M>) => void;
+
+  /**
+   * How days are selected: one day (default), a range with a start and an end, or any
+   * number of separate days. The type of `value` and `onChange` follows this option.
+   */
+  selection?: M;
+  /** Range mode: allow a range that contains unavailable days. Default: true. */
+  allowUnavailableInRange?: boolean;
+  /** Multiple mode: the most days that can be selected. Default: no limit. */
+  maxSelected?: number;
 
   minDate?: CalendarDate;
   maxDate?: CalendarDate;
@@ -110,6 +130,14 @@ export interface DayCell {
   readonly label: string;
   readonly isToday: boolean;
   readonly isSelected: boolean;
+  /** Range mode: the first day of the range. */
+  readonly isRangeStart: boolean;
+  /** Range mode: the last day of the range. */
+  readonly isRangeEnd: boolean;
+  /** Range mode: a day between the first and the last day. */
+  readonly isInRange: boolean;
+  /** Range mode: a day of the range that would be chosen if the pointer or focus stays here. */
+  readonly isInPreview: boolean;
   readonly isFocused: boolean;
   /** True for the days that belong to the previous or next month. */
   readonly isOutsideMonth: boolean;
@@ -127,13 +155,17 @@ export interface WeekdayLabel {
 }
 
 /** Read-only snapshot of a calendar. The same object is returned until something changes. */
-export interface CalendarState {
+export interface CalendarState<M extends SelectionMode = 'single'> {
   readonly system: CalendarSystem;
   readonly locale: string;
   readonly direction: Direction;
   readonly weekStart: WeekStart;
-  /** The selected day, in the calendar system being displayed. */
-  readonly value: CalendarDate | null;
+  /** The selection mode. */
+  readonly selection: M;
+  /** The selection, in the calendar system being displayed. */
+  readonly value: SelectionValue<M>;
+  /** Range mode: the first day of a range that is not complete yet. */
+  readonly anchor: CalendarDate | null;
   readonly focusedDate: CalendarDate;
   readonly visibleMonth: { readonly year: number; readonly month: number };
   /** Always 6 weeks of 7 days, so the grid height never jumps between months. */
@@ -156,13 +188,13 @@ export interface CalendarState {
   readonly yearsLabel: string;
 }
 
-export interface Calendar {
+export interface Calendar<M extends SelectionMode = 'single'> {
   /** Current state. Safe to call often: the reference only changes when the state does. */
-  getState(): CalendarState;
+  getState(): CalendarState<M>;
   /** For adapters: `useSyncExternalStore`, Vue refs, Angular signals. Returns an unsubscribe function. */
   subscribe(listener: () => void): () => void;
   /** Merge new options, for example when component props change. */
-  setOptions(options: Partial<CalendarOptions>): void;
+  setOptions(options: Partial<CalendarOptions<M>>): void;
 
   nextMonth(): void;
   prevMonth(): void;
@@ -176,6 +208,11 @@ export interface Calendar {
   select(date: CalendarDate): void;
   /** Clear the selection. */
   clear(): void;
+  /**
+   * Range mode: show the range from the pending first day to `date`. Pass `null` to remove the
+   * preview. Does nothing while no first day is pending. It never changes the value.
+   */
+  previewTo(date: CalendarDate | null): void;
 
   /**
    * Keyboard handling for the grid (ARIA grid pattern). Returns true, after calling

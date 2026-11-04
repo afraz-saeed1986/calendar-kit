@@ -187,6 +187,29 @@
   background: var(--calendrix-accent);
 }
 
+/* Range: the days between the ends are lighter, the ends (also a previewed end) are solid. */
+.calendrix-day[data-in-range] {
+  color: var(--calendrix-fg);
+  background: color-mix(in srgb, var(--calendrix-accent) 18%, transparent);
+  border-radius: 0;
+}
+
+.calendrix-day[data-range-start],
+.calendrix-day[data-range-end] {
+  color: var(--calendrix-accent-fg);
+  background: var(--calendrix-accent);
+}
+
+.calendrix-day[data-range-start]:not([data-range-end]) {
+  border-start-end-radius: 0;
+  border-end-end-radius: 0;
+}
+
+.calendrix-day[data-range-end]:not([data-range-start]) {
+  border-start-start-radius: 0;
+  border-end-start-radius: 0;
+}
+
 .calendrix-day[aria-disabled='true'] {
   opacity: 0.4;
   cursor: not-allowed;

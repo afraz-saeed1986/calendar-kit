@@ -16,13 +16,13 @@ function key(name: string, extra: Partial<KeyEventLike> = {}) {
   return { event: { key: name, preventDefault, ...extra } as KeyEventLike, preventDefault };
 }
 
-function press(calendar: ReturnType<typeof createCalendar>, name: string, extra = {}) {
+function press(calendar: ReturnType<typeof createCalendar<'single'>>, name: string, extra = {}) {
   const { event, preventDefault } = key(name, extra);
   const handled = calendar.handleKeyDown(event);
   return { handled, prevented: preventDefault.mock.calls.length > 0 };
 }
 
-const focused = (calendar: ReturnType<typeof createCalendar>) => {
+const focused = (calendar: ReturnType<typeof createCalendar<'single'>>) => {
   const { year, month, day: d } = calendar.getState().focusedDate;
   return [year, month, d];
 };

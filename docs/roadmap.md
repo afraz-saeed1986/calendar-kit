@@ -31,6 +31,7 @@ Dates are intentionally omitted; milestones are ordered by dependency, not by ca
 - [x] `DateTimePicker`: text input, popover, typed and picked values
 - [x] Base stylesheet (CSS variables, dark mode, RTL)
 - [x] Month and year views: pick from a grid of months or a page of years ([ADR 0010](adr/0010-month-year-views.md))
+- [x] Range and multiple selection in the core and `Calendar` ([ADR 0011](adr/0011-range-and-multiple-selection.md))
 - [x] Demo app (`apps/demo`)
 
 ## M3: API validation
@@ -41,7 +42,7 @@ Dates are intentionally omitted; milestones are ordered by dependency, not by ca
 ## M4: Full adapters, range selection, a11y
 
 - [ ] Angular and Vue adapters complete
-- [ ] `range` and `multiple` selection
+- [ ] Range in `DateTimePicker` (a start and an end, each with a time)
 - [ ] Popover: flip near the viewport edge, focus handling
 - [ ] Time field on touch devices (hidden input for the on-screen keyboard)
 - [ ] Screen reader testing and automated a11y checks

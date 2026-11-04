@@ -1,9 +1,9 @@
-import type { CalendarDate, CalendarOptions, ElementProps } from '@calendrix/core';
+import type { CalendarDate, CalendarOptions, ElementProps, SelectionMode } from '@calendrix/core';
 import { useEffect, useRef, type KeyboardEvent } from 'react';
 import { toReactProps } from './props';
 import { useCalendar } from './use-calendar';
 
-export interface CalendarProps extends CalendarOptions {
+export interface CalendarProps<M extends SelectionMode = 'single'> extends CalendarOptions<M> {
   className?: string;
 }
 
@@ -45,8 +45,12 @@ function Chevron({ direction }: { direction: 'previous' | 'next' }) {
  * `calendrix-*` classes and the `data-*` attributes, or import `@calendrix/react/styles.css`.
  * It accepts every option of `createCalendar`.
  */
-export function Calendar({ className, ...options }: CalendarProps) {
-  const { calendar, state } = useCalendar(options);
+export function Calendar<M extends SelectionMode = 'single'>({
+  className,
+  ...rest
+}: CalendarProps<M>) {
+  // `rest` is the props without `className`: exactly the options of the calendar.
+  const { calendar, state } = useCalendar<M>(rest as unknown as CalendarOptions<M>);
   const gridRef = useRef<HTMLDivElement>(null);
   const focusPending = useRef(false);
 
@@ -134,6 +138,7 @@ export function Calendar({ className, ...options }: CalendarProps) {
         className="calendrix-grid"
         data-view={view}
         onKeyDown={handleKeyDown}
+        onPointerLeave={() => calendar.previewTo(null)}
       >
         {view === 'days' && (
           <>
@@ -156,6 +161,7 @@ export function Calendar({ className, ...options }: CalendarProps) {
                     key={cellKey(cell.date)}
                     {...toReactProps(calendar.getDayProps(cell.date))}
                     className="calendrix-day"
+                    onPointerEnter={() => calendar.previewTo(cell.date)}
                   >
                     {cell.label}
                   </div>

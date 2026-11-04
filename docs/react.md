@@ -57,6 +57,25 @@ import { Calendar, TimeField } from '@calendrix/react';
 
 `useCalendar(options)` returns `{ calendar, state }` and `useTimeField(options)` returns `{ field, state }`. Use them to build your own markup; `toReactProps(calendar.getDayProps(date))` turns the attributes and handlers of a prop getter into React props. Options can be written inline: callbacks, dates and arrays do not cause extra updates.
 
+## Range and multiple selection
+
+`<Calendar />` selects one day by default. The `selection` option changes that, and the type of `value` and `onChange` follows it:
+
+```tsx
+<Calendar selection="range" value={range} onChange={setRange} />      // { start, end } | null
+<Calendar selection="multiple" value={days} onChange={setDays} />     // CalendarDate[]
+```
+
+| Option                    | Purpose                                                                   |
+| ------------------------- | ------------------------------------------------------------------------- |
+| `selection`               | `'single'` (default), `'range'` or `'multiple'`                           |
+| `allowUnavailableInRange` | Range only: allow a range that contains unavailable days (default `true`) |
+| `maxSelected`             | Multiple only: the most days that can be selected                         |
+
+A range takes two clicks. The first click sets the start (nothing is reported yet), the pointer or the arrow keys preview the range, and the second click completes it and calls `onChange` once. If the second day is before the first, the two swap. A click after a complete range starts a new one, and the old value stays until the new range is complete. `Escape` cancels a start that is waiting for its end. With the keyboard, `Enter` or `Space` does what a click does. A multiple selection toggles a day on each click, and `onChange` gets the days from the oldest to the newest; an empty list means that nothing is selected.
+
+Days carry `data-range-start`, `data-range-end`, `data-in-range` (between the ends) and `data-in-preview` (the range that a click would complete). In the hooks, `calendar.previewTo(date)` draws the preview and `calendar.previewTo(null)` removes it. `<DateTimePicker />` supports a single date for now. See [ADR 0011](adr/0011-range-and-multiple-selection.md).
+
 ## Months and years
 
 The month and the year in the header of `<Calendar />` are buttons. A click on the month shows the months of the year, a click on the year shows a page of ten years (with one year on each side). Choosing a cell goes back to the days; it moves the view but does not change the value. The arrows move by a month, a year or ten years, depending on what is shown.
@@ -83,7 +102,7 @@ Components have no styles of their own. Import `@calendrix/react/styles.css` for
 }
 ```
 
-Variables: `--calendrix-font`, `-bg`, `-fg`, `-muted`, `-border`, `-hover`, `-accent`, `-accent-fg`, `-danger`, `-radius`, `-cell-size`, `-gap`. Dark mode follows the system; set `data-theme="dark"` or `data-theme="light"` on any element to force a theme inside it. Every part has a `calendrix-*` class, and days carry `data-today`, `data-selected`, `data-outside-month`, `data-disabled` and `data-unavailable`.
+Variables: `--calendrix-font`, `-bg`, `-fg`, `-muted`, `-border`, `-hover`, `-accent`, `-accent-fg`, `-danger`, `-radius`, `-cell-size`, `-gap`. Dark mode follows the system; set `data-theme="dark"` or `data-theme="light"` on any element to force a theme inside it. Every part has a `calendrix-*` class, and days carry `data-today`, `data-selected`, `data-outside-month`, `data-disabled`, `data-unavailable`, `data-range-start`, `data-range-end`, `data-in-range` and `data-in-preview`.
 
 ## Known limitations
 

@@ -230,7 +230,7 @@ import { useSyncExternalStore, useRef, useEffect } from 'react';
 import { createCalendar, type CalendarOptions } from '@calendrix/core';
 
 export function useCalendar(options: CalendarOptions) {
-  const ref = useRef<ReturnType<typeof createCalendar>>();
+  const ref = useRef<ReturnType<typeof createCalendar<'single'>>>();
   if (!ref.current) ref.current = createCalendar(options);
   const cal = ref.current;
 

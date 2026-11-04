@@ -7,6 +7,7 @@ import {
   parseDate,
   toInstant,
   type CalendarDate,
+  type DateRange,
   type DateTimeValue,
   type TimeValue,
 } from '@calendrix/core';
@@ -54,6 +55,8 @@ export function App() {
   const [time, setTime] = useState<TimeValue | null>(null);
   const [text, setText] = useState('');
   const [picked, setPicked] = useState<DateTimeValue | null>(null);
+  const [range, setRange] = useState<DateRange | null>(null);
+  const [many, setMany] = useState<DateRange['start'][]>([]);
 
   const profile = PROFILES[mode];
 
@@ -133,6 +136,32 @@ export function App() {
           onChange={setPicked}
         />
         <p>{picked ? `${formatISODate(picked.date)}T${formatISOTime(picked.time)}` : '—'}</p>
+      </section>
+
+      <section className="demo-section">
+        <h2>Range</h2>
+        <Calendar
+          system={profile.system}
+          locale={profile.locale}
+          plugins={[persianPlugin]}
+          selection="range"
+          value={range}
+          onChange={setRange}
+        />
+        <p>{range ? `${formatISODate(range.start)} → ${formatISODate(range.end)}` : '—'}</p>
+      </section>
+
+      <section className="demo-section">
+        <h2>Multiple</h2>
+        <Calendar
+          system={profile.system}
+          locale={profile.locale}
+          plugins={[persianPlugin]}
+          selection="multiple"
+          value={many}
+          onChange={setMany}
+        />
+        <p>{many.length > 0 ? many.map((date) => formatISODate(date)).join(', ') : '—'}</p>
       </section>
 
       <div className="demo-row">
