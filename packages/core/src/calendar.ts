@@ -8,6 +8,7 @@ import {
   isSameDay,
   weekdayOfEpochDay,
 } from './date';
+import { directionOf } from './locale';
 import { labelsFor } from './messages';
 import type {
   Calendar,
@@ -19,11 +20,15 @@ import type {
   CalendarSystem,
   DayCell,
   Direction,
+  ElementProps,
   KeyEventLike,
   PluginContext,
   WeekdayLabel,
   WeekStart,
 } from './types';
+import { viewLabelsFor } from './view-messages';
+import type { CalendarView, MonthCell, YearCell } from './view-types';
+import { GRID_COLUMNS, YEARS_PER_DECADE, decadeStart, withMonth, yearPageOf } from './views';
 
 const MS_PER_DAY = 86_400_000;
 const WEEKS_SHOWN = 6;
@@ -32,9 +37,6 @@ const SUNDAY = 3; // epoch day 3 (1970-01-04) was a Sunday
 
 const DEFAULT_SYSTEM: CalendarSystem = 'gregory';
 const DEFAULT_LOCALE = 'en-US';
-
-/** Languages written right to left. */
-const RTL_LANGUAGES = new Set(['ar', 'fa', 'he', 'ur', 'ps', 'sd', 'ug', 'yi', 'dv', 'ckb']);
 
 /** Intl calendar identifiers for our system ids. Unknown systems use their own id. */
 const INTL_CALENDARS: Record<string, string> = {
@@ -47,10 +49,6 @@ type WeekInfoLocale = Intl.Locale & {
   getWeekInfo?: () => { firstDay: number };
   weekInfo?: { firstDay: number };
 };
-
-function directionOf(locale: string): Direction {
-  return RTL_LANGUAGES.has(new Intl.Locale(locale).language) ? 'rtl' : 'ltr';
-}
 
 /**
  * First day of the week for a locale. Intl numbers days 1 (Monday) to 7 (Sunday),
@@ -104,6 +102,24 @@ interface View {
   context: PluginContext;
 }
 
+/** First and last epoch day of a month. */
+function monthRange(v: View, year: number, month: number): [number, number] {
+  const start = v.cal.toEpochDay({ system: v.system, year, month, day: 1 });
+  return [start, start + v.cal.daysInMonth(year, month) - 1];
+}
+
+/** First and last epoch day of a year. */
+function yearRange(v: View, year: number): [number, number] {
+  const [start] = monthRange(v, year, 1);
+  const [, end] = monthRange(v, year, v.cal.monthsInYear(year));
+  return [start, end];
+}
+
+/** True when no day of the range is inside `minDate` and `maxDate`. */
+function isOutOfBounds(v: View, [start, end]: [number, number]): boolean {
+  return (v.min !== null && end < v.min) || (v.max !== null && start > v.max);
+}
+
 /**
  * Create a calendar: a small external store holding the visible month, the selected day and
  * everything needed to render and operate it. It knows nothing about the DOM or any framework.
@@ -113,6 +129,7 @@ export function createCalendar(initial: CalendarOptions = {}): Calendar {
   const listeners = new Set<() => void>();
   let snapshot: CalendarState | null = null;
   let view: View | null = null;
+  let currentView: CalendarView = 'days';
   let internalValue: CalendarDate | null = options.defaultValue ?? null;
   let dayFormatter: { key: string; format: Intl.DateTimeFormat } | null = null;
 
@@ -235,6 +252,40 @@ export function createCalendar(initial: CalendarOptions = {}): Calendar {
       weekdayLabels.push({ short: shortNames.format(weekday), long: longNames.format(weekday) });
     }
 
+    // Months and years: the name of a month alone, and years without a thousands separator.
+    const monthNames = new Intl.DateTimeFormat(intlLocale, { month: 'long', timeZone: 'UTC' });
+    const monthName = (epochDay: number) =>
+      monthNames.formatToParts(utcDate(epochDay)).find((part) => part.type === 'month')?.value ??
+      '';
+    const yearNumbers = new Intl.NumberFormat(v.locale, { useGrouping: false });
+    const todayDate = v.cal.fromEpochDay(v.today);
+
+    const months: MonthCell[] = [];
+    for (let month = 1; month <= v.cal.monthsInYear(focused.year); month++) {
+      const range = monthRange(v, focused.year, month);
+      months.push({
+        month,
+        label: monthName(range[0]),
+        isCurrent: todayDate.year === focused.year && todayDate.month === month,
+        isSelected: v.value !== null && v.value.year === focused.year && v.value.month === month,
+        isFocused: focused.month === month,
+        isDisabled: isOutOfBounds(v, range),
+      });
+    }
+
+    const page = yearPageOf(focused.year);
+    const years: YearCell[] = page.map((year, index) => ({
+      year,
+      label: yearNumbers.format(year),
+      isCurrent: todayDate.year === year,
+      isSelected: v.value !== null && v.value.year === year,
+      isFocused: focused.year === year,
+      isDisabled: isOutOfBounds(v, yearRange(v, year)),
+      isOutsideDecade: index === 0 || index === page.length - 1,
+    }));
+
+    const decade = decadeStart(focused.year);
+
     return {
       system: v.system,
       locale: v.locale,
@@ -246,6 +297,12 @@ export function createCalendar(initial: CalendarOptions = {}): Calendar {
       weeks,
       weekdayLabels,
       monthLabel,
+      view: currentView,
+      monthName: monthName(v.monthStart),
+      yearLabel: yearNumbers.format(focused.year),
+      months,
+      years,
+      yearsLabel: `${yearNumbers.format(decade)} – ${yearNumbers.format(decade + YEARS_PER_DECADE - 1)}`,
     };
   }
 
@@ -299,6 +356,56 @@ export function createCalendar(initial: CalendarOptions = {}): Calendar {
     commitValue(null);
   }
 
+  // --- Months and years ---
+
+  function setView(next: CalendarView): void {
+    if (currentView === next) return;
+    currentView = next;
+    emit();
+  }
+
+  /** The same button opens its grid and closes it again. */
+  function toggleView(target: 'months' | 'years'): void {
+    setView(currentView === target ? 'days' : target);
+  }
+
+  function chooseMonth(month: number): void {
+    const v = getView();
+    if (month < 1 || month > v.cal.monthsInYear(focused.year)) return;
+    if (isOutOfBounds(v, monthRange(v, focused.year, month))) return;
+    currentView = 'days';
+    setFocused(withMonth(focused, focused.year, month));
+  }
+
+  function chooseYear(year: number): void {
+    const v = getView();
+    if (isOutOfBounds(v, yearRange(v, year))) return;
+    currentView = 'days';
+    setFocused(withMonth(focused, year, Math.min(focused.month, v.cal.monthsInYear(year))));
+  }
+
+  /** The previous and next buttons move by a month, a year or ten years, depending on the view. */
+  function stepBy(direction: 1 | -1): void {
+    if (currentView === 'days') setFocused(addMonths(focused, direction));
+    else if (currentView === 'months') setFocused(addYears(focused, direction));
+    else setFocused(addYears(focused, direction * YEARS_PER_DECADE));
+  }
+
+  function stepProps(direction: 1 | -1): ElementProps<{ click: () => void }> {
+    const labels = labelsFor(getLocale(), options.labels);
+    const viewLabels = viewLabelsFor(getLocale(), options.labels);
+    const backwards = direction < 0;
+    let name = backwards ? labels.previousMonth : labels.nextMonth;
+    if (currentView === 'months') name = backwards ? viewLabels.previousYear : viewLabels.nextYear;
+    if (currentView === 'years') {
+      name = backwards ? viewLabels.previousDecade : viewLabels.nextDecade;
+    }
+    return {
+      attrs: { type: 'button', 'aria-label': name },
+      handlers: { click: () => stepBy(direction) },
+    };
+  }
+
   // --- Keyboard ---
 
   function moveFocus(event: KeyEventLike, date: CalendarDate): boolean {
@@ -307,11 +414,65 @@ export function createCalendar(initial: CalendarOptions = {}): Calendar {
     return true;
   }
 
+  /** Keys in the grid of months and in the page of years. Both have three columns. */
+  function handleViewKeyDown(event: KeyEventLike, v: View): boolean {
+    const forward = v.direction === 'rtl' ? -1 : 1;
+    const inYears = currentView === 'years';
+    const step = (n: number) => (inYears ? addYears(focused, n) : addMonths(focused, n));
+    const decade = decadeStart(focused.year);
+
+    switch (event.key) {
+      case 'ArrowRight':
+        return moveFocus(event, step(forward));
+      case 'ArrowLeft':
+        return moveFocus(event, step(-forward));
+      case 'ArrowDown':
+        return moveFocus(event, step(GRID_COLUMNS));
+      case 'ArrowUp':
+        return moveFocus(event, step(-GRID_COLUMNS));
+      case 'PageDown':
+        return moveFocus(event, addYears(focused, inYears ? YEARS_PER_DECADE : 1));
+      case 'PageUp':
+        return moveFocus(event, addYears(focused, inYears ? -YEARS_PER_DECADE : -1));
+      case 'Home':
+        return moveFocus(
+          event,
+          inYears
+            ? withMonth(focused, decade, Math.min(focused.month, v.cal.monthsInYear(decade)))
+            : withMonth(focused, focused.year, 1),
+        );
+      case 'End': {
+        const lastYear = decade + YEARS_PER_DECADE - 1;
+        return moveFocus(
+          event,
+          inYears
+            ? withMonth(focused, lastYear, Math.min(focused.month, v.cal.monthsInYear(lastYear)))
+            : withMonth(focused, focused.year, v.cal.monthsInYear(focused.year)),
+        );
+      }
+      case 'Enter':
+      case ' ':
+        event.preventDefault();
+        if (inYears) chooseYear(focused.year);
+        else chooseMonth(focused.month);
+        return true;
+      case 'Escape':
+        // Back to the days. A picker around the calendar can tell this key was used.
+        event.preventDefault();
+        setView('days');
+        return true;
+      default:
+        return false;
+    }
+  }
+
   function handleKeyDown(event: KeyEventLike): boolean {
     // Leave browser and system shortcuts alone.
     if (event.ctrlKey || event.metaKey || event.altKey) return false;
 
     const v = getView();
+    if (currentView !== 'days') return handleViewKeyDown(event, v);
+
     // In right-to-left languages the right arrow goes back in time.
     const forward = v.direction === 'rtl' ? -1 : 1;
     const offsetInWeek =
@@ -391,6 +552,10 @@ export function createCalendar(initial: CalendarOptions = {}): Calendar {
     clear,
     handleKeyDown,
 
+    setView,
+    chooseMonth,
+    chooseYear,
+
     getRootProps() {
       const v = getView();
       return {
@@ -400,8 +565,15 @@ export function createCalendar(initial: CalendarOptions = {}): Calendar {
     },
 
     getGridProps() {
+      const state = getState();
+      const label =
+        currentView === 'days'
+          ? state.monthLabel
+          : currentView === 'months'
+            ? state.yearLabel
+            : state.yearsLabel;
       return {
-        attrs: { role: 'grid', 'aria-label': getState().monthLabel },
+        attrs: { role: 'grid', 'aria-label': label },
         handlers: {
           keydown: (event) => {
             handleKeyDown(event);
@@ -435,20 +607,75 @@ export function createCalendar(initial: CalendarOptions = {}): Calendar {
       };
     },
 
-    getPrevButtonProps() {
+    getPrevButtonProps: () => stepProps(-1),
+    getNextButtonProps: () => stepProps(1),
+
+    getMonthButtonProps() {
+      const state = getState();
+      const { chooseMonth: name } = viewLabelsFor(getLocale(), options.labels);
       return {
         attrs: {
           type: 'button',
-          'aria-label': labelsFor(getLocale(), options.labels).previousMonth,
+          // The visible text (the name of the month) is part of the accessible name.
+          'aria-label': `${state.monthName}, ${name}`,
+          'aria-expanded': currentView === 'months',
         },
-        handlers: { click: () => setFocused(addMonths(focused, -1)) },
+        handlers: { click: () => toggleView('months') },
       };
     },
 
-    getNextButtonProps() {
+    getYearButtonProps() {
+      const state = getState();
+      const { chooseYear: name } = viewLabelsFor(getLocale(), options.labels);
       return {
-        attrs: { type: 'button', 'aria-label': labelsFor(getLocale(), options.labels).nextMonth },
-        handlers: { click: () => setFocused(addMonths(focused, 1)) },
+        attrs: {
+          type: 'button',
+          'aria-label': `${currentView === 'years' ? state.yearsLabel : state.yearLabel}, ${name}`,
+          'aria-expanded': currentView === 'years',
+        },
+        handlers: { click: () => toggleView('years') },
+      };
+    },
+
+    getMonthProps(month) {
+      const state = getState();
+      const cell = state.months.find((item) => item.month === month);
+      if (!cell) throw new RangeError(`Month ${month} is not in the visible year`);
+      return {
+        attrs: {
+          role: 'gridcell',
+          tabindex: cell.isFocused ? 0 : -1,
+          'aria-selected': cell.isSelected,
+          'aria-disabled': cell.isDisabled ? true : undefined,
+          'aria-current': cell.isCurrent ? 'date' : undefined,
+          'aria-label': `${cell.label} ${state.yearLabel}`,
+          'data-current': cell.isCurrent || undefined,
+          'data-selected': cell.isSelected || undefined,
+          'data-focused': cell.isFocused || undefined,
+          'data-disabled': cell.isDisabled || undefined,
+        },
+        handlers: { click: () => chooseMonth(month) },
+      };
+    },
+
+    getYearProps(year) {
+      const cell = getState().years.find((item) => item.year === year);
+      if (!cell) throw new RangeError(`Year ${year} is not on the visible page`);
+      return {
+        attrs: {
+          role: 'gridcell',
+          tabindex: cell.isFocused ? 0 : -1,
+          'aria-selected': cell.isSelected,
+          'aria-disabled': cell.isDisabled ? true : undefined,
+          'aria-current': cell.isCurrent ? 'date' : undefined,
+          'aria-label': cell.label,
+          'data-current': cell.isCurrent || undefined,
+          'data-selected': cell.isSelected || undefined,
+          'data-focused': cell.isFocused || undefined,
+          'data-disabled': cell.isDisabled || undefined,
+          'data-outside-decade': cell.isOutsideDecade || undefined,
+        },
+        handlers: { click: () => chooseYear(year) },
       };
     },
 

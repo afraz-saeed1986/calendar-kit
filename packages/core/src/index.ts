@@ -21,6 +21,7 @@ export type {
 } from './types';
 
 export { createCalendar } from './calendar';
+export type { CalendarView, MonthCell, ViewLabels, YearCell } from './view-types';
 export { formatISODate, formatISOTime, parseISODate, parseISOTime } from './iso';
 export { createTimeField } from './time-field';
 export { normalizeDigits } from './digits';

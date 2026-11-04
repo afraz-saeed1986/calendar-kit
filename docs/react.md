@@ -57,6 +57,20 @@ import { Calendar, TimeField } from '@calendrix/react';
 
 `useCalendar(options)` returns `{ calendar, state }` and `useTimeField(options)` returns `{ field, state }`. Use them to build your own markup; `toReactProps(calendar.getDayProps(date))` turns the attributes and handlers of a prop getter into React props. Options can be written inline: callbacks, dates and arrays do not cause extra updates.
 
+## Months and years
+
+The month and the year in the header of `<Calendar />` are buttons. A click on the month shows the months of the year, a click on the year shows a page of ten years (with one year on each side). Choosing a cell goes back to the days; it moves the view but does not change the value. The arrows move by a month, a year or ten years, depending on what is shown.
+
+| Key                   | Months and years                                           |
+| --------------------- | ---------------------------------------------------------- |
+| Arrow keys            | One cell left or right, one row up or down                 |
+| `PageUp` / `PageDown` | One year (ten years in the years view)                     |
+| `Home` / `End`        | First and last month, or first and last year of the decade |
+| `Enter` / `Space`     | Choose the focused cell                                    |
+| `Escape`              | Back to the days (in a picker, a second press closes it)   |
+
+With `minDate` and `maxDate`, months and years that have no allowed day are disabled. The same works in the Persian calendar, in right-to-left languages and in the hooks: use `calendar.getMonthButtonProps()`, `getYearButtonProps()`, `getMonthProps(month)` and `getYearProps(year)`. See [ADR 0010](adr/0010-month-year-views.md).
+
 ## Styling
 
 Components have no styles of their own. Import `@calendrix/react/styles.css` for the default look, then override the variables on `:root` or on any ancestor:

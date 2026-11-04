@@ -10,7 +10,7 @@ import {
   type HourCycle,
   type TimeValue,
 } from '@calendrix/core';
-import { useEffect, useId, useRef, useState, type KeyboardEvent } from 'react';
+import { useEffect, useId, useRef, useState } from 'react';
 import { Calendar } from './calendar';
 import { pickerLabelsFor, type PickerLabels } from './messages';
 import { TimeField } from './time-field';
@@ -204,12 +204,19 @@ export function DateTimePicker({
     popoverRef.current?.querySelector<HTMLElement>('[role="grid"] [tabindex="0"]')?.focus();
   }, [open]);
 
-  const handleKeyDown = (event: KeyboardEvent<HTMLDivElement>) => {
-    if (event.key === 'Escape' && open) {
+  // Escape closes the popover from anywhere, even when a click left the focus on the page.
+  // A calendar that used the key to leave its month or year view has already handled it.
+  useEffect(() => {
+    if (!open) return;
+    const onKeyDown = (event: globalThis.KeyboardEvent) => {
+      if (event.key !== 'Escape' || event.defaultPrevented) return;
       event.preventDefault();
-      close(true);
-    }
-  };
+      setOpen(false);
+      inputRef.current?.focus();
+    };
+    document.addEventListener('keydown', onKeyDown);
+    return () => document.removeEventListener('keydown', onKeyDown);
+  }, [open]);
 
   const samplePlaceholder = format({
     date: convertDate({ system: 'gregory', year: 2026, month: 10, day: 14 }, system),
@@ -217,11 +224,7 @@ export function DateTimePicker({
   });
 
   return (
-    <div
-      ref={wrapperRef}
-      className={['calendrix-picker', className].filter(Boolean).join(' ')}
-      onKeyDown={handleKeyDown}
-    >
+    <div ref={wrapperRef} className={['calendrix-picker', className].filter(Boolean).join(' ')}>
       <div className="calendrix-picker-field">
         <input
           ref={inputRef}

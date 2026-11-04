@@ -5,7 +5,7 @@
  * Types marked "planned" describe the contract of `createCalendar`,
  * which is implemented in a later milestone (see docs/roadmap.md).
  */
-
+import type { CalendarView, MonthCell, ViewLabels, YearCell } from './view-types';
 /** Identifier of a calendar system. Extensible through plugins. */
 export type CalendarSystem = 'gregory' | 'persian' | 'islamic' | (string & {});
 
@@ -92,7 +92,7 @@ export interface CalendarOptions {
   isDateUnavailable?: (date: CalendarDate) => boolean;
 
   /** Texts for buttons. Defaults come from the locale (English, Persian and German are built in). */
-  labels?: Partial<CalendarLabels>;
+  labels?: Partial<CalendarLabels & ViewLabels>;
 
   /** Time zone used to decide what "today" is. Default: the runtime's time zone. */
   timeZone?: string;
@@ -142,6 +142,18 @@ export interface CalendarState {
   readonly weekdayLabels: ReadonlyArray<WeekdayLabel>;
   /** For example "October 2026" or "مهر ۱۴۰۵". */
   readonly monthLabel: string;
+  /** Which grid is shown: the days of the month, the months of the year or a page of years. */
+  readonly view: CalendarView;
+  /** Name of the visible month: "October", "مهر". */
+  readonly monthName: string;
+  /** The visible year with the numerals of the locale: "2026", "۱۴۰۵". */
+  readonly yearLabel: string;
+  /** The months of the visible year. */
+  readonly months: ReadonlyArray<MonthCell>;
+  /** A page of 12 years: the decade of the visible year plus one year on each side. */
+  readonly years: ReadonlyArray<YearCell>;
+  /** The decade of the page of years: "2020 – 2029". */
+  readonly yearsLabel: string;
 }
 
 export interface Calendar {
@@ -177,6 +189,21 @@ export interface Calendar {
   getDayProps(date: CalendarDate): ElementProps<{ click: () => void }>;
   getPrevButtonProps(): ElementProps<{ click: () => void }>;
   getNextButtonProps(): ElementProps<{ click: () => void }>;
+
+  /** Show the days, the months of the year or a page of years. */
+  setView(view: CalendarView): void;
+  /** Pick a month of the visible year and go back to the days. The day is clamped. */
+  chooseMonth(month: number): void;
+  /** Pick a year and go back to the days. The month stays, the day is clamped. */
+  chooseYear(year: number): void;
+  /** The button with the name of the month. It opens and closes the grid of months. */
+  getMonthButtonProps(): ElementProps<{ click: () => void }>;
+  /** The button with the year. It opens and closes the page of years. */
+  getYearButtonProps(): ElementProps<{ click: () => void }>;
+  /** Props for one month in the grid of months. */
+  getMonthProps(month: number): ElementProps<{ click: () => void }>;
+  /** Props for one year in the page of years. */
+  getYearProps(year: number): ElementProps<{ click: () => void }>;
 
   /** Remove all listeners. */
   destroy(): void;

@@ -30,6 +30,7 @@ Dates are intentionally omitted; milestones are ordered by dependency, not by ca
 - [x] `Calendar` and `TimeField` components
 - [x] `DateTimePicker`: text input, popover, typed and picked values
 - [x] Base stylesheet (CSS variables, dark mode, RTL)
+- [x] Month and year views: pick from a grid of months or a page of years ([ADR 0010](adr/0010-month-year-views.md))
 - [x] Demo app (`apps/demo`)
 
 ## M3: API validation

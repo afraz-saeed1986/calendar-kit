@@ -15,7 +15,8 @@ const day = (name: RegExp) => screen.getByRole('gridcell', { name });
 describe('<Calendar />', () => {
   it('renders the month as a grid of 42 days', () => {
     render(<Calendar {...base} />);
-    expect(screen.getByText('October 2026')).toBeTruthy();
+    expect(screen.getByRole('button', { name: /^October/ })).toBeTruthy();
+    expect(screen.getByRole('button', { name: /^2026/ })).toBeTruthy();
     expect(screen.getAllByRole('columnheader')).toHaveLength(7);
     expect(screen.getAllByRole('gridcell')).toHaveLength(42);
   });
@@ -47,7 +48,7 @@ describe('<Calendar />', () => {
   it('shows the next month with the next button', () => {
     render(<Calendar {...base} />);
     fireEvent.click(screen.getByRole('button', { name: /next/i }));
-    expect(screen.getByText('November 2026')).toBeTruthy();
+    expect(screen.getByRole('button', { name: /^November/ })).toBeTruthy();
   });
 
   it('puts only the focused day in the tab order', () => {
@@ -65,7 +66,7 @@ describe('<Calendar />', () => {
   it('moves the focus into the next month with PageDown', () => {
     render(<Calendar {...base} />);
     fireEvent.keyDown(day(/October 14\b/), { key: 'PageDown' });
-    expect(screen.getByText('November 2026')).toBeTruthy();
+    expect(screen.getByRole('button', { name: /^November/ })).toBeTruthy();
     expect(document.activeElement).toBe(day(/November 14\b/));
   });
 

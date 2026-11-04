@@ -87,7 +87,25 @@
 }
 
 .calendrix-title {
+  display: flex;
+  align-items: center;
+  gap: 0.25rem;
   font-weight: 600;
+}
+
+.calendrix-title-button {
+  padding: 0.25rem 0.5rem;
+  font: inherit;
+  color: inherit;
+  background: transparent;
+  border: 0;
+  border-radius: var(--calendrix-radius);
+  cursor: pointer;
+}
+
+.calendrix-title-button:hover,
+.calendrix-title-button[aria-expanded='true'] {
+  background: var(--calendrix-hover);
 }
 
 .calendrix-nav {
@@ -116,6 +134,14 @@
 .calendrix-grid {
   display: flex;
   flex-direction: column;
+  gap: var(--calendrix-gap);
+  min-block-size: calc(var(--calendrix-cell-size) * 6 + var(--calendrix-gap) * 6 + 1.4rem);
+}
+
+.calendrix-row {
+  display: grid;
+  flex: 1;
+  grid-template-columns: repeat(3, 1fr);
   gap: var(--calendrix-gap);
 }
 
@@ -174,7 +200,51 @@
   text-decoration: line-through;
 }
 
+.calendrix-month,
+.calendrix-year {
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  border-radius: var(--calendrix-radius);
+  cursor: pointer;
+  user-select: none;
+}
+
+.calendrix-month:hover,
+.calendrix-year:hover {
+  background: var(--calendrix-hover);
+}
+
+.calendrix-year[data-outside-decade] {
+  color: var(--calendrix-muted);
+}
+
+.calendrix-month[data-current],
+.calendrix-year[data-current] {
+  box-shadow: inset 0 0 0 1px var(--calendrix-accent);
+}
+
+.calendrix-month[aria-selected='true'],
+.calendrix-year[aria-selected='true'] {
+  color: var(--calendrix-accent-fg);
+  background: var(--calendrix-accent);
+}
+
+.calendrix-month[aria-disabled='true'],
+.calendrix-year[aria-disabled='true'] {
+  opacity: 0.4;
+  cursor: not-allowed;
+}
+
+.calendrix-month[aria-disabled='true']:hover,
+.calendrix-year[aria-disabled='true']:hover {
+  background: transparent;
+}
+
 .calendrix-day:focus-visible,
+.calendrix-month:focus-visible,
+.calendrix-year:focus-visible,
+.calendrix-title-button:focus-visible,
 .calendrix-nav:focus-visible {
   outline: 2px solid var(--calendrix-accent);
   outline-offset: 2px;
@@ -338,6 +408,8 @@
 
 @media (forced-colors: active) {
   .calendrix-day[aria-selected='true'],
+  .calendrix-month[aria-selected='true'],
+  .calendrix-year[aria-selected='true'],
   .calendrix-segment:focus {
     forced-color-adjust: none;
     color: HighlightText;
