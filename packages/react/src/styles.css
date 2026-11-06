@@ -79,6 +79,40 @@
   inline-size: calc(var(--calendrix-cell-size) * 7 + var(--calendrix-gap) * 6 + 2rem + 2px);
 }
 
+/* Several months side by side: each month is as wide as a single calendar. */
+.calendrix-calendar[data-months='2'] {
+  inline-size: calc(
+    (var(--calendrix-cell-size) * 7 + var(--calendrix-gap) * 6) * 2 + 1.5rem + 2rem + 2px
+  );
+}
+
+.calendrix-calendar[data-months='3'] {
+  inline-size: calc(
+    (var(--calendrix-cell-size) * 7 + var(--calendrix-gap) * 6) * 3 + 3rem + 2rem + 2px
+  );
+}
+
+.calendrix-panels {
+  display: flex;
+  gap: 1.5rem;
+}
+
+.calendrix-panel {
+  flex: 1;
+  min-inline-size: 0;
+}
+
+/* Keeps the title centered above a month that has no arrow. */
+.calendrix-nav-spacer {
+  display: inline-block;
+  inline-size: 2rem;
+  block-size: 2rem;
+}
+
+.calendrix-day-empty {
+  block-size: var(--calendrix-cell-size);
+}
+
 .calendrix-header {
   display: flex;
   align-items: center;

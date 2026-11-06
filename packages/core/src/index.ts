@@ -22,6 +22,7 @@ export type {
 
 export { createCalendar } from './calendar';
 export type { CalendarView, MonthCell, ViewLabels, YearCell } from './view-types';
+export type { MonthGrid } from './types';
 export { formatISODate, formatISOTime, parseISODate, parseISOTime } from './iso';
 export { createTimeField } from './time-field';
 export { normalizeDigits } from './digits';

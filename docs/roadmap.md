@@ -32,6 +32,7 @@ Dates are intentionally omitted; milestones are ordered by dependency, not by ca
 - [x] Base stylesheet (CSS variables, dark mode, RTL)
 - [x] Month and year views: pick from a grid of months or a page of years ([ADR 0010](adr/0010-month-year-views.md))
 - [x] Range and multiple selection in the core and `Calendar` ([ADR 0011](adr/0011-range-and-multiple-selection.md))
+- [x] Up to three visible months side by side ([ADR 0012](adr/0012-multiple-visible-months.md))
 - [x] Demo app (`apps/demo`)
 
 ## M3: API validation
@@ -68,4 +69,4 @@ Tracked here until an ADR settles them. Details in [api.md](api.md), section 7.
 2. Prop getters: single object vs separate `attrs` and `handlers`. Settled in [ADR 0006](adr/0006-selection-keyboard-props.md).
 3. Time zone handling for "today" (injectable clock). Settled for wall-clock values in [ADR 0007](adr/0007-time-model.md).
 4. Temporal API migration path.
-5. Multi-month views in `state`.
+5. Multi-month views in `state`. Settled in [ADR 0012](adr/0012-multiple-visible-months.md).

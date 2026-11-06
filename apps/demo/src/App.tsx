@@ -145,6 +145,7 @@ export function App() {
           locale={profile.locale}
           plugins={[persianPlugin]}
           selection="range"
+          visibleMonths={2}
           value={range}
           onChange={setRange}
         />

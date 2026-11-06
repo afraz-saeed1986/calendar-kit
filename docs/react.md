@@ -76,6 +76,18 @@ A range takes two clicks. The first click sets the start (nothing is reported ye
 
 Days carry `data-range-start`, `data-range-end`, `data-in-range` (between the ends) and `data-in-preview` (the range that a click would complete). In the hooks, `calendar.previewTo(date)` draws the preview and `calendar.previewTo(null)` removes it. `<DateTimePicker />` supports a single date for now. See [ADR 0011](adr/0011-range-and-multiple-selection.md).
 
+## Several months
+
+`visibleMonths` shows one (default), two or three months side by side, so a range can cross a month boundary with both ends visible. It works in every selection mode.
+
+```tsx
+<Calendar selection="range" visibleMonths={2} value={range} onChange={setRange} />
+```
+
+The previous and next buttons move by one month. The month and year buttons are in the title of the first month, and the days of the neighbouring months stay empty, so every day appears once. The visible months move only when the keyboard or a button takes the focus out of them. The months and years views show a single panel for the first visible month. The calendar does not decide when there is no room for two months: pass `visibleMonths={1}` on a narrow screen.
+
+In the hooks, `state.grids` lists the visible months (`year`, `month`, `label`, `weeks`), `state.visibleLabel` is one label for all of them, and `calendar.getGridProps(index)` gives the props of one grid. `state.weeks` and `state.monthLabel` keep describing the first month. See [ADR 0012](adr/0012-multiple-visible-months.md).
+
 ## Months and years
 
 The month and the year in the header of `<Calendar />` are buttons. A click on the month shows the months of the year, a click on the year shows a page of ten years (with one year on each side). Choosing a cell goes back to the days; it moves the view but does not change the value. The arrows move by a month, a year or ten years, depending on what is shown.

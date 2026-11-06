@@ -101,6 +101,8 @@ export interface CalendarOptions<M extends SelectionMode = 'single'> {
    * number of separate days. The type of `value` and `onChange` follows this option.
    */
   selection?: M;
+  /** How many months are shown at once: 1 (default), 2 or 3. */
+  visibleMonths?: number;
   /** Range mode: allow a range that contains unavailable days. Default: true. */
   allowUnavailableInRange?: boolean;
   /** Multiple mode: the most days that can be selected. Default: no limit. */
@@ -154,6 +156,16 @@ export interface WeekdayLabel {
   readonly long: string;
 }
 
+/** One visible month of the calendar. */
+export interface MonthGrid {
+  readonly year: number;
+  readonly month: number;
+  /** For example "October 2026". */
+  readonly label: string;
+  /** Always 6 weeks of 7 days. `isOutsideMonth` is relative to this month. */
+  readonly weeks: ReadonlyArray<ReadonlyArray<DayCell>>;
+}
+
 /** Read-only snapshot of a calendar. The same object is returned until something changes. */
 export interface CalendarState<M extends SelectionMode = 'single'> {
   readonly system: CalendarSystem;
@@ -174,6 +186,12 @@ export interface CalendarState<M extends SelectionMode = 'single'> {
   readonly weekdayLabels: ReadonlyArray<WeekdayLabel>;
   /** For example "October 2026" or "مهر ۱۴۰۵". */
   readonly monthLabel: string;
+  /** How many months are visible. */
+  readonly visibleMonths: number;
+  /** Every visible month. The first one is also described by `weeks`, `monthLabel` and the like. */
+  readonly grids: ReadonlyArray<MonthGrid>;
+  /** One label for all visible months: "October 2026" or "October 2026 – November 2026". */
+  readonly visibleLabel: string;
   /** Which grid is shown: the days of the month, the months of the year or a page of years. */
   readonly view: CalendarView;
   /** Name of the visible month: "October", "مهر". */
@@ -221,7 +239,8 @@ export interface Calendar<M extends SelectionMode = 'single'> {
   handleKeyDown(event: KeyEventLike): boolean;
 
   getRootProps(): ElementProps<Record<string, never>>;
-  getGridProps(): ElementProps<{ keydown: (event: KeyEventLike) => void }>;
+  /** Props for one visible month (`index` 0 is the first). All of them handle the keyboard. */
+  getGridProps(index?: number): ElementProps<{ keydown: (event: KeyEventLike) => void }>;
   /** Props for one day cell. `date` can be in any calendar system. */
   getDayProps(date: CalendarDate): ElementProps<{ click: () => void }>;
   getPrevButtonProps(): ElementProps<{ click: () => void }>;

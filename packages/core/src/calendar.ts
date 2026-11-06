@@ -23,6 +23,7 @@ import type {
   Direction,
   ElementProps,
   KeyEventLike,
+  MonthGrid,
   PluginContext,
   Selection,
   SelectionMode,
@@ -37,6 +38,7 @@ const MS_PER_DAY = 86_400_000;
 const WEEKS_SHOWN = 6;
 const DAYS_PER_WEEK = 7;
 const SUNDAY = 3; // epoch day 3 (1970-01-04) was a Sunday
+const MAX_VISIBLE_MONTHS = 3;
 
 const DEFAULT_SYSTEM: CalendarSystem = 'gregory';
 const DEFAULT_LOCALE = 'en-US';
@@ -84,6 +86,20 @@ function todayEpochDay(now: () => Date, timeZone: string | undefined): number {
 function utcDate(epochDay: number): Date {
   return new Date(epochDay * MS_PER_DAY);
 }
+
+/** How many months are visible: 1 to 3, whatever the caller passed. */
+function clampMonths(value: number | undefined): number {
+  if (value === undefined || !Number.isFinite(value)) return 1;
+  return Math.min(MAX_VISIBLE_MONTHS, Math.max(1, Math.floor(value)));
+}
+
+/** The first day of the month of a date. */
+function firstOfMonth(date: CalendarDate): CalendarDate {
+  return { system: date.system, year: date.year, month: date.month, day: 1 };
+}
+
+/** Orders months of one calendar system: no month has a number above 99. */
+const monthKey = (date: { year: number; month: number }): number => date.year * 100 + date.month;
 
 // --- Selection values ---
 
@@ -151,6 +167,15 @@ function normalizeSelection(
   return convertDate(raw, system);
 }
 
+/** A visible month: where it starts and how long it is. */
+interface GridInfo {
+  year: number;
+  month: number;
+  /** Epoch day of its first day. */
+  start: number;
+  length: number;
+}
+
 /** Everything that is calculated once per state, so each day cell is cheap to build. */
 interface View {
   system: CalendarSystem;
@@ -174,8 +199,12 @@ interface View {
   rangeFrom: number | null;
   rangeTo: number | null;
   previewing: boolean;
-  monthStart: number;
-  monthLength: number;
+  /** The first visible month. */
+  first: GridInfo;
+  /** Every visible month, the first one included. */
+  grids: GridInfo[];
+  /** All visible months together: the days outside of it are outside every month. */
+  span: { start: number; length: number };
   min: number | null;
   max: number | null;
   numbers: Intl.NumberFormat;
@@ -207,9 +236,10 @@ function touchesSelection(v: View, [start, end]: [number, number]): boolean {
 }
 
 /**
- * Create a calendar: a small external store holding the visible month, the selected days and
+ * Create a calendar: a small external store holding the visible months, the selected days and
  * everything needed to render and operate it. It knows nothing about the DOM or any framework.
- * The `selection` option picks one day (default), a range or any number of days.
+ * The `selection` option picks one day (default), a range or any number of days, and
+ * `visibleMonths` shows one, two or three months at once.
  */
 export function createCalendar<M extends SelectionMode = 'single'>(
   initial: CalendarOptions<M> = {},
@@ -229,6 +259,7 @@ export function createCalendar<M extends SelectionMode = 'single'>(
   const getSystem = () => options.system ?? DEFAULT_SYSTEM;
   const getLocale = () => options.locale ?? DEFAULT_LOCALE;
   const getMode = (): SelectionMode => options.selection ?? 'single';
+  const getVisibleCount = () => clampMonths(options.visibleMonths);
   const getToday = () => todayEpochDay(options.now ?? (() => new Date()), options.timeZone);
 
   let internalValue: Selection = options.defaultValue ?? emptyValue(getMode());
@@ -249,6 +280,8 @@ export function createCalendar<M extends SelectionMode = 'single'>(
   let focused: CalendarDate = initialFocus
     ? convertDate(initialFocus, getSystem())
     : getCalendar(getSystem()).fromEpochDay(getToday());
+  /** The first visible month. The focused day is always inside the visible months. */
+  let shown: CalendarDate = firstOfMonth(focused);
 
   function emit(): void {
     snapshot = null;
@@ -256,10 +289,45 @@ export function createCalendar<M extends SelectionMode = 'single'>(
     for (const listener of [...listeners]) listener();
   }
 
+  /** Make sure the focused day is visible, moving the visible months as little as possible. */
+  function reveal(): void {
+    const count = getVisibleCount();
+    const key = monthKey(focused);
+    if (key < monthKey(shown)) {
+      shown = firstOfMonth(focused);
+    } else if (key > monthKey(addMonths(shown, count - 1))) {
+      shown = firstOfMonth(addMonths(focused, -(count - 1)));
+    }
+  }
+
+  /** Focus a day. The visible months move only when the day is not visible. */
   function setFocused(date: CalendarDate): void {
     focused = date;
+    // The months and years views always work on the first visible month.
+    if (currentView === 'days') reveal();
+    else shown = firstOfMonth(date);
     emit();
     options.onFocusedDateChange?.(date);
+  }
+
+  /** Focus a day and show its month first. */
+  function showFocused(date: CalendarDate): void {
+    focused = date;
+    shown = firstOfMonth(date);
+    emit();
+    options.onFocusedDateChange?.(date);
+  }
+
+  /** Move the visible months and the focus by whole months. */
+  function shift(delta: number, followPreview = false): void {
+    const next = addMonths(focused, delta);
+    shown = firstOfMonth(addMonths(shown, delta));
+    if (followPreview && getMode() === 'range' && anchor !== null) {
+      previewEpoch = getCalendar(getSystem()).toEpochDay(next);
+    }
+    focused = next;
+    emit();
+    options.onFocusedDateChange?.(next);
   }
 
   function getView(): View {
@@ -270,8 +338,21 @@ export function createCalendar<M extends SelectionMode = 'single'>(
     const cal = getCalendar(system);
     const mode = getMode();
     const value = normalizeSelection(mode, getRawValue(), system);
-    const monthStart = cal.toEpochDay({ system, year: focused.year, month: focused.month, day: 1 });
     const { minDate, maxDate } = options;
+
+    const grids: GridInfo[] = [];
+    for (let index = 0; index < getVisibleCount(); index++) {
+      const date = addMonths(shown, index);
+      grids.push({
+        year: date.year,
+        month: date.month,
+        start: cal.toEpochDay({ system, year: date.year, month: date.month, day: 1 }),
+        length: cal.daysInMonth(date.year, date.month),
+      });
+    }
+    const first = grids[0];
+    const last = grids[grids.length - 1];
+    if (!first || !last) throw new Error('A calendar shows at least one month');
 
     let selectedFrom: number | null = null;
     let selectedTo: number | null = null;
@@ -286,12 +367,12 @@ export function createCalendar<M extends SelectionMode = 'single'>(
     } else if (mode === 'range') {
       if (anchor) {
         // A range in the making: only its first day is selected, the rest is drawn as a preview.
-        const first = cal.toEpochDay(anchor);
-        const second = previewEpoch ?? first;
-        selectedFrom = selectedTo = first;
-        marks = [first];
-        rangeFrom = Math.min(first, second);
-        rangeTo = Math.max(first, second);
+        const start = cal.toEpochDay(anchor);
+        const other = previewEpoch ?? start;
+        selectedFrom = selectedTo = start;
+        marks = [start];
+        rangeFrom = Math.min(start, other);
+        rangeTo = Math.max(start, other);
       } else if (isRange(value)) {
         selectedFrom = rangeFrom = cal.toEpochDay(value.start);
         selectedTo = rangeTo = cal.toEpochDay(value.end);
@@ -319,8 +400,9 @@ export function createCalendar<M extends SelectionMode = 'single'>(
       rangeFrom,
       rangeTo,
       previewing: mode === 'range' && anchor !== null && previewEpoch !== null,
-      monthStart,
-      monthLength: cal.daysInMonth(focused.year, focused.month),
+      first,
+      grids,
+      span: { start: first.start, length: last.start + last.length - first.start },
       min: minDate ? getCalendar(minDate.system).toEpochDay(minDate) : null,
       max: maxDate ? getCalendar(maxDate.system).toEpochDay(maxDate) : null,
       numbers: new Intl.NumberFormat(locale),
@@ -330,7 +412,12 @@ export function createCalendar<M extends SelectionMode = 'single'>(
     return view;
   }
 
-  function makeCell(v: View, date: CalendarDate, epochDay: number): DayCell {
+  function makeCell(
+    v: View,
+    date: CalendarDate,
+    epochDay: number,
+    month: { start: number; length: number } = v.span,
+  ): DayCell {
     const meta: Record<string, unknown> = {};
     let isUnavailable = options.isDateUnavailable?.(date) === true;
 
@@ -358,36 +445,51 @@ export function createCalendar<M extends SelectionMode = 'single'>(
       isInRange: inRangeMode && epochDay > (v.rangeFrom ?? 0) && epochDay < (v.rangeTo ?? 0),
       isInPreview: v.previewing && epochDay >= (v.rangeFrom ?? 0) && epochDay <= (v.rangeTo ?? 0),
       isFocused: epochDay === v.focusedEpoch,
-      isOutsideMonth: epochDay < v.monthStart || epochDay >= v.monthStart + v.monthLength,
+      isOutsideMonth: epochDay < month.start || epochDay >= month.start + month.length,
       isDisabled: (v.min !== null && epochDay < v.min) || (v.max !== null && epochDay > v.max),
       isUnavailable,
       meta,
     };
   }
 
-  function buildState(): CalendarState<SelectionMode> {
-    const v = getView();
-    const leading = (weekdayOfEpochDay(v.monthStart) - v.weekStart + DAYS_PER_WEEK) % DAYS_PER_WEEK;
-    const gridStart = v.monthStart - leading;
+  /** The 6 weeks of one visible month. */
+  function buildWeeks(v: View, grid: GridInfo): DayCell[][] {
+    const leading = (weekdayOfEpochDay(grid.start) - v.weekStart + DAYS_PER_WEEK) % DAYS_PER_WEEK;
+    const gridStart = grid.start - leading;
 
     const weeks: DayCell[][] = [];
     for (let week = 0; week < WEEKS_SHOWN; week++) {
       const row: DayCell[] = [];
       for (let weekday = 0; weekday < DAYS_PER_WEEK; weekday++) {
         const epochDay = gridStart + week * DAYS_PER_WEEK + weekday;
-        row.push(makeCell(v, v.cal.fromEpochDay(epochDay), epochDay));
+        row.push(makeCell(v, v.cal.fromEpochDay(epochDay), epochDay, grid));
       }
       weeks.push(row);
     }
+    return weeks;
+  }
+
+  function buildState(): CalendarState<SelectionMode> {
+    const v = getView();
 
     const intlLocale = new Intl.Locale(v.locale, {
       calendar: INTL_CALENDARS[v.system] ?? v.system,
     });
-    const monthLabel = new Intl.DateTimeFormat(intlLocale, {
+    const monthYear = new Intl.DateTimeFormat(intlLocale, {
       month: 'long',
       year: 'numeric',
       timeZone: 'UTC',
-    }).format(utcDate(v.monthStart));
+    });
+
+    const grids: MonthGrid[] = v.grids.map((grid) => ({
+      year: grid.year,
+      month: grid.month,
+      label: monthYear.format(utcDate(grid.start)),
+      weeks: buildWeeks(v, grid),
+    }));
+    const primary = grids[0];
+    if (!primary) throw new Error('A calendar shows at least one month');
+    const lastGrid = grids[grids.length - 1] ?? primary;
 
     const shortNames = new Intl.DateTimeFormat(v.locale, { weekday: 'short', timeZone: 'UTC' });
     const longNames = new Intl.DateTimeFormat(v.locale, { weekday: 'long', timeZone: 'UTC' });
@@ -440,13 +542,16 @@ export function createCalendar<M extends SelectionMode = 'single'>(
       value: v.value,
       anchor,
       focusedDate: focused,
-      visibleMonth: { year: focused.year, month: focused.month },
-      weeks,
+      visibleMonth: { year: v.first.year, month: v.first.month },
+      weeks: primary.weeks,
       weekdayLabels,
-      monthLabel,
+      monthLabel: primary.label,
+      visibleMonths: grids.length,
+      grids,
+      visibleLabel: grids.length === 1 ? primary.label : `${primary.label} – ${lastGrid.label}`,
       view: currentView,
-      monthName: monthName(v.monthStart),
-      yearLabel: yearNumbers.format(focused.year),
+      monthName: monthName(v.first.start),
+      yearLabel: yearNumbers.format(v.first.year),
       months,
       years,
       yearsLabel: `${yearNumbers.format(decade)} – ${yearNumbers.format(decade + YEARS_PER_DECADE - 1)}`,
@@ -485,7 +590,10 @@ export function createCalendar<M extends SelectionMode = 'single'>(
   function commitValue(next: Selection, focusOn: CalendarDate | null): void {
     const previousFocus = focused;
     if (options.value === undefined) internalValue = next;
-    if (focusOn) focused = focusOn;
+    if (focusOn) {
+      focused = focusOn;
+      reveal();
+    }
     emit();
     options.onChange?.(next);
     if (focusOn && !isSameDay(previousFocus, focusOn)) options.onFocusedDateChange?.(focusOn);
@@ -500,10 +608,10 @@ export function createCalendar<M extends SelectionMode = 'single'>(
       return;
     }
 
-    const first = v.cal.toEpochDay(anchor);
-    const second = v.cal.toEpochDay(target);
-    const from = Math.min(first, second);
-    const to = Math.max(first, second);
+    const start = v.cal.toEpochDay(anchor);
+    const other = v.cal.toEpochDay(target);
+    const from = Math.min(start, other);
+    const to = Math.max(start, other);
 
     if (options.allowUnavailableInRange === false) {
       for (let epochDay = from; epochDay <= to; epochDay++) {
@@ -512,7 +620,7 @@ export function createCalendar<M extends SelectionMode = 'single'>(
     }
 
     const range: DateRange =
-      first <= second ? { start: anchor, end: target } : { start: target, end: anchor };
+      start <= other ? { start: anchor, end: target } : { start: target, end: anchor };
     anchor = null;
     previewEpoch = null;
     commitValue(range, target);
@@ -569,6 +677,10 @@ export function createCalendar<M extends SelectionMode = 'single'>(
 
   function setView(next: CalendarView): void {
     if (currentView === next) return;
+    // The months and years views work on the first visible month: the focus moves into it.
+    if (next !== 'days' && monthKey(focused) !== monthKey(shown)) {
+      focused = withMonth(focused, shown.year, shown.month);
+    }
     currentView = next;
     emit();
   }
@@ -583,19 +695,19 @@ export function createCalendar<M extends SelectionMode = 'single'>(
     if (month < 1 || month > v.cal.monthsInYear(focused.year)) return;
     if (isOutOfBounds(v, monthRange(v, focused.year, month))) return;
     currentView = 'days';
-    setFocused(withMonth(focused, focused.year, month));
+    showFocused(withMonth(focused, focused.year, month));
   }
 
   function chooseYear(year: number): void {
     const v = getView();
     if (isOutOfBounds(v, yearRange(v, year))) return;
     currentView = 'days';
-    setFocused(withMonth(focused, year, Math.min(focused.month, v.cal.monthsInYear(year))));
+    showFocused(withMonth(focused, year, Math.min(focused.month, v.cal.monthsInYear(year))));
   }
 
   /** The previous and next buttons move by a month, a year or ten years, depending on the view. */
   function stepBy(direction: 1 | -1): void {
-    if (currentView === 'days') setFocused(addMonths(focused, direction));
+    if (currentView === 'days') shift(direction);
     else if (currentView === 'months') setFocused(addYears(focused, direction));
     else setFocused(addYears(focused, direction * YEARS_PER_DECADE));
   }
@@ -705,9 +817,15 @@ export function createCalendar<M extends SelectionMode = 'single'>(
       case 'End':
         return moveFocus(event, addDays(focused, DAYS_PER_WEEK - 1 - offsetInWeek));
       case 'PageDown':
-        return moveFocus(event, event.shiftKey ? addYears(focused, 1) : addMonths(focused, 1));
+        if (event.shiftKey) return moveFocus(event, addYears(focused, 1));
+        event.preventDefault();
+        shift(1, true);
+        return true;
       case 'PageUp':
-        return moveFocus(event, event.shiftKey ? addYears(focused, -1) : addMonths(focused, -1));
+        if (event.shiftKey) return moveFocus(event, addYears(focused, -1));
+        event.preventDefault();
+        shift(-1, true);
+        return true;
       case 'Enter':
       case ' ':
         event.preventDefault();
@@ -762,22 +880,30 @@ export function createCalendar<M extends SelectionMode = 'single'>(
       const valueChanged = target !== null && selectionKey(rawValue) !== previousKey;
 
       if (next.focusedDate) {
-        focused = convertDate(next.focusedDate, system);
-      } else if (valueChanged) {
-        focused = target;
-      } else if (system !== previousSystem) {
-        focused = convertDate(focused, system);
+        showFocused(convertDate(next.focusedDate, system));
+        return;
       }
-      if (system !== previousSystem && anchor) anchor = convertDate(anchor, system);
+      if (valueChanged) {
+        showFocused(target);
+        return;
+      }
+      if (system !== previousSystem) {
+        focused = convertDate(focused, system);
+        shown = firstOfMonth(focused);
+        if (anchor) anchor = convertDate(anchor, system);
+      } else if (next.visibleMonths !== undefined) {
+        // More or fewer months: the focused day has to stay visible.
+        reveal();
+      }
       emit();
     },
 
-    nextMonth: () => setFocused(addMonths(focused, 1)),
-    prevMonth: () => setFocused(addMonths(focused, -1)),
+    nextMonth: () => shift(1),
+    prevMonth: () => shift(-1),
     nextYear: () => setFocused(addYears(focused, 1)),
     prevYear: () => setFocused(addYears(focused, -1)),
-    goTo: (date) => setFocused(convertDate(date, getSystem())),
-    goToToday: () => setFocused(getCalendar(getSystem()).fromEpochDay(getToday())),
+    goTo: (date) => showFocused(convertDate(date, getSystem())),
+    goToToday: () => showFocused(getCalendar(getSystem()).fromEpochDay(getToday())),
 
     select,
     clear,
@@ -791,16 +917,16 @@ export function createCalendar<M extends SelectionMode = 'single'>(
     getRootProps() {
       const v = getView();
       return {
-        attrs: { role: 'group', 'aria-label': getState().monthLabel, dir: v.direction },
+        attrs: { role: 'group', 'aria-label': getState().visibleLabel, dir: v.direction },
         handlers: {},
       };
     },
 
-    getGridProps() {
+    getGridProps(index = 0) {
       const state = getState();
       const label =
         currentView === 'days'
-          ? state.monthLabel
+          ? (state.grids[index]?.label ?? state.monthLabel)
           : currentView === 'months'
             ? state.yearLabel
             : state.yearsLabel;
