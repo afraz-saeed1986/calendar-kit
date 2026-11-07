@@ -140,7 +140,10 @@ export function Calendar<M extends SelectionMode = 'single'>({
             </button>
           </div>
         ) : (
-          <div className="calendrix-title">{state.grids[index]?.label}</div>
+          <div className="calendrix-title">
+            <span className="calendrix-title-text">{state.grids[index]?.monthName}</span>
+            <span className="calendrix-title-text">{state.grids[index]?.yearLabel}</span>
+          </div>
         )}
 
         {isLast ? (

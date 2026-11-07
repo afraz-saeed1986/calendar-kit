@@ -102,6 +102,11 @@
   min-inline-size: 0;
 }
 
+/* The title of the other months: the same spacing as the month and year buttons of the first. */
+.calendrix-title-text {
+  padding: 0.25rem 0.5rem;
+}
+
 /* Keeps the title centered above a month that has no arrow. */
 .calendrix-nav-spacer {
   display: inline-block;

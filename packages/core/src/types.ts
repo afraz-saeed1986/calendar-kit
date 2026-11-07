@@ -162,6 +162,10 @@ export interface MonthGrid {
   readonly month: number;
   /** For example "October 2026". */
   readonly label: string;
+  /** The name of the month alone: "October". */
+  readonly monthName: string;
+  /** The year with the numerals of the locale: "2026". */
+  readonly yearLabel: string;
   /** Always 6 weeks of 7 days. `isOutsideMonth` is relative to this month. */
   readonly weeks: ReadonlyArray<ReadonlyArray<DayCell>>;
 }

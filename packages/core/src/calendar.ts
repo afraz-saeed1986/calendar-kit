@@ -481,12 +481,18 @@ export function createCalendar<M extends SelectionMode = 'single'>(
       timeZone: 'UTC',
     });
 
-    const grids: MonthGrid[] = v.grids.map((grid) => ({
-      year: grid.year,
-      month: grid.month,
-      label: monthYear.format(utcDate(grid.start)),
-      weeks: buildWeeks(v, grid),
-    }));
+    const grids: MonthGrid[] = v.grids.map((grid) => {
+      const parts = monthYear.formatToParts(utcDate(grid.start));
+      const part = (type: string) => parts.find((item) => item.type === type)?.value ?? '';
+      return {
+        year: grid.year,
+        month: grid.month,
+        label: monthYear.format(utcDate(grid.start)),
+        monthName: part('month'),
+        yearLabel: part('year'),
+        weeks: buildWeeks(v, grid),
+      };
+    });
     const primary = grids[0];
     if (!primary) throw new Error('A calendar shows at least one month');
     const lastGrid = grids[grids.length - 1] ?? primary;
