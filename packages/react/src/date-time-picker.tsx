@@ -38,9 +38,22 @@ export interface DateTimePickerProps {
   /** 12 or 24. Default: the locale's own habit. */
   hourCycle?: HourCycle;
   showSeconds?: boolean;
+  /** Step of the up and down arrows in the time field. Default: 1. */
+  hourStep?: number;
+  minuteStep?: number;
+  secondStep?: number;
+  /** Times outside this range are rejected. A picked date starts at `minTime`. */
+  minTime?: TimeValue;
+  maxTime?: TimeValue;
 
   minDate?: CalendarDate;
   maxDate?: CalendarDate;
+  /** First day of the week, 0 is Sunday. Default: from the locale. */
+  weekStart?: CalendarOptions['weekStart'];
+  /** Default: from the locale. */
+  direction?: CalendarOptions['direction'];
+  /** How many months the calendar shows: 1 (default), 2 or 3. */
+  visibleMonths?: number;
   isDateUnavailable?: (date: CalendarDate) => boolean;
   /** Plugins register calendar systems, for example `persianPlugin`. */
   plugins?: CalendarOptions['plugins'];
@@ -123,6 +136,11 @@ export function DateTimePicker({
   locale = 'en-US',
   hourCycle,
   showSeconds,
+  hourStep,
+  minuteStep,
+  secondStep,
+  minTime,
+  maxTime,
   plugins,
   labels,
   placeholder,
@@ -230,13 +248,13 @@ export function DateTimePicker({
 
   const pickDate = (date: CalendarDate | null) => {
     if (!date) return commit(null);
-    commit({ date, time: shown?.time ?? draftTime ?? MIDNIGHT });
+    commit({ date, time: shown?.time ?? draftTime ?? minTime ?? MIDNIGHT });
   };
 
   const pickTime = (time: TimeValue | null) => {
     if (shown) {
       // Clearing the time of a picked date puts it back to midnight.
-      commit({ date: shown.date, time: time ?? MIDNIGHT });
+      commit({ date: shown.date, time: time ?? minTime ?? MIDNIGHT });
     } else {
       setDraftTime(time);
     }
@@ -349,6 +367,11 @@ export function DateTimePicker({
               locale={locale}
               hourCycle={hourCycle}
               showSeconds={showSeconds}
+              hourStep={hourStep}
+              minuteStep={minuteStep}
+              secondStep={secondStep}
+              minTime={minTime}
+              maxTime={maxTime}
               value={shown ? shown.time : draftTime}
               onChange={pickTime}
             />
