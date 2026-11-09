@@ -10,10 +10,20 @@ import {
   type HourCycle,
   type TimeValue,
 } from '@calendrix/core';
-import { useEffect, useId, useRef, useState } from 'react';
+import {
+  useCallback,
+  useEffect,
+  useId,
+  useRef,
+  useState,
+  type KeyboardEvent as ReactKeyboardEvent,
+  type ReactNode,
+} from 'react';
+import { createPortal } from 'react-dom';
 import { Calendar } from './calendar';
 import { pickerLabelsFor, type PickerLabels } from './messages';
 import { TimeField } from './time-field';
+import { usePopoverPosition } from './use-popover-position';
 
 export interface DateTimePickerProps {
   /** The picked date and time. Passing it (even `null`) makes the picker controlled. */
@@ -42,9 +52,39 @@ export interface DateTimePickerProps {
   disabled?: boolean;
   id?: string;
   className?: string;
+
+  /**
+   * Render the popover in `document.body` (default). Pass `false` to render it next to the
+   * input instead. The `data-theme` of an ancestor does not reach a portaled popover.
+   */
+  portal?: boolean;
 }
 
 const MIDNIGHT: TimeValue = { hour: 0, minute: 0, second: 0 };
+
+const TABBABLE =
+  'button:not([disabled]), input:not([disabled]), select:not([disabled]), textarea:not([disabled]), [tabindex]:not([tabindex="-1"])';
+
+/** Keeps Tab and Shift+Tab inside the popover by wrapping around at its ends. */
+function trapTab(event: ReactKeyboardEvent<HTMLElement>) {
+  if (event.key !== 'Tab') return;
+  const dialog = event.currentTarget;
+  const items = Array.from(dialog.querySelectorAll<HTMLElement>(TABBABLE));
+  const first = items[0];
+  const last = items[items.length - 1];
+  if (!first || !last) {
+    event.preventDefault();
+    return;
+  }
+  const active = document.activeElement;
+  if (event.shiftKey && (active === first || active === dialog)) {
+    event.preventDefault();
+    last.focus();
+  } else if (!event.shiftKey && active === last) {
+    event.preventDefault();
+    first.focus();
+  }
+}
 
 function CalendarIcon() {
   return (
@@ -89,6 +129,7 @@ export function DateTimePicker({
   disabled,
   id,
   className,
+  portal = true,
   ...calendarOptions
 }: DateTimePickerProps) {
   // Typing a date in a calendar from a plugin works before the popover has ever been opened.
@@ -105,9 +146,31 @@ export function DateTimePicker({
   const [open, setOpen] = useState(false);
   const [touched, setTouched] = useState(false);
 
-  const wrapperRef = useRef<HTMLDivElement>(null);
-  const popoverRef = useRef<HTMLDivElement>(null);
+  const wrapperRef = useRef<HTMLDivElement | null>(null);
+  const popoverRef = useRef<HTMLDivElement | null>(null);
   const inputRef = useRef<HTMLInputElement>(null);
+
+  const {
+    setReference,
+    setFloating,
+    style: popoverStyle,
+  } = usePopoverPosition(open, portal ? 'fixed' : 'absolute');
+  // Each element is needed twice: by our own checks and by the positioning.
+  const setWrapper = useCallback(
+    (node: HTMLDivElement | null) => {
+      wrapperRef.current = node;
+      setReference(node);
+    },
+    [setReference],
+  );
+  const setPopover = useCallback(
+    (node: HTMLDivElement | null) => {
+      popoverRef.current = node;
+      setFloating(node);
+    },
+    [setFloating],
+  );
+  const renderLayer = (node: ReactNode) => (portal ? createPortal(node, document.body) : node);
   const dialogId = useId();
   const text_ = pickerLabelsFor(locale, labels);
 
@@ -192,7 +255,9 @@ export function DateTimePicker({
   useEffect(() => {
     if (!open) return;
     const onPointerDown = (event: PointerEvent) => {
-      if (!wrapperRef.current?.contains(event.target as Node)) setOpen(false);
+      const target = event.target as Node;
+      if (wrapperRef.current?.contains(target) || popoverRef.current?.contains(target)) return;
+      setOpen(false);
     };
     document.addEventListener('pointerdown', onPointerDown);
     return () => document.removeEventListener('pointerdown', onPointerDown);
@@ -224,7 +289,7 @@ export function DateTimePicker({
   });
 
   return (
-    <div ref={wrapperRef} className={['calendrix-picker', className].filter(Boolean).join(' ')}>
+    <div ref={setWrapper} className={['calendrix-picker', className].filter(Boolean).join(' ')}>
       <div className="calendrix-picker-field">
         <input
           ref={inputRef}
@@ -260,13 +325,16 @@ export function DateTimePicker({
         </button>
       </div>
 
-      {open && (
+      {open && renderLayer(
         <div
-          ref={popoverRef}
+          ref={setPopover}
           id={dialogId}
           role="dialog"
           aria-label={text_.dialog}
           className="calendrix-popover"
+          style={popoverStyle}
+          tabIndex={-1}
+          onKeyDown={trapTab}
         >
           <Calendar
             system={system}

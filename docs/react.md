@@ -116,6 +116,16 @@ Components have no styles of their own. Import `@calendrix/react/styles.css` for
 
 Variables: `--calendrix-font`, `-bg`, `-fg`, `-muted`, `-border`, `-hover`, `-accent`, `-accent-fg`, `-danger`, `-radius`, `-cell-size`, `-gap`. Dark mode follows the system; set `data-theme="dark"` or `data-theme="light"` on any element to force a theme inside it. Every part has a `calendrix-*` class, and days carry `data-today`, `data-selected`, `data-outside-month`, `data-disabled`, `data-unavailable`, `data-range-start`, `data-range-end`, `data-in-range` and `data-in-preview`.
 
+## Popover
+
+`<DateTimePicker/>` positions its popover with [Floating UI](https://floating-ui.com) (see [ADR 0013](adr/0013-popover-positioning-and-focus.md)):
+
+- It opens below the input and flips above it, or shifts sideways, when there is not enough room. Its size is limited to the space left in the viewport and it scrolls inside.
+- It is rendered in `document.body`, so a parent with `overflow: hidden` does not clip it. Pass `portal={false}` to render it next to the input instead.
+- Tab and Shift+Tab stay inside the popover. Escape and Done close it and return the focus to the input.
+- Set `--calendrix-z-popover` to change its `z-index` (default `1000`).
+- A `data-theme` attribute on an ancestor does not reach a portaled popover. Put it on `<html>` or `<body>`, or use `portal={false}`.
+
 ## Known limitations
 
-See [ADR 0009](adr/0009-react-adapter.md): the popover does not flip near the viewport edge, has no focus trap, and tapping a time segment on a phone does not open the on-screen keyboard yet.
+Tapping a time segment on a phone does not open the on-screen keyboard yet.

@@ -58,7 +58,8 @@
 
 .calendrix-calendar,
 .calendrix-time-field,
-.calendrix-picker {
+.calendrix-picker,
+.calendrix-popover {
   font-family: var(--calendrix-font);
   color: var(--calendrix-fg);
   box-sizing: border-box;
@@ -414,15 +415,18 @@
 }
 
 .calendrix-popover {
-  position: absolute;
-  z-index: 10;
-  inset-block-start: calc(100% + 0.25rem);
-  inset-inline-start: 0;
+  z-index: var(--calendrix-z-popover, 1000);
+  box-sizing: border-box;
+  overflow: auto;
   padding: 0.25rem 0 0.75rem;
   background: var(--calendrix-bg);
   border: 1px solid var(--calendrix-border);
   border-radius: calc(var(--calendrix-radius) + 4px);
   box-shadow: 0 8px 24px rgb(0 0 0 / 0.18);
+}
+
+.calendrix-popover:focus {
+  outline: none;
 }
 
 .calendrix-popover .calendrix-calendar {
