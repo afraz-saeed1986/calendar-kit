@@ -16,6 +16,8 @@ export type {
   PluginContext,
   Selection,
   SelectionMode,
+  SelectionValue,
+  SelectionValueMap,
   WeekdayLabel,
   WeekStart,
 } from './types';
@@ -27,6 +29,7 @@ export { formatISODate, formatISOTime, parseISODate, parseISOTime } from './iso'
 export { createTimeField } from './time-field';
 export { normalizeDigits } from './digits';
 export { datePatternOf, formatDate, parseDate } from './text-date';
+export { formatDateRange, parseDateRange } from './text-range';
 export type { DatePattern, TextDateOptions } from './text-date';
 export { formatDateTime, formatTime, parseDateTime, parseTime } from './text-time';
 export type { TextTimeOptions } from './text-time';

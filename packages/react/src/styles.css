@@ -442,6 +442,10 @@
   padding-inline: 1rem;
 }
 
+.calendrix-popover-footer[data-actions-only] {
+  justify-content: flex-end;
+}
+
 .calendrix-actions {
   display: flex;
   gap: 0.5rem;

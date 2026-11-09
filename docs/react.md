@@ -142,6 +142,35 @@ Variables: `--calendrix-font`, `-bg`, `-fg`, `-muted`, `-border`, `-hover`, `-ac
 - `weekStart` (`0..6`, 0 is Sunday), `direction` (`'ltr' | 'rtl'`) and `visibleMonths` (`1..3`), described under `<Calendar/>` below.
 - `hourStep`, `minuteStep` and `secondStep` (default `1`), and `minTime` and `maxTime`, described under `<TimeField/>` below. A date picked before any time is chosen starts at `minTime`, or at midnight when there is none.
 
+### `<DatePicker/>`
+
+A text input and a popover with a calendar, for one day, a range or many days, without a time (see [ADR 0014](adr/0014-date-picker.md)). Use `DateTimePicker` when a time is needed.
+
+```tsx
+<DatePicker selection="range" system="persian" locale="fa-IR" plugins={[persianPlugin]} onChange={console.log} />
+```
+
+| Prop                                                                                                        | Type                                | Default                  | Description                                                                              |
+| ----------------------------------------------------------------------------------------------------------- | ----------------------------------- | ------------------------ | ---------------------------------------------------------------------------------------- |
+| `selection`                                                                                                 | `'single' \| 'range' \| 'multiple'` | `'single'`               | One day, a range, or many days. The type of `value` and `onChange` follows it.           |
+| `value`, `defaultValue`, `onChange`                                                                         | follows `selection`                 |                          | Passing `value` (even `null`, or `[]` for `multiple`) makes the picker controlled.       |
+| `closeOnSelect`                                                                                             | `boolean`                           | `true`, `false` for `multiple` | Close when the selection is complete: a picked day, or the second day of a range.  |
+| `visibleMonths`                                                                                             | `number`                            | `2` for `range`, else `1` | How many months the calendar shows.                                                     |
+| `allowUnavailableInRange`, `maxSelected`                                                                    |                                     |                          | As in `<Calendar/>`.                                                                     |
+| `system`, `locale`, `plugins`, `minDate`, `maxDate`, `isDateUnavailable`, `weekStart`, `direction`, `timeZone`, `now` |                           |                          | As in `<DateTimePicker/>` and `<Calendar/>`.                                             |
+| `labels`                                                                                                    | `Partial<PickerLabels> & { datesSelected?: (count: number) => string }` | locale | Texts of the picker. `datesSelected` is the text of a long list of days.       |
+| `placeholder`, `disabled`, `id`, `className`, `portal`                                                      |                                     |                          | As in `<DateTimePicker/>`.                                                               |
+
+The text in the input:
+
+- `single`: one date, typed or picked.
+- `range`: `11/18/2026 – 11/25/2026`, typed or picked. When typing, the separator can be an en dash or em dash (with or without spaces), a hyphen with spaces around it, or the word `to` (`تا` in Persian, `bis` in German). If the end is before the start, the two are swapped. The same text is available as `formatDateRange` and `parseDateRange` in `@calendrix/core`.
+- `multiple`: the input is read-only. It lists the dates when there are at most three, and shows a count (`5 dates`) otherwise. Delete and Backspace clear it, and so does the Clear button.
+
+In all modes, a ✕ button in the field clears the selection when there is one.
+
+Like `Calendar`, the value is in the calendar system on screen. Use `convertDate` to store it in another one.
+
 ### `<Calendar/>`
 
 Accepts every option of `createCalendar` (`CalendarOptions<M>`) and `className`. The type of `value`, `defaultValue` and `onChange` follows `selection`.

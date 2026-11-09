@@ -34,6 +34,7 @@ Dates are intentionally omitted; milestones are ordered by dependency, not by ca
 - [x] Range and multiple selection in the core and `Calendar` ([ADR 0011](adr/0011-range-and-multiple-selection.md))
 - [x] Up to three visible months side by side ([ADR 0012](adr/0012-multiple-visible-months.md))
 - [x] Popover: flip and shift near the viewport edge, portal, focus trap ([ADR 0013](adr/0013-popover-positioning-and-focus.md))
+- [x] `DatePicker`: input and popover for single, range and multiple selection ([ADR 0014](adr/0014-date-picker.md))
 - [x] Demo app (`apps/demo`)
 
 ## M3: API validation

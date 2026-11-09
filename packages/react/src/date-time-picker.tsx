@@ -10,20 +10,11 @@ import {
   type HourCycle,
   type TimeValue,
 } from '@calendrix/core';
-import {
-  useCallback,
-  useEffect,
-  useId,
-  useRef,
-  useState,
-  type KeyboardEvent as ReactKeyboardEvent,
-  type ReactNode,
-} from 'react';
-import { createPortal } from 'react-dom';
+import { useEffect, useRef, useState } from 'react';
 import { Calendar } from './calendar';
 import { pickerLabelsFor, type PickerLabels } from './messages';
 import { TimeField } from './time-field';
-import { usePopoverPosition } from './use-popover-position';
+import { usePickerPopover } from './use-picker-popover';
 
 export interface DateTimePickerProps {
   /** The picked date and time. Passing it (even `null`) makes the picker controlled. */
@@ -74,30 +65,6 @@ export interface DateTimePickerProps {
 }
 
 const MIDNIGHT: TimeValue = { hour: 0, minute: 0, second: 0 };
-
-const TABBABLE =
-  'button:not([disabled]), input:not([disabled]), select:not([disabled]), textarea:not([disabled]), [tabindex]:not([tabindex="-1"])';
-
-/** Keeps Tab and Shift+Tab inside the popover by wrapping around at its ends. */
-function trapTab(event: ReactKeyboardEvent<HTMLElement>) {
-  if (event.key !== 'Tab') return;
-  const dialog = event.currentTarget;
-  const items = Array.from(dialog.querySelectorAll<HTMLElement>(TABBABLE));
-  const first = items[0];
-  const last = items[items.length - 1];
-  if (!first || !last) {
-    event.preventDefault();
-    return;
-  }
-  const active = document.activeElement;
-  if (event.shiftKey && (active === first || active === dialog)) {
-    event.preventDefault();
-    last.focus();
-  } else if (!event.shiftKey && active === last) {
-    event.preventDefault();
-    first.focus();
-  }
-}
 
 function CalendarIcon() {
   return (
@@ -161,35 +128,10 @@ export function DateTimePicker({
   /** A time chosen before any date. It becomes part of the value when a date is picked. */
   const [draftTime, setDraftTime] = useState<TimeValue | null>(null);
 
-  const [open, setOpen] = useState(false);
   const [touched, setTouched] = useState(false);
 
-  const wrapperRef = useRef<HTMLDivElement | null>(null);
-  const popoverRef = useRef<HTMLDivElement | null>(null);
-  const inputRef = useRef<HTMLInputElement>(null);
-
-  const {
-    setReference,
-    setFloating,
-    style: popoverStyle,
-  } = usePopoverPosition(open, portal ? 'fixed' : 'absolute');
-  // Each element is needed twice: by our own checks and by the positioning.
-  const setWrapper = useCallback(
-    (node: HTMLDivElement | null) => {
-      wrapperRef.current = node;
-      setReference(node);
-    },
-    [setReference],
-  );
-  const setPopover = useCallback(
-    (node: HTMLDivElement | null) => {
-      popoverRef.current = node;
-      setFloating(node);
-    },
-    [setFloating],
-  );
-  const renderLayer = (node: ReactNode) => (portal ? createPortal(node, document.body) : node);
-  const dialogId = useId();
+  const { open, setOpen, close, inputRef, setWrapper, dialogId, popoverProps, renderLayer } =
+    usePickerPopover({ portal });
   const text_ = pickerLabelsFor(locale, labels);
 
   const format = (next: DateTimeValue) =>
@@ -253,7 +195,7 @@ export function DateTimePicker({
 
   const pickTime = (time: TimeValue | null) => {
     if (shown) {
-      // Clearing the time of a picked date puts it back to midnight.
+      // Clearing the time of a picked date puts it back to the start of the day.
       commit({ date: shown.date, time: time ?? minTime ?? MIDNIGHT });
     } else {
       setDraftTime(time);
@@ -264,42 +206,6 @@ export function DateTimePicker({
     setDraftTime(null);
     commit(null);
   };
-
-  const close = (returnFocus: boolean) => {
-    setOpen(false);
-    if (returnFocus) inputRef.current?.focus();
-  };
-
-  useEffect(() => {
-    if (!open) return;
-    const onPointerDown = (event: PointerEvent) => {
-      const target = event.target as Node;
-      if (wrapperRef.current?.contains(target) || popoverRef.current?.contains(target)) return;
-      setOpen(false);
-    };
-    document.addEventListener('pointerdown', onPointerDown);
-    return () => document.removeEventListener('pointerdown', onPointerDown);
-  }, [open]);
-
-  // Opening moves the focus into the calendar, on the focused day.
-  useEffect(() => {
-    if (!open) return;
-    popoverRef.current?.querySelector<HTMLElement>('[role="grid"] [tabindex="0"]')?.focus();
-  }, [open]);
-
-  // Escape closes the popover from anywhere, even when a click left the focus on the page.
-  // A calendar that used the key to leave its month or year view has already handled it.
-  useEffect(() => {
-    if (!open) return;
-    const onKeyDown = (event: globalThis.KeyboardEvent) => {
-      if (event.key !== 'Escape' || event.defaultPrevented) return;
-      event.preventDefault();
-      setOpen(false);
-      inputRef.current?.focus();
-    };
-    document.addEventListener('keydown', onKeyDown);
-    return () => document.removeEventListener('keydown', onKeyDown);
-  }, [open]);
 
   const samplePlaceholder = format({
     date: convertDate({ system: 'gregory', year: 2026, month: 10, day: 14 }, system),
@@ -343,53 +249,45 @@ export function DateTimePicker({
         </button>
       </div>
 
-      {open && renderLayer(
-        <div
-          ref={setPopover}
-          id={dialogId}
-          role="dialog"
-          aria-label={text_.dialog}
-          className="calendrix-popover"
-          style={popoverStyle}
-          tabIndex={-1}
-          onKeyDown={trapTab}
-        >
-          <Calendar
-            system={system}
-            locale={locale}
-            plugins={plugins}
-            value={shown?.date ?? null}
-            onChange={pickDate}
-            {...calendarOptions}
-          />
-          <div className="calendrix-popover-footer">
-            <TimeField
+      {open &&
+        renderLayer(
+          <div {...popoverProps} aria-label={text_.dialog}>
+            <Calendar
+              system={system}
               locale={locale}
-              hourCycle={hourCycle}
-              showSeconds={showSeconds}
-              hourStep={hourStep}
-              minuteStep={minuteStep}
-              secondStep={secondStep}
-              minTime={minTime}
-              maxTime={maxTime}
-              value={shown ? shown.time : draftTime}
-              onChange={pickTime}
+              plugins={plugins}
+              value={shown?.date ?? null}
+              onChange={pickDate}
+              {...calendarOptions}
             />
-            <div className="calendrix-actions">
-              <button type="button" className="calendrix-action" onClick={clear}>
-                {text_.clear}
-              </button>
-              <button
-                type="button"
-                className="calendrix-action calendrix-action-primary"
-                onClick={() => close(true)}
-              >
-                {text_.done}
-              </button>
+            <div className="calendrix-popover-footer">
+              <TimeField
+                locale={locale}
+                hourCycle={hourCycle}
+                showSeconds={showSeconds}
+                hourStep={hourStep}
+                minuteStep={minuteStep}
+                secondStep={secondStep}
+                minTime={minTime}
+                maxTime={maxTime}
+                value={shown ? shown.time : draftTime}
+                onChange={pickTime}
+              />
+              <div className="calendrix-actions">
+                <button type="button" className="calendrix-action" onClick={clear}>
+                  {text_.clear}
+                </button>
+                <button
+                  type="button"
+                  className="calendrix-action calendrix-action-primary"
+                  onClick={() => close(true)}
+                >
+                  {text_.done}
+                </button>
+              </div>
             </div>
-          </div>
-        </div>
-      )}
+          </div>,
+        )}
     </div>
   );
 }

@@ -1,5 +1,7 @@
 export { Calendar } from './calendar';
 export type { CalendarProps } from './calendar';
+export { DatePicker } from './date-picker';
+export type { DatePickerLabels, DatePickerProps } from './date-picker';
 export { DateTimePicker } from './date-time-picker';
 export type { DateTimePickerProps } from './date-time-picker';
 export type { PickerLabels } from './messages';

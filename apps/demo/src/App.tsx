@@ -13,7 +13,7 @@ import {
 } from '@calendrix/core';
 import { registerCalendar } from '@calendrix/core';
 import { persian, persianPlugin } from '@calendrix/persian';
-import { Calendar, DateTimePicker, TimeField } from '@calendrix/react';
+import { Calendar, DatePicker, DateTimePicker, TimeField } from '@calendrix/react';
 import '@calendrix/react/styles.css';
 import { useEffect, useState } from 'react';
 import './demo.css';
@@ -57,6 +57,8 @@ export function App() {
   const [picked, setPicked] = useState<DateTimeValue | null>(null);
   const [range, setRange] = useState<DateRange | null>(null);
   const [many, setMany] = useState<DateRange['start'][]>([]);
+  const [fieldRange, setFieldRange] = useState<DateRange | null>(null);
+  const [fieldMany, setFieldMany] = useState<DateRange['start'][]>([]);
 
   const profile = PROFILES[mode];
 
@@ -139,7 +141,7 @@ export function App() {
       </section>
 
       <section className="demo-section">
-        <h2>Range</h2>
+        <h2>Range (Calendar)</h2>
         <Calendar
           system={profile.system}
           locale={profile.locale}
@@ -153,7 +155,24 @@ export function App() {
       </section>
 
       <section className="demo-section">
-        <h2>Multiple</h2>
+        <h2>Range (DatePicker)</h2>
+        <DatePicker
+          system={profile.system}
+          locale={profile.locale}
+          plugins={[persianPlugin]}
+          selection="range"
+          value={fieldRange}
+          onChange={setFieldRange}
+        />
+        <p>
+          {fieldRange
+            ? `${formatISODate(fieldRange.start)} → ${formatISODate(fieldRange.end)}`
+            : '—'}
+        </p>
+      </section>
+
+      <section className="demo-section">
+        <h2>Multiple (Calendar)</h2>
         <Calendar
           system={profile.system}
           locale={profile.locale}
@@ -163,6 +182,22 @@ export function App() {
           onChange={setMany}
         />
         <p>{many.length > 0 ? many.map((date) => formatISODate(date)).join(', ') : '—'}</p>
+      </section>
+
+      <section className="demo-section">
+        <h2>Multiple (DatePicker)</h2>
+        <DatePicker
+          system={profile.system}
+          locale={profile.locale}
+          plugins={[persianPlugin]}
+          selection="multiple"
+          maxSelected={10}
+          value={fieldMany}
+          onChange={setFieldMany}
+        />
+        <p>
+          {fieldMany.length > 0 ? fieldMany.map((date) => formatISODate(date)).join(', ') : '—'}
+        </p>
       </section>
 
       <div className="demo-row">
