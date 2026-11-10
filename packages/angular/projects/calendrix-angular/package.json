@@ -1,0 +1,15 @@
+{
+  "name": "@calendrix/angular",
+  "version": "0.0.0",
+  "description": "Angular components for calendrix: an accessible date and time picker with Persian (Jalali) and Gregorian support.",
+  "license": "MIT",
+  "peerDependencies": {
+    "@angular/common": "^21.2.0",
+    "@angular/core": "^21.2.0",
+    "@calendrix/core": "0.0.0"
+  },
+  "dependencies": {
+    "tslib": "^2.3.0"
+  },
+  "sideEffects": false
+}

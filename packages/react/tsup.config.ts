@@ -8,5 +8,5 @@ export default defineConfig({
   sourcemap: true,
   treeshake: true,
   external: ['react', 'react-dom', 'react/jsx-runtime', '@calendrix/core'],
-  onSuccess: 'node scripts/copy-styles.mjs',
+  onSuccess: 'node scripts/copy-styles.mjs && node scripts/add-use-client.mjs',
 });

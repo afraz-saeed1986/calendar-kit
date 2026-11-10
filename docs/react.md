@@ -224,6 +224,10 @@ Accepts every option of `createTimeField` (`TimeFieldOptions`) and `className`.
 - Set `--calendrix-z-popover` to change its `z-index` (default `1000`).
 - A `data-theme` attribute on an ancestor does not reach a portaled popover. Put it on `<html>` or `<body>`, or use `portal={false}`.
 
+## Next.js and Server Components
+
+The files of `@calendrix/react` start with `"use client"`, so the components can be imported from a Server Component. Props that are functions (`onChange`, `isDateUnavailable`, a plugin such as `persianPlugin`) cannot be passed from a Server Component to a Client Component, so use the pickers inside your own Client Component (a file that starts with `"use client"`). The functions of `@calendrix/core` are plain functions and work in Server Components.
+
 ## Known limitations
 
 Tapping a time segment on a phone does not open the on-screen keyboard yet.
