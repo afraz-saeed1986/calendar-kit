@@ -102,23 +102,27 @@ export class CalendrixPopover implements OnInit {
     };
     this.document.addEventListener('pointerdown', onPointerDown, true);
 
+    // Escape closes the popover from anywhere, even when a click left the focus on the page. A
+    // layer inside that used the key first (the month or year view of the calendar) has already
+    // called `preventDefault`.
+    const onKeyDown = (event: KeyboardEvent) => {
+      if (event.key !== 'Escape' || event.defaultPrevented) return;
+      event.preventDefault();
+      this.dismiss.emit('escape');
+    };
+    this.document.addEventListener('keydown', onKeyDown);
+
     this.destroyRef.onDestroy(() => {
       stopAutoUpdate();
       this.document.removeEventListener('pointerdown', onPointerDown, true);
+      this.document.removeEventListener('keydown', onKeyDown);
       // Angular only removes the nodes it still finds in the host view, not an element we moved.
       if (portaled) element.remove();
     });
   }
 
   protected onKeydown(event: KeyboardEvent): void {
-    if (event.key === 'Escape') {
-      // A layer inside (the month or year view of the calendar) may use Escape first.
-      if (event.defaultPrevented) return;
-      event.preventDefault();
-      event.stopPropagation();
-      this.dismiss.emit('escape');
-      return;
-    }
+
     if (event.key !== 'Tab') return;
 
     const items = Array.from(this.element.querySelectorAll<HTMLElement>(TABBABLE));

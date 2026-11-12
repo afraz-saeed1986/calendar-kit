@@ -85,10 +85,19 @@ describe('CalendrixPopover', () => {
     expect(reasons).toEqual(['outside']);
   });
 
-  it('asks to close on Escape', async () => {
+  it('asks to close on Escape, wherever the focus is', async () => {
     const fixture = await setup();
     press(popoverIn(document.body)?.querySelector('.first') as Element, 'Escape');
-    expect(fixture.componentInstance.reasons).toEqual(['escape']);
+    press(document.body, 'Escape');
+    expect(fixture.componentInstance.reasons).toEqual(['escape', 'escape']);
+  });
+
+  it('leaves an Escape that something inside already used', async () => {
+    const fixture = await setup();
+    const first = popoverIn(document.body)?.querySelector('.first') as HTMLElement;
+    first.addEventListener('keydown', (event) => event.preventDefault());
+    press(first, 'Escape');
+    expect(fixture.componentInstance.reasons).toEqual([]);
   });
 
   it('keeps Tab inside the popover', async () => {
