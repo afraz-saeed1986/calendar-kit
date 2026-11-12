@@ -19,6 +19,7 @@
     "@angular/router": "^21.2.0",
     "@calendrix/core": "workspace:^",
     "@calendrix/persian": "workspace:^",
+    "@floating-ui/dom": "^1.7.0",
     "rxjs": "~7.8.0",
     "tslib": "^2.3.0"
   },

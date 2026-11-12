@@ -84,6 +84,9 @@ importers:
       '@calendrix/persian':
         specifier: workspace:^
         version: link:../persian
+      '@floating-ui/dom':
+        specifier: ^1.7.0
+        version: 1.8.0
       rxjs:
         specifier: ~7.8.0
         version: 7.8.2
@@ -3933,6 +3936,7 @@ packages:
 
   tldts-core@7.4.20:
     resolution: {integrity: sha512-C630TWXZCZmLq0F2bW4QqwnaaxCQ/svpAqvJwnC4JvgEM5ohhBnGsEzTLSOXcN+xjz+kEaHS5uoWIw2klnqd0A==}
+    deprecated: Partial release, see https://github.com/remusao/tldts/issues/2735. Use >=7.4.22.
 
   tldts@6.1.86:
     resolution: {integrity: sha512-WMi/OQ2axVTf/ykqCQgXiIct+mSQDFdH2fkwhPwgEwvJ1kSzZRiinb0zF2Xb8u4+OqPChmyI6MEu4EezNJz+FQ==}

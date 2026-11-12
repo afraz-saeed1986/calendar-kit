@@ -22,6 +22,7 @@ import {
   type SelectionMode,
   type SelectionValue,
 } from '@calendrix/core';
+import { definedOnly } from './defined-only';
 import { CalendrixPropsDirective } from './props-directive';
 
 const COLUMNS = 3;
@@ -34,10 +35,7 @@ function chunk<T>(items: readonly T[], size: number): T[][] {
   return rows;
 }
 
-/** The options the user set: an input that was not set must not reach the core as `undefined`. */
-function definedOnly<T>(options: Record<string, unknown>): T {
-  return Object.fromEntries(Object.entries(options).filter(([, value]) => value !== undefined)) as T;
-}
+
 
 /**
  * A month calendar with the ARIA grid pattern. The month and the year in the header are buttons:
