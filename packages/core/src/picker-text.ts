@@ -1,11 +1,7 @@
-import {
-  compareDates,
-  convertDate,
-  formatDate,
-  formatDateRange,
-  type CalendarSystem,
-  type Selection,
-} from '@calendrix/core';
+import { compareDates, convertDate } from './date';
+import { formatDate } from './text-date';
+import { formatDateRange } from './text-range';
+import type { CalendarSystem, Selection } from './types';
 
 /** With more days than this, the input shows a count instead of the dates. */
 const MAX_LISTED = 3;
@@ -19,6 +15,7 @@ const DATES_SELECTED: Record<string, (count: string) => string> = {
   de: (count) => `${count} Daten`,
 };
 
+/** The text of a long list of days ("5 dates"). `custom` replaces the built-in texts. */
 export function datesSelectedText(
   locale: string,
   count: number,
@@ -30,6 +27,7 @@ export function datesSelectedText(
   return text(new Intl.NumberFormat(locale).format(count));
 }
 
+/** True for `null` and for an empty list: nothing is selected. */
 export function isEmptySelection(value: Selection): boolean {
   return value === null || (Array.isArray(value) && value.length === 0);
 }

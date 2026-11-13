@@ -2,20 +2,23 @@ import {
   convertDate,
   formatDate,
   formatDateRange,
+  formatSelection,
+  isEmptySelection,
   parseDate,
   parseDateRange,
+  pickerLabelsFor,
   registerCalendar,
+  toSystem,
   type CalendarDate,
   type CalendarOptions,
   type CalendarSystem,
+  type PickerLabels,
   type Selection,
   type SelectionMode,
   type SelectionValue,
 } from '@calendrix/core';
 import { useEffect, useRef, useState } from 'react';
 import { Calendar } from './calendar';
-import { formatSelection, isEmptySelection, toSystem } from './date-picker-text';
-import { pickerLabelsFor, type PickerLabels } from './messages';
 import { usePickerPopover } from './use-picker-popover';
 
 export type DatePickerLabels = Partial<PickerLabels> & {
@@ -140,7 +143,7 @@ export function DatePicker<M extends SelectionMode = 'single'>({
 
   const { open, setOpen, close, inputRef, setWrapper, dialogId, popoverProps, renderLayer } =
     usePickerPopover({ portal });
-  const text_ = pickerLabelsFor(locale, labels);
+  const text_ = pickerLabelsFor(locale, labels, 'date');
 
   const format = (next: Selection) => formatSelection(next, locale, labels?.datesSelected);
   const valueKey = format(shown);

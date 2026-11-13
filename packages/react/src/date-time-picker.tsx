@@ -12,7 +12,7 @@ import {
 } from '@calendrix/core';
 import { useEffect, useRef, useState } from 'react';
 import { Calendar } from './calendar';
-import { pickerLabelsFor, type PickerLabels } from './messages';
+import { pickerLabelsFor, type PickerLabels } from '@calendrix/core';
 import { TimeField } from './time-field';
 import { usePickerPopover } from './use-picker-popover';
 

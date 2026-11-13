@@ -4,7 +4,7 @@ export { DatePicker } from './date-picker';
 export type { DatePickerLabels, DatePickerProps } from './date-picker';
 export { DateTimePicker } from './date-time-picker';
 export type { DateTimePickerProps } from './date-time-picker';
-export type { PickerLabels } from './messages';
+export type { PickerLabels } from '@calendrix/core';
 export { toReactProps } from './props';
 export { TimeField } from './time-field';
 export type { TimeFieldProps } from './time-field';
