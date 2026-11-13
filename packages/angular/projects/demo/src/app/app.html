@@ -1,0 +1,77 @@
+<main class="demo">
+  <h1>calendrix · Angular</h1>
+
+  <section>
+    <h2>Calendar</h2>
+    <calendrix-calendar [(value)]="calendar" />
+    <pre>{{ calendar() | json }}</pre>
+  </section>
+
+  <section>
+    <h2>TimeField</h2>
+    <calendrix-time-field [(value)]="time" />
+    <pre>{{ time() | json }}</pre>
+  </section>
+
+  <section>
+    <h2>DatePicker · single</h2>
+    <calendrix-date-picker [(value)]="single" />
+    <pre>{{ single() | json }}</pre>
+  </section>
+
+  <section>
+    <h2>DatePicker · range</h2>
+    <calendrix-date-picker [selection]="'range'" [(value)]="range" />
+    <pre>{{ range() | json }}</pre>
+  </section>
+
+  <section>
+    <h2>DatePicker · multiple</h2>
+    <calendrix-date-picker [selection]="'multiple'" [(value)]="many" />
+    <pre>{{ many() | json }}</pre>
+  </section>
+
+  <section>
+    <h2>DateTimePicker</h2>
+    <calendrix-date-time-picker [(value)]="dateTime" />
+    <pre>{{ dateTime() | json }}</pre>
+  </section>
+
+  <section dir="rtl" lang="fa">
+    <h2>فارسی · DatePicker</h2>
+    <calendrix-date-picker
+      system="persian"
+      locale="fa-IR"
+      direction="rtl"
+      [plugins]="plugins"
+      [(value)]="faSingle"
+    />
+    <pre dir="ltr">{{ faSingle() | json }}</pre>
+  </section>
+
+  <section dir="rtl" lang="fa">
+    <h2>فارسی · بازه</h2>
+    <calendrix-date-picker
+      system="persian"
+      locale="fa-IR"
+      direction="rtl"
+      [selection]="'range'"
+      [plugins]="plugins"
+      [(value)]="faRange"
+    />
+    <pre dir="ltr">{{ faRange() | json }}</pre>
+  </section>
+
+  <section dir="rtl" lang="fa">
+    <h2>فارسی · تاریخ و زمان</h2>
+    <calendrix-date-time-picker
+      system="persian"
+      locale="fa-IR"
+      direction="rtl"
+      [hourCycle]="24"
+      [plugins]="plugins"
+      [(value)]="faDateTime"
+    />
+    <pre dir="ltr">{{ faDateTime() | json }}</pre>
+  </section>
+</main>
