@@ -54,3 +54,10 @@ Both adapters (Angular full, Vue prototype) pass their tests, and each question 
 9. **Shared code.** `definedOnly` is needed by every component and moved to its own file. The segment focus logic of `TimeField` is the same as in React: it supports finding 5 (a "focus request" in the core).
 10. **Portal.** A popover moved to `<body>` is not removed by Angular when its host view is destroyed: Angular removes only the nodes it finds in the view. The directive must remove its own element. The same applies to any adapter that moves nodes by hand (a Vue `Teleport` handles this itself).
 11. **Positioning.** `@floating-ui/dom` works without a wrapper (the same rules as the React adapter) and is a peer dependency of the Angular library. The popover logic (position, outside press, Escape, Tab trap, focus on open) is about 100 lines, the same as `usePickerPopover`.
+
+### Angular `DatePicker` (stage 4)
+
+12. **Typed text.** The state of the input (`typing` flag, text, blur, validity) was written a second time, almost line by line. If the Vue prototype needs it again, it should move to the core (a "text field" state machine), as noted in ADR 0016.
+13. **Controlled values.** With `model()` the picker is uncontrolled until the first change, then it holds the value itself (finding 4). `typing` needs `afterNextRender` to reset: effects run once per change, not once per render as in React.
+14. **Types.** The `model()` of a child component emits `T | undefined`, so a parent that listens to `valueChange` must accept `undefined`. This is a property of the Angular API, not of the core.
+15. **Labels.** `DatePickerLabels` is declared in both adapters. It can move to the core with `PickerLabels` (a candidate for the next cleanup).

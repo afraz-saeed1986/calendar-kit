@@ -235,6 +235,27 @@ export function DateTimePicker({
             }
           }}
         />
+        {!disabled && value !== null && (
+          <button
+            type="button"
+            className="calendrix-toggle calendrix-clear"
+            aria-label={text_.clear}
+            onClick={() => {
+              clear();
+              inputRef.current?.focus();
+            }}
+          >
+            <svg aria-hidden="true" focusable="false" width="14" height="14" viewBox="0 0 14 14">
+              <path
+                d="M3 3l8 8M11 3l-8 8"
+                fill="none"
+                stroke="currentColor"
+                strokeWidth="1.5"
+                strokeLinecap="round"
+              />
+            </svg>
+          </button>
+        )}
         <button
           type="button"
           className="calendrix-toggle"
