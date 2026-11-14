@@ -12,5 +12,12 @@
   "dependencies": {
     "tslib": "^2.3.0"
   },
-  "sideEffects": false
+  "exports": {
+    "./styles.css": {
+      "default": "./styles.css"
+    }
+  },
+  "sideEffects": [
+    "*.css"
+  ]
 }

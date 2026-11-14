@@ -1,0 +1,7 @@
+{
+  "name": "@calendrix/styles",
+  "version": "0.0.0",
+  "private": true,
+  "description": "The base styles shared by the adapters. Each adapter copies the file when it builds (see ADR 0017).",
+  "license": "MIT"
+}

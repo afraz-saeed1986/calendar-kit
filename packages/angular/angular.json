@@ -78,7 +78,7 @@
             ],
             "styles": [
               "projects/demo/src/styles.css",
-              "../react/src/styles.css"
+              "dist/calendrix-angular/styles.css"
             ]
           },
           "configurations": {

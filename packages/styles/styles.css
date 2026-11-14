@@ -1,5 +1,5 @@
 /*
- * Optional base styles for @calendrix/react.
+ * Optional base styles for calendrix. Shared by every adapter (see ADR 0017).
  *
  * Restyle by overriding any --calendrix-* variable on :root or on any ancestor.
  * Dark mode follows the system; set data-theme="dark" or data-theme="light" on any element
