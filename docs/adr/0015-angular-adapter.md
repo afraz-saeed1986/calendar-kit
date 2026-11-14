@@ -47,7 +47,7 @@ Both adapters (Angular full, Vue prototype) pass their tests, and each question 
 5. **Focus.** The same logic as in React was needed: remember that a keyboard action or a view change changed the state, and move the DOM focus to the focused cell after the next render (`afterEveryRender` in Angular). It is identical in the adapters, so it is a candidate for the core (a "focus request" in the state). To be decided after the Vue prototype.
 6. **Keyboard events.** A native `KeyboardEvent` is accepted by `handleKeyDown` as it is.
 7. **`now` and `timeZone`.** Enough for tests once the core is created with them (see 3).
-8. **Stylesheet.** Open.
+8. **Stylesheet.** Answered in ADR 0017: one private package (`packages/styles`) is the single source, and each adapter copies it into its own build output (see finding 18).
 
 ### Angular `TimeField` and popover (stages 2 and 3)
 
@@ -60,4 +60,16 @@ Both adapters (Angular full, Vue prototype) pass their tests, and each question 
 12. **Typed text.** The state of the input (`typing` flag, text, blur, validity) was written a second time, almost line by line. If the Vue prototype needs it again, it should move to the core (a "text field" state machine), as noted in ADR 0016.
 13. **Controlled values.** With `model()` the picker is uncontrolled until the first change, then it holds the value itself (finding 4). `typing` needs `afterNextRender` to reset: effects run once per change, not once per render as in React.
 14. **Types.** The `model()` of a child component emits `T | undefined`, so a parent that listens to `valueChange` must accept `undefined`. This is a property of the Angular API, not of the core.
-15. **Labels.** `DatePickerLabels` is declared in both adapters. It can move to the core with `PickerLabels` (a candidate for the next cleanup).
+15. **Labels.** `DatePickerLabels` is declared in both adapters. It moved to the core together with `PickerLabels` (ADR 0016).
+
+### Angular `DateTimePicker` and shared code (stage 5)
+
+16. **Composition.** `DateTimePicker` is `Calendar` plus `TimeField` in one popover. A time chosen before any date is kept as a draft and joins the value when a date is picked. The clear button (✕) and the layout rules (a field that is always left-to-right) are CSS and template changes only; no change to the core.
+17. **Shared picker text.** The typed-text helpers and the default labels (`formatSelection`, `isEmptySelection`, `toSystem`, `pickerLabelsFor`, `PickerLabels`) moved from React into the core (ADR 0016), so both adapters use the same code. The "text field state machine" of finding 12 is still in each adapter.
+
+### Styles, forms and server rendering (stage 6)
+
+18. **Stylesheet (question 8).** `ng-packagr` cannot read assets outside the library root, so `scripts/copy-styles.mjs` copies `packages/styles/styles.css` into `dist/calendrix-angular/` after `ng build`, and the package exports `./styles.css` (ADR 0017). The library must be built before the demo apps, because the `paths` key in `tsconfig.json` points to `dist/`.
+19. **Forms.** `ControlValueAccessor` on the two pickers only (ADR 0018). `Calendar` and `TimeField` are not accessors because the core has no `disabled` option. `writeValue` never calls `onChange`; the disabled state of the form and the `disabled` input are merged.
+20. **Tests.** The Angular 21 `TestBed` is zoneless: changing a plain property of a host component does not mark the view dirty and gives `NG0100`. Test hosts must use signals.
+21. **Server rendering (question 7).** Verified with the `demo-ssr` app. The popover exists only after a user action, so it cannot cause a hydration mismatch. "Today" can differ between server and client near midnight, so pass `timeZone` (or `focusedDate`) for deterministic output.
