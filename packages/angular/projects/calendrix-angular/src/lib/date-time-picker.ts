@@ -3,6 +3,7 @@ import {
   Component,
   ElementRef,
   Injector,
+  forwardRef,
   afterNextRender,
   booleanAttribute,
   computed,
@@ -29,6 +30,7 @@ import {
   type PickerLabels,
   type TimeValue,
 } from '@calendrix/core';
+import { NG_VALUE_ACCESSOR, type ControlValueAccessor } from '@angular/forms';
 import { CalendrixCalendar } from './calendar';
 import { CalendrixPopover, type PopoverDismissReason } from './popover';
 import { CalendrixTimeField } from './time-field';
@@ -47,6 +49,13 @@ let nextDialogId = 0;
 @Component({
   selector: 'calendrix-date-time-picker',
   imports: [CalendrixCalendar, CalendrixTimeField, CalendrixPopover],
+  providers: [
+    {
+      provide: NG_VALUE_ACCESSOR,
+      useExisting: forwardRef(() => CalendrixDateTimePicker),
+      multi: true,
+    },
+  ],
   changeDetection: ChangeDetectionStrategy.OnPush,
   template: `
     <div class="calendrix-picker" #wrapper>
@@ -171,7 +180,7 @@ let nextDialogId = 0;
     </div>
   `,
 })
-export class CalendrixDateTimePicker implements OnInit {
+export class CalendrixDateTimePicker implements OnInit, ControlValueAccessor {
   /** The picked date and time. Use `[(value)]`. `null` means nothing is picked. */
   readonly value = model<DateTimeValue | null>();
   readonly defaultValue = input<DateTimeValue | null>();
@@ -207,7 +216,7 @@ export class CalendrixDateTimePicker implements OnInit {
 
   readonly labels = input<Partial<PickerLabels>>();
   readonly placeholder = input<string>();
-  readonly disabled = input(false, { transform: booleanAttribute });
+  readonly disabledInput = input(false, { alias: 'disabled', transform: booleanAttribute });
   /** The `id` of the text input, for a `<label for>`. */
   readonly inputId = input<string>();
   /**
@@ -279,6 +288,30 @@ export class CalendrixDateTimePicker implements OnInit {
     this.text.set(this.valueKey());
   }
 
+  // ControlValueAccessor: a form writes the value in and hears about changes made by the user.
+  private onChangeFn: (value: DateTimeValue | null) => void = () => undefined;
+  private onTouchedFn: () => void = () => undefined;
+  private readonly formDisabled = signal(false);
+  /** Disabled by the `disabled` input or by the form. */
+  protected readonly disabled = computed(() => this.disabledInput() || this.formDisabled());
+
+  writeValue(value: unknown): void {
+    // null or undefined from a form (a reset, a new control) means empty.
+    this.value.set((value ?? null) as DateTimeValue | null);
+  }
+
+  registerOnChange(fn: (value: DateTimeValue | null) => void): void {
+    this.onChangeFn = fn;
+  }
+
+  registerOnTouched(fn: () => void): void {
+    this.onTouchedFn = fn;
+  }
+
+  setDisabledState(isDisabled: boolean): void {
+    this.formDisabled.set(isDisabled);
+  }
+
   /** Typing a date in a calendar from a plugin works before the popover has ever been opened. */
   private registerPlugins(): void {
     for (const plugin of this.plugins() ?? []) {
@@ -301,6 +334,7 @@ export class CalendrixDateTimePicker implements OnInit {
 
   private commit(next: DateTimeValue | null): void {
     this.value.set(next);
+    this.onChangeFn(next);
   }
 
   /** The flag only covers the render caused by typing. A later change from the parent updates the text. */
@@ -335,6 +369,7 @@ export class CalendrixDateTimePicker implements OnInit {
 
   protected handleBlur(): void {
     this.touched.set(true);
+    if (!this.open()) this.onTouchedFn();
     // A valid text is written the standard way once the user is done typing.
     const text = this.text();
     if (text.trim() !== '' && this.parse(text)) this.text.set(this.valueKey());
@@ -381,11 +416,16 @@ export class CalendrixDateTimePicker implements OnInit {
   /** Close the popover, and give the focus back to the input when `returnFocus` is true. */
   protected close(returnFocus: boolean): void {
     this.open.set(false);
+    this.onTouchedFn();
     if (returnFocus) this.inputElement().nativeElement.focus();
   }
 
   protected onDismiss(reason: PopoverDismissReason): void {
-    if (reason === 'escape') this.close(true);
-    else this.open.set(false);
+    if (reason === 'escape') {
+      this.close(true);
+    } else {
+      this.open.set(false);
+      this.onTouchedFn();
+    }
   }
 }

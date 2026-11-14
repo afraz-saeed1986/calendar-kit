@@ -3,6 +3,7 @@ import {
   Component,
   ElementRef,
   Injector,
+  forwardRef,
   afterNextRender,
   booleanAttribute,
   computed,
@@ -34,6 +35,7 @@ import {
   type SelectionMode,
   type SelectionValue,
 } from '@calendrix/core';
+import { NG_VALUE_ACCESSOR, type ControlValueAccessor } from '@angular/forms';
 import { CalendrixCalendar } from './calendar';
 import { CalendrixPopover, type PopoverDismissReason } from './popover';
 
@@ -55,6 +57,9 @@ let nextDialogId = 0;
 @Component({
   selector: 'calendrix-date-picker',
   imports: [CalendrixCalendar, CalendrixPopover],
+  providers: [
+    { provide: NG_VALUE_ACCESSOR, useExisting: forwardRef(() => CalendrixDatePicker), multi: true },
+  ],
   changeDetection: ChangeDetectionStrategy.OnPush,
   template: `
     <div class="calendrix-picker" #wrapper>
@@ -171,7 +176,9 @@ let nextDialogId = 0;
     </div>
   `,
 })
-export class CalendrixDatePicker<M extends SelectionMode = 'single'> implements OnInit {
+export class CalendrixDatePicker<M extends SelectionMode = 'single'>
+  implements OnInit, ControlValueAccessor
+{
   /** One day (default), a range with a start and an end, or any number of separate days. */
   readonly selection = input<M>('single' as M);
   /** The selection. Use `[(value)]`. The type follows `selection`. */
@@ -209,7 +216,7 @@ export class CalendrixDatePicker<M extends SelectionMode = 'single'> implements 
 
   readonly labels = input<DatePickerLabels>();
   readonly placeholder = input<string>();
-  readonly disabled = input(false, { transform: booleanAttribute });
+  readonly disabledInput = input(false, { alias: 'disabled', transform: booleanAttribute });
   /** The `id` of the text input, for a `<label for>`. */
   readonly inputId = input<string>();
   /** Render the popover in `<body>` (default). Use `[portal]="false"` to render it next to the input. */
@@ -287,6 +294,30 @@ export class CalendrixDatePicker<M extends SelectionMode = 'single'> implements 
     this.text.set(this.valueKey());
   }
 
+  // ControlValueAccessor: a form writes the value in and hears about changes made by the user.
+  private onChangeFn: (value: SelectionValue<M>) => void = () => undefined;
+  private onTouchedFn: () => void = () => undefined;
+  private readonly formDisabled = signal(false);
+  /** Disabled by the `disabled` input or by the form. */
+  protected readonly disabled = computed(() => this.disabledInput() || this.formDisabled());
+
+  writeValue(value: unknown): void {
+    // null or undefined from a form (a reset, a new control) means empty.
+    this.value.set((value ?? this.empty()) as SelectionValue<M>);
+  }
+
+  registerOnChange(fn: (value: SelectionValue<M>) => void): void {
+    this.onChangeFn = fn;
+  }
+
+  registerOnTouched(fn: () => void): void {
+    this.onTouchedFn = fn;
+  }
+
+  setDisabledState(isDisabled: boolean): void {
+    this.formDisabled.set(isDisabled);
+  }
+
   /** Typing a date in a calendar from a plugin works before the popover has ever been opened. */
   private registerPlugins(): void {
     for (const plugin of this.plugins() ?? []) {
@@ -307,6 +338,7 @@ export class CalendrixDatePicker<M extends SelectionMode = 'single'> implements 
 
   private commit(next: Selection): void {
     this.value.set(next as SelectionValue<M>);
+    this.onChangeFn(next as SelectionValue<M>);
   }
 
   /** The flag only covers the render caused by typing. A later change from the parent updates the text. */
@@ -341,6 +373,7 @@ export class CalendrixDatePicker<M extends SelectionMode = 'single'> implements 
 
   protected handleBlur(): void {
     this.touched.set(true);
+    if (!this.open()) this.onTouchedFn();
     // A valid text is written the standard way once the user is done typing.
     const text = this.text();
     if (this.selection() !== 'multiple' && text.trim() !== '' && this.parse(text)) {
@@ -373,12 +406,17 @@ export class CalendrixDatePicker<M extends SelectionMode = 'single'> implements 
   /** Close the popover, and give the focus back to the input when `returnFocus` is true. */
   protected close(returnFocus: boolean): void {
     this.open.set(false);
+    this.onTouchedFn();
     if (returnFocus) this.inputElement().nativeElement.focus();
   }
 
   protected onDismiss(reason: PopoverDismissReason): void {
-    if (reason === 'escape') this.close(true);
-    else this.open.set(false);
+    if (reason === 'escape') {
+      this.close(true);
+    } else {
+      this.open.set(false);
+      this.onTouchedFn();
+    }
   }
 
   protected onCalendarChange(next: SelectionValue<M> | undefined): void {
