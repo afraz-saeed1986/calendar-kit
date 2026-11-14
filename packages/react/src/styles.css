@@ -359,7 +359,9 @@
 }
 
 .calendrix-picker-field {
+  position: relative;
   display: flex;
+  direction: ltr;
   align-items: center;
   background: var(--calendrix-bg);
   border: 1px solid var(--calendrix-border);
@@ -376,8 +378,9 @@
 
 .calendrix-input {
   flex: 1;
-  min-inline-size: 13rem;
-  padding: 0.5rem 0.75rem;
+  min-inline-size: 14rem;
+  padding: 0.5rem 2rem 0.5rem 0.75rem;
+  padding-inline: 0.75rem 2rem;
   font: inherit;
   color: inherit;
   background: transparent;
@@ -406,6 +409,19 @@
 .calendrix-toggle:hover {
   color: var(--calendrix-fg);
   background: var(--calendrix-hover);
+}
+
+/*
+ * The clear button floats over the end of the input, just before the calendar button, so it
+ * never changes the width of the field. The input keeps room for it (padding-inline-end).
+ */
+.calendrix-clear {
+  position: absolute;
+  inset-block: 0;
+  inset-inline-end: 2.25rem;
+  inline-size: 1.75rem;
+  block-size: 1.75rem;
+  margin-block: auto;
 }
 
 .calendrix-toggle:focus-visible,
