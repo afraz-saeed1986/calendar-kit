@@ -293,7 +293,10 @@ export type AttributeValue = string | number | boolean | undefined;
 /**
  * What a prop getter returns. `attrs` use DOM attribute names (`tabindex`, `aria-selected`,
  * `data-today`) and `handlers` use DOM event names (`click`, `keydown`), so every adapter
- * maps them to its own syntax. `undefined` attributes should be left off the element.
+ * maps them to its own syntax. `undefined` attributes should be left off the element. A boolean
+ * is written as text ("true", "false") in `aria-*` and `data-*` attributes; in any other
+ * attribute `true` means present (an empty value) and `false` means absent. `normalizeAttributes`
+ * applies these rules.
  */
 export interface ElementProps<Handlers> {
   attrs: Record<string, AttributeValue>;

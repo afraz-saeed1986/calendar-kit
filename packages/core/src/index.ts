@@ -28,6 +28,7 @@ export type { MonthGrid } from './types';
 export { formatISODate, formatISOTime, parseISODate, parseISOTime } from './iso';
 export { createTimeField } from './time-field';
 export { normalizeDigits } from './digits';
+export { normalizeAttributes } from './attributes';
 export { datePatternOf, formatDate, parseDate } from './text-date';
 export { formatDateRange, parseDateRange } from './text-range';
 export type { DatePattern, TextDateOptions } from './text-date';
