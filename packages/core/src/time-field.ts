@@ -89,6 +89,8 @@ export function createTimeField(initial: TimeFieldOptions = {}): TimeField {
   /** Digits typed into the active segment so far, for "1" then "4" to make 14. */
   let buffer = '';
   const listeners = new Set<() => void>();
+  /** Grows when typing moves the active segment and the DOM focus has to follow. */
+  let focusRequest = 0;
 
   const locale = () => options.locale ?? DEFAULT_LOCALE;
   const cycle = () => options.hourCycle ?? defaultHourCycle(locale());
@@ -136,6 +138,7 @@ export function createTimeField(initial: TimeFieldOptions = {}): TimeField {
       value,
       segments,
       activeSegment,
+      focusRequest,
     };
   }
 
@@ -220,7 +223,10 @@ export function createTimeField(initial: TimeFieldOptions = {}): TimeField {
     if (complete) {
       const types = segmentTypes();
       const next = types[types.indexOf(type) + 1];
-      if (next) setActive(next);
+      if (next) {
+        focusRequest += 1;
+        setActive(next);
+      }
     }
   }
 

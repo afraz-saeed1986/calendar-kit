@@ -73,6 +73,13 @@ export interface TimeFieldState {
   /** In display order for the locale. */
   readonly segments: ReadonlyArray<TimeSegment>;
   readonly activeSegment: TimeSegmentType | null;
+  /**
+   * Grows by one when typing completes a segment and the core makes the next one active: the DOM
+   * focus has to follow. An adapter remembers the last value it saw; after it renders a new one,
+   * it focuses the segment named by `activeSegment`. It does not change when `focusSegment` is
+   * called, so a focus event from the user never moves the focus again.
+   */
+  readonly focusRequest: number;
 }
 
 export interface TimeField {
