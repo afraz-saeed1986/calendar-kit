@@ -1,10 +1,7 @@
 import { DestroyRef, Directive, ElementRef, Renderer2, effect, inject, input } from '@angular/core';
-import type { AttributeValue, ElementProps } from '@calendrix/core';
+import { normalizeAttributes, type AttributeValue, type ElementProps } from '@calendrix/core';
 
 type Handler = (event: Event) => void;
-
-/** `aria-*` and `data-*` attributes keep a boolean as text ("true"); others are present or absent. */
-const TEXT_ATTRIBUTE = /^(aria|data)-/;
 
 /**
  * Applies what a prop getter of the core returns (`{ attrs, handlers }`) to an element:
@@ -48,16 +45,13 @@ export class CalendrixPropsDirective {
   }
 
   private applyAttributes(attrs: Record<string, AttributeValue>): void {
-    const next = new Set<string>();
-    for (const [name, value] of Object.entries(attrs)) {
-      const asText = TEXT_ATTRIBUTE.test(name);
-      if (value === undefined || (value === false && !asText)) continue;
-      next.add(name);
-      this.renderer.setAttribute(this.element, name, value === true && !asText ? '' : String(value));
+    const text = normalizeAttributes(attrs);
+    for (const [name, value] of Object.entries(text)) {
+      this.renderer.setAttribute(this.element, name, value);
     }
     for (const name of this.applied) {
-      if (!next.has(name)) this.renderer.removeAttribute(this.element, name);
+      if (!(name in text)) this.renderer.removeAttribute(this.element, name);
     }
-    this.applied = next;
+    this.applied = new Set(Object.keys(text));
   }
 }

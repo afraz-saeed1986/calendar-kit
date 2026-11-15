@@ -1,14 +1,11 @@
 import {
   createCalendar,
-  type AttributeValue,
+  normalizeAttributes,
   type CalendarOptions,
   type ElementProps,
   type SelectionMode,
 } from '@calendrix/core';
 import { onScopeDispose, shallowRef, toValue, watch, type MaybeRefOrGetter } from 'vue';
-
-/** `aria-*` and `data-*` attributes keep a boolean as text ("true"); others are present or absent. */
-const TEXT_ATTRIBUTE = /^(aria|data)-/;
 
 /**
  * Turns what a prop getter of the core returns (`{ attrs, handlers }`) into one object for
@@ -18,12 +15,7 @@ export function vueProps(
   props: ElementProps<object>,
   withHandlers = true,
 ): Record<string, unknown> {
-  const result: Record<string, unknown> = {};
-  for (const [name, value] of Object.entries(props.attrs as Record<string, AttributeValue>)) {
-    const asText = TEXT_ATTRIBUTE.test(name);
-    if (value === undefined || (value === false && !asText)) continue;
-    result[name] = value === true && !asText ? '' : String(value);
-  }
+  const result: Record<string, unknown> = { ...normalizeAttributes(props.attrs) };
   if (!withHandlers) return result;
   for (const [name, handler] of Object.entries(props.handlers as Record<string, unknown>)) {
     if (typeof handler === 'function') {
@@ -33,10 +25,10 @@ export function vueProps(
   return result;
 }
 
-
 /**
  * Creates the core once (`setup` runs when the inputs are known), keeps the snapshot of
- * `getState()` in a ref, and passes later changes of the options to `setOptions`.
+ * `getState()` in a ref, and passes later changes of the options to `setOptions`. An option that
+ * is `undefined` means "not set" in the core, so the options are passed as they are.
  */
 export function useCalendar<M extends SelectionMode = 'single'>(
   options: MaybeRefOrGetter<Partial<CalendarOptions<M>>>,
