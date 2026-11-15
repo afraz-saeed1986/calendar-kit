@@ -250,6 +250,10 @@ export function createCalendar<M extends SelectionMode = 'single'>(
   let snapshot: CalendarState<SelectionMode> | null = null;
   let view: View | null = null;
   let currentView: CalendarView = 'days';
+  /** Grows when the DOM focus should move to the focused cell (see `CalendarState`). */
+  let focusRequest = 0;
+  /** A user action that moves the focus is running: the next `emit` counts a new request. */
+  let focusWanted = false;
   /** Range mode: the first day of a range that is not complete yet. */
   let anchor: CalendarDate | null = null;
   /** Range mode: epoch day of the day the pointer or focus is on while an anchor is pending. */
@@ -284,6 +288,10 @@ export function createCalendar<M extends SelectionMode = 'single'>(
   let shown: CalendarDate = firstOfMonth(focused);
 
   function emit(): void {
+    if (focusWanted) {
+      focusRequest += 1;
+      focusWanted = false;
+    }
     snapshot = null;
     view = null;
     for (const listener of [...listeners]) listener();
@@ -556,6 +564,7 @@ export function createCalendar<M extends SelectionMode = 'single'>(
       grids,
       visibleLabel: grids.length === 1 ? primary.label : `${primary.label} – ${lastGrid.label}`,
       view: currentView,
+      focusRequest,
       monthName: monthName(v.first.start),
       yearLabel: yearNumbers.format(v.first.year),
       months,
@@ -688,6 +697,7 @@ export function createCalendar<M extends SelectionMode = 'single'>(
       focused = withMonth(focused, shown.year, shown.month);
     }
     currentView = next;
+    focusWanted = true;
     emit();
   }
 
@@ -701,6 +711,7 @@ export function createCalendar<M extends SelectionMode = 'single'>(
     if (month < 1 || month > v.cal.monthsInYear(focused.year)) return;
     if (isOutOfBounds(v, monthRange(v, focused.year, month))) return;
     currentView = 'days';
+    focusWanted = true;
     showFocused(withMonth(focused, focused.year, month));
   }
 
@@ -708,6 +719,7 @@ export function createCalendar<M extends SelectionMode = 'single'>(
     const v = getView();
     if (isOutOfBounds(v, yearRange(v, year))) return;
     currentView = 'days';
+    focusWanted = true;
     showFocused(withMonth(focused, year, Math.min(focused.month, v.cal.monthsInYear(year))));
   }
 
@@ -797,7 +809,28 @@ export function createCalendar<M extends SelectionMode = 'single'>(
     }
   }
 
+  /**
+   * Keyboard handling for the grid. A handled key always leaves a new snapshot with a new
+   * `focusRequest`, even when the state is otherwise the same: the adapter renders, sees the new
+   * number and moves the DOM focus.
+   */
   function handleKeyDown(event: KeyEventLike): boolean {
+    const before = focusRequest;
+    focusWanted = true;
+    let handled = false;
+    try {
+      handled = handleKey(event);
+    } finally {
+      focusWanted = false;
+    }
+    if (handled && focusRequest === before) {
+      focusRequest += 1;
+      emit();
+    }
+    return handled;
+  }
+
+  function handleKey(event: KeyEventLike): boolean {
     // Leave browser and system shortcuts alone.
     if (event.ctrlKey || event.metaKey || event.altKey) return false;
 

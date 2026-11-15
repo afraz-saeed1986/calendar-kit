@@ -198,6 +198,14 @@ export interface CalendarState<M extends SelectionMode = 'single'> {
   readonly visibleLabel: string;
   /** Which grid is shown: the days of the month, the months of the year or a page of years. */
   readonly view: CalendarView;
+  /**
+   * Grows by one whenever the DOM focus should move to the focused cell: after a key that
+   * `handleKeyDown` handled, and after a change of the view (the buttons of the month and the
+   * year, a month or a year chosen, `setView`). It does not change when a day or a navigation
+   * button is clicked. An adapter remembers the last value it saw; after it renders a new one, it
+   * focuses the element with `tabindex="0"` in the grid. The first value is only remembered.
+   */
+  readonly focusRequest: number;
   /** Name of the visible month: "October", "مهر". */
   readonly monthName: string;
   /** The visible year with the numerals of the locale: "2026", "۱۴۰۵". */
