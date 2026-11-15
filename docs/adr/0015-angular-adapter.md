@@ -73,3 +73,14 @@ Both adapters (Angular full, Vue prototype) pass their tests, and each question 
 19. **Forms.** `ControlValueAccessor` on the two pickers only (ADR 0018). `Calendar` and `TimeField` are not accessors because the core has no `disabled` option. `writeValue` never calls `onChange`; the disabled state of the form and the `disabled` input are merged.
 20. **Tests.** The Angular 21 `TestBed` is zoneless: changing a plain property of a host component does not mark the view dirty and gives `NG0100`. Test hosts must use signals.
 21. **Server rendering (question 7).** Verified with the `demo-ssr` app. The popover exists only after a user action, so it cannot cause a hydration mismatch. "Today" can differ between server and client near midnight, so pass `timeZone` (or `focusedDate`) for deterministic output.
+
+### Vue prototype (`apps/vue-proto`)
+
+22. **Snapshots (question 1).** A `shallowRef` set from `subscribe` works with no wrapper, as with signals in Angular. No change to the core.
+23. **Prop getters (question 2).** `{ attrs, handlers }` becomes one object for `v-bind` (`vueProps`, about 20 lines): Vue treats keys such as `onClick` as listeners, so no directive is needed. The rule for booleans (`aria-*` and `data-*` keep `true` and `false` as text, other attributes are present or absent) is now written in three adapters (`toReactProps`, `CalendrixPropsDirective`, `vueProps`). It belongs in the core.
+24. **Options (question 3).** `setup` runs once when the props are known, so the core is created once and `setOptions` is used only for later changes (no second creation as in Angular's `ngOnInit`). `definedOnly`, which drops unset options, is now needed in all three adapters. The core should ignore `undefined` options itself.
+25. **Values (question 4).** `modelValue` and `update:modelValue` map to the core's `value` and `onChange` directly, as `model()` does in Angular. A `modelValue` that is `undefined` leaves the core uncontrolled.
+26. **Focus (question 5).** The same logic a third time: after a keyboard action, move the DOM focus to the focused cell once the DOM has updated (`await nextTick()` in Vue, no pending flag needed). Three identical copies make a "focus request" in the core state worth deciding before the freeze.
+27. **Keyboard events (question 6).** A native `KeyboardEvent` is accepted by `handleKeyDown` as it is.
+28. **`now` and `timeZone` (question 7).** Not exercised by the prototype; the rule of finding 3 applies (read when the core is created, and it is created in `setup`).
+29. **Not covered.** The prototype has only the days view and no automated tests; the pickers, popover and typed text were not built for Vue.
