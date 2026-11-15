@@ -78,6 +78,7 @@ export interface TimeFieldState {
 export interface TimeField {
   getState(): TimeFieldState;
   subscribe(listener: () => void): () => void;
+  /** Merge new options. A key that is present with the value `undefined` unsets that option. */
   setOptions(options: Partial<TimeFieldOptions>): void;
 
   /** Mark a segment as the one being edited. Adapters call this from the element's focus event. */

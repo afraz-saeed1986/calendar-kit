@@ -215,7 +215,10 @@ export interface Calendar<M extends SelectionMode = 'single'> {
   getState(): CalendarState<M>;
   /** For adapters: `useSyncExternalStore`, Vue refs, Angular signals. Returns an unsubscribe function. */
   subscribe(listener: () => void): () => void;
-  /** Merge new options, for example when component props change. */
+  /**
+   * Merge new options, for example when component props change. A key that is present with the
+   * value `undefined` unsets that option (it goes back to its default).
+   */
   setOptions(options: Partial<CalendarOptions<M>>): void;
 
   nextMonth(): void;
