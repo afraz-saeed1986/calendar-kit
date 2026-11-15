@@ -20,7 +20,6 @@ import {
   type TimeSegmentType,
   type TimeValue,
 } from '@calendrix/core';
-import { definedOnly } from './defined-only';
 import { CalendrixPropsDirective } from './props-directive';
 
 /**
@@ -81,8 +80,8 @@ export class CalendrixTimeField implements OnInit {
 
   private readonly handleChange = (next: TimeValue | null) => this.value.set(next);
 
-  private readonly options = computed(() =>
-    definedOnly<TimeFieldOptions>({
+  private readonly options = computed<TimeFieldOptions>(() =>
+    ({
       value: this.value(),
       defaultValue: this.defaultValue(),
       locale: this.locale(),

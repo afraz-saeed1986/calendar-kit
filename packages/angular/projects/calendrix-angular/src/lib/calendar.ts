@@ -22,7 +22,6 @@ import {
   type SelectionMode,
   type SelectionValue,
 } from '@calendrix/core';
-import { definedOnly } from './defined-only';
 import { CalendrixPropsDirective } from './props-directive';
 
 const COLUMNS = 3;
@@ -298,8 +297,8 @@ export class CalendrixCalendar<M extends SelectionMode = 'single'> implements On
   private readonly handleChange = (next: SelectionValue<M>) => this.value.set(next);
   private readonly handleFocusedDate = (date: CalendarDate) => this.focusedDateChange.emit(date);
 
-  private readonly options = computed(() =>
-    definedOnly<Partial<CalendarOptions<M>>>({
+  private readonly options = computed<Partial<CalendarOptions<M>>>(() =>
+    ({
       selection: this.selection(),
       value: this.value(),
       defaultValue: this.defaultValue(),
