@@ -83,4 +83,4 @@ Both adapters (Angular full, Vue prototype) pass their tests, and each question 
 26. **Focus (question 5).** The same logic a third time: after a keyboard action, move the DOM focus to the focused cell once the DOM has updated (`await nextTick()` in Vue, no pending flag needed). Three identical copies make a "focus request" in the core state worth deciding before the freeze.
 27. **Keyboard events (question 6).** A native `KeyboardEvent` is accepted by `handleKeyDown` as it is.
 28. **`now` and `timeZone` (question 7).** Not exercised by the prototype; the rule of finding 3 applies (read when the core is created, and it is created in `setup`).
-29. **Not covered.** The prototype has only the days view and no automated tests; the pickers, popover and typed text were not built for Vue.
+29. **Not covered.** The prototype has only the days view and five tests (Vitest and `@vue/test-utils`); the pickers, popover and typed text were not built for Vue.
