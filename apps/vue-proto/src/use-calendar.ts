@@ -33,10 +33,6 @@ export function vueProps(
   return result;
 }
 
-/** An option that is not set must not reach the core as `undefined`. */
-function definedOnly<T extends object>(source: T): T {
-  return Object.fromEntries(Object.entries(source).filter(([, value]) => value !== undefined)) as T;
-}
 
 /**
  * Creates the core once (`setup` runs when the inputs are known), keeps the snapshot of
@@ -45,7 +41,7 @@ function definedOnly<T extends object>(source: T): T {
 export function useCalendar<M extends SelectionMode = 'single'>(
   options: MaybeRefOrGetter<Partial<CalendarOptions<M>>>,
 ) {
-  const read = () => definedOnly(toValue(options));
+  const read = () => toValue(options);
   const calendar = createCalendar<M>(read());
   const state = shallowRef(calendar.getState());
 

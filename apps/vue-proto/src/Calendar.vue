@@ -11,6 +11,7 @@ const props = defineProps<{
   direction?: CalendarOptions<M>['direction'];
   weekStart?: CalendarOptions<M>['weekStart'];
   plugins?: CalendarOptions<M>['plugins'];
+  minDate?: CalendarOptions<M>['minDate'];
 }>();
 
 const emit = defineEmits<{ 'update:modelValue': [value: SelectionValue<M>] }>();
@@ -25,6 +26,7 @@ const { calendar, state } = useCalendar<M>(() => ({
   direction: props.direction,
   weekStart: props.weekStart,
   plugins: props.plugins,
+  minDate: props.minDate,
   onChange: (next: SelectionValue<M>) => emit('update:modelValue', next),
 }));
 

@@ -68,4 +68,15 @@ describe('Calendar (Vue prototype)', () => {
     expect(document.activeElement?.textContent?.trim()).toBe('15');
     wrapper.unmount();
   });
+
+    it('clears minDate when the prop goes back to undefined', async () => {
+    const wrapper = mount(Calendar, {
+      props: { minDate: { system: 'gregory', year: 2026, month: 10, day: 10 } },
+    });
+    expect(day(wrapper, '5').attributes('aria-disabled')).toBe('true');
+
+    await wrapper.setProps({ minDate: undefined });
+    expect(day(wrapper, '5').attributes('aria-disabled')).toBeUndefined();
+  });
+  
 });
