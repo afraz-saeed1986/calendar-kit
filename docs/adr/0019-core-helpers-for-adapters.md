@@ -32,3 +32,9 @@ The "text field state machine" (typed text, blur, validity; finding 12 of ADR 00
 ## Done when
 
 The three decisions are implemented with tests in the core, the three adapters use them (and lose their own copies of `definedOnly`, the boolean rule and the focus flag), and the ADR 0015 findings 23, 24 and 26 point to this ADR.
+
+## Result
+
+- **Decision 1.** Guard tests in `packages/core/tests/unset-options.test.ts`. Angular and the Vue prototype no longer drop options. This fixed a bug: an input that went back to `undefined` (`minDate`, `isDateUnavailable`, `showSeconds`) kept its old value in the core. React was already correct: its options stabilizer reports a removed option as `undefined`.
+- **Decision 2.** `normalizeAttributes` in `packages/core/src/attributes.ts`, used by the Angular directive and by `vueProps`. React keeps `toReactProps`.
+- **Decision 3.** `focusRequest` in `CalendarState` and in `TimeFieldState`, used by all three adapters. The `focusPending` flags and the check "did the state change?" are gone.
