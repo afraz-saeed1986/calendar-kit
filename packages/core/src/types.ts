@@ -2,8 +2,6 @@
  * Public types of @calendrix/core.
  *
  * The full design rationale lives in docs/api.md and docs/adr/.
- * Types marked "planned" describe the contract of `createCalendar`,
- * which is implemented in a later milestone (see docs/roadmap.md).
  */
 import type { CalendarView, MonthCell, ViewLabels, YearCell } from './view-types';
 /** Identifier of a calendar system. Extensible through plugins. */
@@ -63,7 +61,7 @@ export interface PluginContext {
   readonly locale: string;
 }
 
-/** Planned: extension point for calendars, holidays and market rules. */
+/** Extension point for calendar systems, holiday data and market rules. */
 export interface CalendarPlugin {
   readonly name: string;
   readonly calendars?: CalendarImplementation[];

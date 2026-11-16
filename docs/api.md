@@ -1,8 +1,8 @@
-# Proposed Core API (`@calendrix/core`)
+# Core API (`@calendrix/core`)
 
 Goal: a pure TypeScript core with no dependency on the DOM or any framework. Each adapter only subscribes to the state and spreads the `getXProps` results onto elements.
 
-> **Status:** design draft. Implemented so far: date helpers, the Gregorian and Persian calendars, and `createCalendar` with the month grid, navigation, `single` selection, keyboard handling and prop getters (see the [roadmap](roadmap.md)). Range and multiple selection, time and the plugin extras are still planned. Where the source differs from this draft, the source is the reference.
+> **Status:** implemented, and used by the React and Angular adapters and a Vue prototype (see the [roadmap](roadmap.md)). Where the source differs from this document, the source is the reference: `packages/core/src/types.ts`.
 
 ---
 
@@ -32,6 +32,16 @@ export interface DateRange {
 }
 
 export type Selection = CalendarDate | DateRange | CalendarDate[] | null;
+
+/** The value of a calendar for each selection mode. */
+export interface SelectionValueMap {
+  single: CalendarDate | null;
+  range: DateRange | null;
+  /** An empty array means that nothing is selected. */
+  multiple: CalendarDate[];
+}
+
+export type SelectionValue<M extends SelectionMode = 'single'> = SelectionValueMap[M];
 ```
 
 ---
@@ -39,35 +49,58 @@ export type Selection = CalendarDate | DateRange | CalendarDate[] | null;
 ## 2. Inputs (options)
 
 ```ts
-export interface CalendarOptions {
-  /** Calendar system to display */
+export interface CalendarOptions<M extends SelectionMode = 'single'> {
+  /** Calendar system to display. Default: 'gregory'. */
   system?: CalendarSystem;
-  /** BCP 47 locale used for month/weekday names and numerals. Examples: 'fa-IR', 'en-US', 'de-DE' */
+  /** BCP 47 locale for names and numerals: 'fa-IR', 'en-US', 'de-DE'. Default: 'en-US'. */
   locale?: string;
-  /** Derived from the locale if omitted */
+  /** Default: derived from the locale's language. */
   direction?: Direction;
+  /** Default: first day of the week of the locale (Saturday for Persian, Sunday otherwise). */
   weekStart?: WeekStart;
 
-  mode?: SelectionMode;
-  /** Controlled mode */
-  value?: Selection;
-  /** Uncontrolled mode */
-  defaultValue?: Selection;
-  onChange?: (value: Selection) => void;
-
-  /** The date that determines the visible month/year */
+  /** The date that decides the visible month. Default: today. */
   focusedDate?: CalendarDate;
   onFocusedDateChange?: (date: CalendarDate) => void;
 
+  /**
+   * How days are selected: one day (default), a range with a start and an end, or any number of
+   * separate days. The type of `value` and `onChange` follows this option.
+   */
+  selection?: M;
+  /** Controlled when passed (`null` means "controlled, nothing selected"). */
+  value?: SelectionValue<M>;
+  /** Initial value of an uncontrolled calendar. */
+  defaultValue?: SelectionValue<M>;
+  /** Called with the new value; `null` (or `[]`) when the selection is cleared. */
+  onChange?: (value: SelectionValue<M>) => void;
+
+  /** How many months are shown at once: 1 (default), 2 or 3. */
+  visibleMonths?: number;
+  /** Range mode: allow a range that contains unavailable days. Default: true. */
+  allowUnavailableInRange?: boolean;
+  /** Multiple mode: the most days that can be selected. Default: no limit. */
+  maxSelected?: number;
+
   minDate?: CalendarDate;
   maxDate?: CalendarDate;
-  /** Disable specific days (for example market holidays) */
+  /** Mark specific days as not selectable, for example market holidays. */
   isDateUnavailable?: (date: CalendarDate) => boolean;
 
-  /** Plugins: extra calendar systems, holidays, market calendars */
+  /** Texts for buttons. Defaults come from the locale (English, Persian and German are built in). */
+  labels?: Partial<CalendarLabels & ViewLabels>;
+
+  /** Time zone that decides what "today" is. Default: the runtime's time zone. */
+  timeZone?: string;
+  /** Clock used for "today". Inject a fixed clock in tests. Default: `() => new Date()`. */
+  now?: () => Date;
+
+  /** Plugins register calendar systems and decorate days. */
   plugins?: CalendarPlugin[];
 }
 ```
+
+`now`, `timeZone`, `defaultValue` and `focusedDate` are read only when the core is created. An option set to `undefined` means "not set", also in `setOptions` (ADR 0019).
 
 ---
 
@@ -137,38 +170,55 @@ export interface DayCell {
 ## 4. Main surface: `createCalendar`
 
 ```ts
-export interface Calendar {
-  /** Read the current state (stable snapshot: the same reference until something changes) */
-  getState(): CalendarState;
+export function createCalendar<M extends SelectionMode = 'single'>(
+  options?: CalendarOptions<M>,
+): Calendar<M>;
 
-  /** For adapters: useSyncExternalStore / signal / ref */
+export interface Calendar<M extends SelectionMode = 'single'> {
+  /** Current state: the same reference until something changes. */
+  getState(): CalendarState<M>;
+  /** For adapters: useSyncExternalStore, signals, refs. Returns an unsubscribe function. */
   subscribe(listener: () => void): () => void;
-
-  /** Update options (for example when component props change) */
-  setOptions(options: Partial<CalendarOptions>): void;
+  /** Merge new options. A key with the value `undefined` unsets that option. */
+  setOptions(options: Partial<CalendarOptions<M>>): void;
 
   // --- Navigation ---
   nextMonth(): void;
   prevMonth(): void;
   nextYear(): void;
   prevYear(): void;
+  /** Show the month that contains `date` (any calendar system) and focus it. */
   goTo(date: CalendarDate): void;
   goToToday(): void;
 
   // --- Selection ---
+  /** Select a day (any calendar system). Ignored when the day is disabled or unavailable. */
   select(date: CalendarDate): void;
   clear(): void;
+  /** Range mode: preview the range from the pending first day to `date`; `null` removes it. */
+  previewTo(date: CalendarDate | null): void;
+
+  // --- Views ---
+  /** The days of the month, the months of the year, or a page of years. */
+  setView(view: CalendarView): void;
+  chooseMonth(month: number): void;
+  chooseYear(year: number): void;
 
   // --- Keyboard (ARIA grid pattern) ---
-  /** Handles Arrow/Home/End/PageUp/PageDown/Enter/Space keys */
+  /** Handles the arrow keys, Home, End, PageUp, PageDown, Enter, Space and Escape. */
   handleKeyDown(event: KeyEventLike): boolean; // true = handled
 
   // --- Prop getters (the heart of the headless pattern) ---
-  getRootProps(): Record<string, unknown>;
-  getGridProps(): Record<string, unknown>;
-  getDayProps(date: CalendarDate): Record<string, unknown>;
-  getPrevButtonProps(): Record<string, unknown>;
-  getNextButtonProps(): Record<string, unknown>;
+  getRootProps(): ElementProps<Record<string, never>>;
+  /** Props for one visible month (`index` 0 is the first). */
+  getGridProps(index?: number): ElementProps<{ keydown: (event: KeyEventLike) => void }>;
+  getDayProps(date: CalendarDate): ElementProps<{ click: () => void }>;
+  getPrevButtonProps(): ElementProps<{ click: () => void }>;
+  getNextButtonProps(): ElementProps<{ click: () => void }>;
+  getMonthButtonProps(): ElementProps<{ click: () => void }>;
+  getYearButtonProps(): ElementProps<{ click: () => void }>;
+  getMonthProps(month: number): ElementProps<{ click: () => void }>;
+  getYearProps(year: number): ElementProps<{ click: () => void }>;
 
   destroy(): void;
 }
@@ -179,13 +229,12 @@ export interface KeyEventLike {
   shiftKey?: boolean;
   ctrlKey?: boolean;
   metaKey?: boolean;
+  altKey?: boolean;
   preventDefault(): void;
 }
-
-export function createCalendar(options?: CalendarOptions): Calendar;
 ```
 
-**Prop getter contract (implemented):** every prop getter returns `{ attrs, handlers }`. `attrs` use DOM attribute names and `handlers` use DOM event names, so each adapter maps them to its own syntax (React `onClick` and `tabIndex`, Vue `@click`, Angular `(click)`). `getDayProps` returns `role="gridcell"`, `tabindex` (`0` only for the focused day), `aria-selected`, `aria-disabled`, `aria-current`, `aria-label` (the full date in the active locale), `data-*` attributes for styling and a `click` handler. `getGridProps` returns `role="grid"` and the single `keydown` handler. Attributes with the value `undefined` are left off. See [ADR 0006](adr/0006-selection-keyboard-props.md).
+**Prop getter contract:** every prop getter returns `{ attrs, handlers }`. `attrs` use DOM attribute names and `handlers` use DOM event names, so each adapter maps them to its own syntax (React `onClick` and `tabIndex`, Vue `@click`, Angular `(click)`). Attributes with the value `undefined` are left off. In `aria-*` and `data-*` attributes a boolean is written as text (`"true"`, `"false"`); in any other attribute `true` means present and `false` means absent. `normalizeAttributes` applies this rule. `getDayProps` returns `role="gridcell"`, `tabindex` (`0` only for the focused day), `aria-selected`, `aria-disabled`, `aria-current`, `aria-label` (the full date in the active locale), `data-*` attributes for styling and a `click` handler. `getGridProps` returns `role="grid"`, `aria-label` and the single `keydown` handler. See [ADR 0006](adr/0006-selection-keyboard-props.md).
 
 ---
 
@@ -212,6 +261,7 @@ export interface CalendarImplementation {
   id: CalendarSystem;
   daysInMonth(year: number, month: number): number;
   monthsInYear(year: number): number;
+  isLeapYear(year: number): boolean;
   /** Conversion to/from an epoch day: the pivot for all conversions */
   toEpochDay(date: CalendarDate): number;
   fromEpochDay(epochDay: number): CalendarDate;
@@ -294,10 +344,141 @@ What is left before the freeze of v1 is listed in the roadmap (M3).
 
 ---
 
-## 8. Next steps (first week)
+## 8. Time of day: `createTimeField`
 
-1. Set up the monorepo (pnpm + Turborepo + tsup + Vitest).
-2. Implement `gregory` on top of epoch-day math, with leap-year and month-boundary tests.
-3. `createCalendar` with navigation and `weeks` (no selection yet).
-4. Add `single` selection and `handleKeyDown`.
-5. First `useCalendar` in React and a demo page.
+A time input made of segments (hour, minute, optional seconds, AM/PM). It holds no DOM: adapters render the segments and attach the props from `getSegmentProps`.
+
+```ts
+export function createTimeField(options?: TimeFieldOptions): TimeField;
+
+/** A time of day on a 24-hour clock. */
+export interface TimeValue {
+  readonly hour: number;
+  readonly minute: number;
+  readonly second: number;
+}
+
+/** A date and a time of day on the wall clock. It has no time zone: see `toInstant` and `fromInstant`. */
+export interface DateTimeValue {
+  readonly date: CalendarDate;
+  readonly time: TimeValue;
+}
+
+export type HourCycle = 12 | 24;
+export type TimeSegmentType = 'hour' | 'minute' | 'second' | 'period';
+
+export interface TimeFieldOptions {
+  /** BCP 47 locale for numerals and the AM/PM text. Default: 'en-US'. */
+  locale?: string;
+  /** 12 or 24. Default: the locale's own habit. */
+  hourCycle?: HourCycle;
+  /** Show a seconds segment. Default: false. */
+  showSeconds?: boolean;
+  /** Step of the up and down arrows. Default: 1. */
+  hourStep?: number;
+  minuteStep?: number;
+  secondStep?: number;
+  /** Values outside this range are rejected. */
+  minTime?: TimeValue;
+  maxTime?: TimeValue;
+
+  /** Passing `value` (even `null`) makes the field controlled. */
+  value?: TimeValue | null;
+  defaultValue?: TimeValue | null;
+  onChange?: (value: TimeValue | null) => void;
+
+  labels?: Partial<TimeFieldLabels>;
+}
+
+export interface TimeField {
+  getState(): TimeFieldState;
+  subscribe(listener: () => void): () => void;
+  /** Merge new options. A key that is present with the value `undefined` unsets that option. */
+  setOptions(options: Partial<TimeFieldOptions>): void;
+
+  /** Mark a segment as the one being edited. Adapters call this from the element's focus event. */
+  focusSegment(type: TimeSegmentType): void;
+  /** Step a segment up (1) or down (-1). An empty field first becomes `minTime` or 00:00:00. */
+  increment(type: TimeSegmentType, direction: 1 | -1): void;
+  /** Empty the field. */
+  clear(): void;
+  /** Keyboard handling for one segment. Returns true, after `preventDefault()`, when the key was handled. */
+  handleKeyDown(type: TimeSegmentType, event: KeyEventLike): boolean;
+
+  getRootProps(): ElementProps<Record<string, never>>;
+  getSegmentProps(type: TimeSegmentType): ElementProps<{
+    keydown: (event: KeyEventLike) => void;
+    focus: () => void;
+  }>;
+
+  destroy(): void;
+}
+```
+
+`TimeFieldState` has `locale`, `direction`, `hourCycle`, `value`, `segments`, `activeSegment` and `focusRequest`. Each segment has `type`, `text` (`"09"`, `"PM"`, or `"--"` when empty), `isPlaceholder`, `numericValue` (for `aria-valuenow`; for the period 0 is AM and 1 is PM), `min`, `max` and `label`. The value is always on a 24-hour clock, also when the field shows 12 hours. Typed digits can be Latin, Persian or Arabic-Indic. A digit that completes a segment makes the next one active and grows `focusRequest` (see section 3). As in `createCalendar`, `defaultValue` is read only when the field is created.
+
+---
+
+## 9. Text, ISO and time zone helpers
+
+Pure functions, with no state. They are what the pickers use to write and read the text in their inputs.
+
+| Function | Result | What it does |
+| --- | --- | --- |
+| `formatDate(date, locale?)` | `string` | A numeric date the way the locale writes it, with its own numerals. |
+| `parseDate(text, options?)` | `CalendarDate \| null` | Reads a typed date. `options` is `{ locale?, system? }`. `null` when the text is not a valid date. |
+| `datePatternOf(locale?, system?)` | `DatePattern` | The order of the fields (`['day', 'month', 'year']` for de-DE) and the separator of a locale, read from `Intl`. |
+| `formatDateRange(range, locale?)` | `string` | `start – end`. |
+| `parseDateRange(text, options?)` | `DateRange \| null` | Reads a typed range; the ends are put in order. |
+| `formatTime(time, options?)` | `string` | `"09:05"` (de-DE), `"09:05 AM"` (en-US, 12 hours), `"۰۹:۰۵"` (fa-IR). `options` is `{ locale?, hourCycle?, seconds? }`. |
+| `parseTime(text)` | `TimeValue \| null` | Reads a typed time. |
+| `formatDateTime(value, options?)` | `string` | A date and a time in one text. `options` is `TextTimeOptions`. |
+| `parseDateTime(text, options?)` | `DateTimeValue \| null` | Reads a typed date and time. `options` is `{ locale?, system? }`. |
+| `toInstant(value, timeZone?)` | `Date` | The real instant of a wall-clock value in a time zone. Default: the runtime's time zone. |
+| `fromInstant(instant, timeZone?, system?)` | `DateTimeValue` | The wall-clock value of an instant, in a time zone and a calendar system. |
+| `formatISODate(date)` / `parseISODate(text, system?)` | `string` / `CalendarDate \| null` | The ISO form (`2026-11-18`). |
+| `formatISOTime(time, { seconds? })` / `parseISOTime(text)` | `string` / `TimeValue \| null` | The ISO form of a time. |
+| `normalizeDigits(text)` | `string` | Persian and Arabic-Indic digits to Latin digits. |
+
+Date arithmetic and conversion: `convertDate(date, system)`, `addDays`, `addMonths` and `addYears` (`date`, `amount`), `compareDates(a, b)` (negative, zero or positive), `isSameDay(a, b)`, `createDate` and `dayOfWeek` (see `date.ts`). Calendar systems are registered with `registerCalendar(implementation)` and read with `getCalendar(system)`; `gregory` is exported, and the Persian calendar comes from the `@calendrix/persian` plugin.
+
+---
+
+## 10. Helpers for the pickers
+
+The pickers (`DatePicker`, `DateTimePicker`) belong to the adapters, but their texts are shared, so every adapter says the same thing.
+
+```ts
+/** Texts the pickers put on their own buttons. */
+export interface PickerLabels {
+  /** The button that opens the calendar. */
+  openCalendar: string;
+  /** The name of the popover dialog. */
+  dialog: string;
+  clear: string;
+  done: string;
+}
+
+/** Which picker the texts are for: a date picker has no time. */
+export type PickerKind = 'date' | 'dateTime';
+
+/** English, Persian and German are built in. `overrides` replace single texts. */
+export function pickerLabelsFor(
+  locale: string,
+  overrides?: Partial<PickerLabels>,
+  kind?: PickerKind, // default 'dateTime'
+): PickerLabels;
+```
+
+`formatSelection` writes the text of the input for any selection (one day, a range or a list), `datesSelectedText` is the text of a long list ("5 dates"), `isEmptySelection` tells whether a selection holds nothing, and `toSystem` converts a selection to another calendar system.
+
+---
+
+## 11. Helper for adapters
+
+```ts
+/** Turns the `attrs` of a prop getter into the strings to write on an element. */
+export function normalizeAttributes(attrs: Record<string, AttributeValue>): Record<string, string>;
+```
+
+`undefined` is left off. In `aria-*` and `data-*` attributes a boolean is written as text (`"true"`, `"false"`); in any other attribute `true` is present with an empty value and `false` is left off. Numbers become text. React DOM does this by itself, so `@calendrix/react` does not use it (ADR 0019).
