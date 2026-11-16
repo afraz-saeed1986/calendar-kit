@@ -6,7 +6,7 @@ import type { CalendarDate, CalendarSystem } from './types';
 const MS_PER_DAY = 86_400_000;
 const DEFAULT_LOCALE = 'en-US';
 
-type DateField = 'year' | 'month' | 'day';
+export type DateField = 'year' | 'month' | 'day';
 
 export interface DatePattern {
   /** The order of the fields in the locale, for example ['day', 'month', 'year'] for de-DE. */
