@@ -291,8 +291,8 @@ export class CalendrixCalendar<M extends SelectionMode = 'single'> implements On
   private unsubscribe: () => void = () => undefined;
 
   private readonly host = inject<ElementRef<HTMLElement>>(ElementRef);
-  /** The focused day has tabindex 0: after the next render it has to get the real DOM focus. */
-  private focusPending = false;
+  /** The last `focusRequest` of the core that this component has seen (see `CalendarState`). */
+  private seenFocusRequest = 0;
 
   private readonly handleChange = (next: SelectionValue<M>) => this.value.set(next);
   private readonly handleFocusedDate = (date: CalendarDate) => this.focusedDateChange.emit(date);
@@ -373,8 +373,9 @@ export class CalendrixCalendar<M extends SelectionMode = 'single'> implements On
     effect(() => this.calendar.setOptions(this.options()));
 
     afterEveryRender(() => {
-      if (!this.focusPending) return;
-      this.focusPending = false;
+      const request = this.state().focusRequest;
+      if (request === this.seenFocusRequest) return;
+      this.seenFocusRequest = request;
       this.focusFocusedCell();
     });
   }
@@ -391,11 +392,8 @@ export class CalendrixCalendar<M extends SelectionMode = 'single'> implements On
   }
 
   protected onGridKeydown(event: KeyboardEvent): void {
-    const before = this.calendar.getState();
-    if (!this.calendar.handleKeyDown(event)) return;
-    // A changed state renders first, and the hook above moves the focus afterwards.
-    if (this.calendar.getState() === before) this.focusFocusedCell();
-    else this.focusPending = true;
+    // A handled key gives a new `focusRequest`; the hook in the constructor moves the focus.
+    this.calendar.handleKeyDown(event);
   }
 
   /** Escape leaves the months or the years from anywhere in the calendar, also from a button. */
@@ -405,13 +403,11 @@ export class CalendrixCalendar<M extends SelectionMode = 'single'> implements On
     }
     event.preventDefault();
     this.calendar.setView('days');
-    this.focusPending = true;
   }
 
-  /** Buttons and cells that change the view: the grid they lead to takes the focus. */
+  /** Buttons and cells that change the view: the core asks for the focus to move to the grid. */
   protected switchView(props: ElementProps<{ click: () => void }>): void {
     props.handlers.click();
-    this.focusPending = true;
   }
 
   protected onPointerLeave(): void {

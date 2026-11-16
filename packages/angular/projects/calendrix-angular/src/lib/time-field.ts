@@ -75,8 +75,8 @@ export class CalendrixTimeField implements OnInit {
   private unsubscribe: () => void = () => undefined;
 
   private readonly host = inject<ElementRef<HTMLElement>>(ElementRef);
-  /** When typing completes a segment the core makes the next one active: it needs the real focus. */
-  private focusPending = false;
+  /** The last `focusRequest` of the core that this component has seen (see `TimeFieldState`). */
+  private seenFocusRequest = 0;
 
   private readonly handleChange = (next: TimeValue | null) => this.value.set(next);
 
@@ -118,8 +118,9 @@ export class CalendrixTimeField implements OnInit {
     effect(() => this.field.setOptions(this.options()));
 
     afterEveryRender(() => {
-      if (!this.focusPending) return;
-      this.focusPending = false;
+      const request = this.state().focusRequest;
+      if (request === this.seenFocusRequest) return;
+      this.seenFocusRequest = request;
       const type = this.state().activeSegment;
       if (!type) return;
       this.host.nativeElement.querySelector<HTMLElement>(`[data-segment="${type}"]`)?.focus();
@@ -134,8 +135,7 @@ export class CalendrixTimeField implements OnInit {
   }
 
   protected onKeydown(type: TimeSegmentType, event: KeyboardEvent): void {
-    const before = this.field.getState();
+    // Typing that completes a segment gives a new `focusRequest`; the hook above moves the focus.
     this.field.handleKeyDown(type, event);
-    if (this.field.getState() !== before) this.focusPending = true;
   }
 }
