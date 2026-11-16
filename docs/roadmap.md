@@ -39,21 +39,30 @@ Dates are intentionally omitted; milestones are ordered by dependency, not by ca
 
 ## M3: API validation
 
-- [ ] Minimal Angular prototype (signals) and Vue prototype (composable)
-- [ ] Resolve the open decisions below and **freeze the v1 API**
+- [x] Angular adapter (four components, forms, server rendering checked) and a Vue prototype ([ADR 0015](adr/0015-angular-adapter.md))
+- [x] Code that every adapter needs moved into the core ([ADR 0019](adr/0019-core-helpers-for-adapters.md))
+- [x] Resolve the open decisions below
+- [ ] Check `api.md` and the public exports of `index.ts` against `types.ts`
+- [ ] **Freeze the v1 API**
 
 ## M4: Full adapters, range selection, a11y
 
-- [ ] Angular and Vue adapters complete
+- [x] Angular adapter complete (four components, `ControlValueAccessor` on the pickers, shared styles, server rendering)
+- [ ] Vue adapter complete (components, pickers, popover)
 - [ ] Range in `DateTimePicker` (a start and an end, each with a time)
 - [ ] Time field on touch devices (hidden input for the on-screen keyboard)
 - [ ] Screen reader testing and automated a11y checks
 - [ ] RTL and Persian numerals verified in all adapters
+- [ ] Typed dates are checked against `minDate`, `maxDate` and unavailable days in the pickers
+- [ ] An invalid typed text can be cleared with the ✕ button
+- [ ] `data-theme` of a parent reaches the popover that is moved to `<body>`
+- [ ] A `disabled` option in the core, so that `Calendar` and `TimeField` can be form controls in Angular
 
 ## M5: Documentation and first release
 
 - [ ] Documentation site with live demos for all three frameworks
 - [ ] Bundle size and performance numbers in the README
+- [ ] Peer dependency of the adapters on `@calendrix/core`: from the exact `0.0.0` to a range (`^x.y.z`)
 - [ ] Publish `0.1.0`
 
 ## M6: Finance plugin
@@ -64,10 +73,10 @@ Dates are intentionally omitted; milestones are ordered by dependency, not by ca
 
 ## Open decisions
 
-Tracked here until an ADR settles them. Details in [api.md](api.md), section 7.
+All settled while building the adapters. Details in [api.md](api.md), section 7.
 
-1. Public date representation: triple vs epoch day (current direction: triple publicly, epoch day internally).
+1. Public date representation: a triple publicly, epoch day internally.
 2. Prop getters: single object vs separate `attrs` and `handlers`. Settled in [ADR 0006](adr/0006-selection-keyboard-props.md).
 3. Time zone handling for "today" (injectable clock). Settled for wall-clock values in [ADR 0007](adr/0007-time-model.md).
-4. Temporal API migration path.
+4. Temporal API: not used; `Intl` behind `CalendarImplementation`.
 5. Multi-month views in `state`. Settled in [ADR 0012](adr/0012-multiple-visible-months.md).
