@@ -16,21 +16,20 @@ export interface TimeFieldProps extends TimeFieldOptions {
 export function TimeField({ className, ...options }: TimeFieldProps) {
   const { field, state } = useTimeField(options);
   const rootRef = useRef<HTMLDivElement>(null);
-  const focusPending = useRef(false);
+  const seenFocusRequest = useRef(state.focusRequest);
 
-  // When typing completes a segment the core makes the next one active: it needs the real focus.
+  // When typing completes a segment the core makes the next one active and asks for the focus.
   useEffect(() => {
-    if (!focusPending.current) return;
-    focusPending.current = false;
+    if (state.focusRequest === seenFocusRequest.current) return;
+    seenFocusRequest.current = state.focusRequest;
     const type = state.activeSegment;
     if (!type) return;
     rootRef.current?.querySelector<HTMLElement>(`[data-segment="${type}"]`)?.focus();
   });
 
   const handleKeyDown = (type: TimeSegmentType, event: KeyboardEvent<HTMLElement>) => {
-    const before = field.getState();
+    // Typing that completes a segment gives a new `focusRequest`; the effect above moves the focus.
     field.handleKeyDown(type, event);
-    if (field.getState() !== before) focusPending.current = true;
   };
 
   return (

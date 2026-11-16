@@ -59,7 +59,7 @@ export function Calendar<M extends SelectionMode = 'single'>({
   // `rest` is the props without `className`: exactly the options of the calendar.
   const { calendar, state } = useCalendar<M>(rest as unknown as CalendarOptions<M>);
   const gridRef = useRef<HTMLDivElement>(null);
-  const focusPending = useRef(false);
+  const seenFocusRequest = useRef(state.focusRequest);
 
   /** The focused cell is the one with tabindex 0: it has to get the real DOM focus. */
   const focusFocusedCell = () => {
@@ -67,17 +67,14 @@ export function Calendar<M extends SelectionMode = 'single'>({
   };
 
   useEffect(() => {
-    if (!focusPending.current) return;
-    focusPending.current = false;
+    if (state.focusRequest === seenFocusRequest.current) return;
+    seenFocusRequest.current = state.focusRequest;
     focusFocusedCell();
   });
 
+   // A handled key gives a new `focusRequest`; the effect above moves the focus.
   const handleKeyDown = (event: KeyboardEvent<HTMLDivElement>) => {
-    const before = calendar.getState();
-    if (!calendar.handleKeyDown(event)) return;
-    // A changed state re-renders first, and the effect above moves the focus afterwards.
-    if (calendar.getState() === before) focusFocusedCell();
-    else focusPending.current = true;
+    calendar.handleKeyDown(event);
   };
 
   /** Escape leaves the months or the years from anywhere in the calendar, also from a button. */
@@ -87,18 +84,10 @@ export function Calendar<M extends SelectionMode = 'single'>({
     }
     event.preventDefault();
     calendar.setView('days');
-    focusPending.current = true;
   };
 
-  /** Buttons and cells that change the view: the grid they lead to takes the focus. */
-  const switchingView = (props: ElementProps<{ click: () => void }>) => ({
-    ...toReactProps(props),
-    onClick: () => {
-      props.handlers.click();
-      focusPending.current = true;
-    },
-  });
-
+  /** Buttons and cells that change the view: the core asks for the focus to move to the grid. */
+  const switchingView = (props: ElementProps<{ click: () => void }>) => toReactProps(props);
   const { view } = state;
   const [primary] = state.grids;
   const lastIndex = state.grids.length - 1;
