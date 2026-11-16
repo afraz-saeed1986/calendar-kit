@@ -1,6 +1,6 @@
 <script setup lang="ts" generic="M extends SelectionMode = 'single'">
 import type { CalendarOptions, SelectionMode, SelectionValue } from '@calendrix/core';
-import { nextTick, useTemplateRef } from 'vue';
+import { useTemplateRef, watch } from 'vue';
 import { useCalendar, vueProps } from './use-calendar';
 
 const props = defineProps<{
@@ -30,15 +30,14 @@ const { calendar, state } = useCalendar<M>(() => ({
   onChange: (next: SelectionValue<M>) => emit('update:modelValue', next),
 }));
 
-/** The focused day has tabindex 0: after the render it has to get the real DOM focus. */
+/** The focused day has tabindex 0: when the core asks for it, it gets the real DOM focus. */
 function focusFocusedCell(): void {
   root.value?.querySelector<HTMLElement>('[role="grid"] [tabindex="0"]')?.focus();
 }
 
-function onGridKeydown(event: KeyboardEvent): void {
-  if (!calendar.handleKeyDown(event)) return;
-  void nextTick(focusFocusedCell);
-}
+// `flush: 'post'` runs after the DOM is updated. The first value is only remembered: a watcher
+// does not run for it.
+watch(() => state.value.focusRequest, focusFocusedCell, { flush: 'post' });
 </script>
 
 <template>
@@ -67,8 +66,7 @@ function onGridKeydown(event: KeyboardEvent): void {
     <div
       class="calendrix-grid"
       data-view="days"
-      v-bind="vueProps(calendar.getGridProps(), false)"
-      @keydown="onGridKeydown"
+      v-bind="vueProps(calendar.getGridProps())"
       @pointerleave="calendar.previewTo(null)"
     >
       <div role="row" class="calendrix-weekdays">
