@@ -42,8 +42,8 @@ Dates are intentionally omitted; milestones are ordered by dependency, not by ca
 - [x] Angular adapter (four components, forms, server rendering checked) and a Vue prototype ([ADR 0015](adr/0015-angular-adapter.md))
 - [x] Code that every adapter needs moved into the core ([ADR 0019](adr/0019-core-helpers-for-adapters.md))
 - [x] Resolve the open decisions below
-- [ ] Check `api.md` and the public exports of `index.ts` against `types.ts`
-- [ ] **Freeze the v1 API**
+- [x] Check `api.md` and the public exports of `index.ts` against `types.ts`
+- [x] **Freeze the v1 API** ([ADR 0020](adr/0020-freeze-core-api-v1.md))
 
 ## M4: Full adapters, range selection, a11y
 

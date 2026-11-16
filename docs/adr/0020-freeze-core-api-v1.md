@@ -1,6 +1,6 @@
 # ADR 0020: Freeze the v1 API of the core
 
-- Status: proposed
+- Status: accepted
 - Date: 2026-11-16
 
 ## Context
@@ -53,7 +53,7 @@ Needs a new ADR that supersedes this one:
 - The texts of the built-in labels, including the `aria-label` texts, which may be corrected or improved.
 - The output of `format*` functions where it comes from `Intl` and the ICU data of the runtime.
 - How much typed text `parse*` accepts: it may accept more forms, never fewer.
-- Everything that `index.ts` does not export (internal modules and helpers).
+- Everything that `index.ts` does not export (internal modules and helpers, for example `labelsFor`, `directionOf` and the helpers of the views of months and years).
 - The adapters (`@calendrix/react`, `@calendrix/angular`, the Vue adapter): their components and their inputs follow the core, and each gets its own decision when it is complete (M4).
 
 ## Already planned as additions
