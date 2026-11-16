@@ -73,24 +73,43 @@ export interface CalendarOptions {
 
 ## 3. Output: read-only state
 
-> Implemented: `DayCell` has `date`, `label`, `isToday`, `isSelected`, `isFocused`, `isOutsideMonth`, `isDisabled`, `isUnavailable` and `meta`. The range fields (`isInRange`, `isRangeStart`, `isRangeEnd`) arrive with range selection. `CalendarState` has `value` (a single day or `null`) but no `mode` yet.
+`getState()` returns a snapshot. It is the same object until something changes, so it fits `useSyncExternalStore`, a Vue ref and an Angular signal as it is. The types are in `packages/core/src/types.ts`; these are the main fields of `CalendarState<M>`:
 
 ```ts
-export interface CalendarState {
+export interface CalendarState<M extends SelectionMode = 'single'> {
   readonly system: CalendarSystem;
   readonly locale: string;
   readonly direction: Direction;
-  readonly mode: SelectionMode;
-
-  readonly value: Selection;
+  readonly weekStart: WeekStart;
+  /** The selection mode: 'single', 'range' or 'multiple'. */
+  readonly selection: M;
+  /** The selection, in the calendar system being displayed. */
+  readonly value: SelectionValue<M>;
+  /** Range mode: the first day of a range that is not complete yet. */
+  readonly anchor: CalendarDate | null;
   readonly focusedDate: CalendarDate;
-  /** The visible month (usually derived from focusedDate) */
-  readonly visibleMonth: { year: number; month: number };
 
-  /** Month grid ready to render: weeks, each containing days */
+  /** The first visible month and its grid (always 6 weeks of 7 days). */
+  readonly visibleMonth: { readonly year: number; readonly month: number };
   readonly weeks: ReadonlyArray<ReadonlyArray<DayCell>>;
-  readonly weekdayLabels: ReadonlyArray<{ short: string; long: string }>;
-  readonly monthLabel: string; // for example "Mehr 1405" or "October 2026"
+  readonly weekdayLabels: ReadonlyArray<WeekdayLabel>;
+  readonly monthLabel: string; // for example "October 2026" or "مهر ۱۴۰۵"
+
+  /** 1 to 3 visible months. The first one is also described by the fields above. */
+  readonly visibleMonths: number;
+  readonly grids: ReadonlyArray<MonthGrid>;
+  readonly visibleLabel: string;
+
+  /** What is shown: the days of the month, the months of the year, or a page of years. */
+  readonly view: CalendarView;
+  readonly monthName: string;
+  readonly yearLabel: string;
+  readonly months: ReadonlyArray<MonthCell>;
+  readonly years: ReadonlyArray<YearCell>;
+  readonly yearsLabel: string;
+
+  /** Grows when the DOM focus should move to the focused cell (see below). */
+  readonly focusRequest: number;
 }
 
 export interface DayCell {
@@ -98,17 +117,20 @@ export interface DayCell {
   readonly label: string; // numeral formatted for the locale ("۱۴" or "14")
   readonly isToday: boolean;
   readonly isSelected: boolean;
-  readonly isInRange: boolean;
   readonly isRangeStart: boolean;
   readonly isRangeEnd: boolean;
+  readonly isInRange: boolean;
+  readonly isInPreview: boolean; // range mode: part of the range that would be chosen
   readonly isFocused: boolean;
   readonly isOutsideMonth: boolean;
-  readonly isDisabled: boolean;
-  readonly isUnavailable: boolean;
+  readonly isDisabled: boolean; // outside minDate..maxDate
+  readonly isUnavailable: boolean; // isDateUnavailable or a plugin
   /** Data added by plugins (for example { holiday: 'Nowruz', marketClosed: true }) */
   readonly meta: Readonly<Record<string, unknown>>;
 }
 ```
+
+**Moving the DOM focus.** The core holds no DOM. When `handleKeyDown` handles a key, or the view changes (the buttons of the month and the year, a month or a year chosen, `setView`), `focusRequest` grows by one, even when nothing else in the state changed. An adapter remembers the last value it saw; after it renders a new one, it focuses the element with `tabindex="0"` in the grid. The first value is only remembered. Clicking a day or a navigation button does not change it. `TimeFieldState` has the same field: it grows when typing completes a segment and the next one becomes active, and the adapter focuses the `[data-segment]` named by `activeSegment` (ADR 0019).
 
 ---
 
@@ -223,42 +245,52 @@ const cal = createCalendar({
 
 ## 6. Using the core in adapters
 
-**React** (about 15 lines):
+React, Angular and a Vue prototype use the same core (ADR 0015, ADR 0019). These are the rules every adapter follows:
+
+1. **State.** Keep the snapshot of `getState()` in the reactive primitive of the framework and update it from `subscribe` (`useSyncExternalStore`, `shallowRef`, `signal`). Close the subscription and call `destroy()` when the component goes away.
+2. **Creation.** Create the core once, when all inputs are known: `now`, `timeZone`, `defaultValue` and `focusedDate` are read only then. Pass later changes to `setOptions`.
+3. **Options.** Pass every input as it is. An option that is `undefined` means "not set", also in `setOptions`: an input that goes back to `undefined` is cleared. Do not drop such keys.
+4. **Value.** `value` and `onChange` map to the two-way binding of the framework (`model()`, `v-model`, a controlled prop). A value that is `undefined` leaves the core uncontrolled.
+5. **Props.** Apply the `{ attrs, handlers }` of the prop getters to the element. `normalizeAttributes` writes the attributes as strings (React DOM does the same by itself). Handler names are DOM event names.
+6. **Focus.** Move the DOM focus when `focusRequest` changes (see section 3).
+
+In Angular the core is created in `ngOnInit`, `subscribe` sets a `signal`, `DestroyRef` closes it and an `effect` calls `setOptions`. In React, `useCalendar` of `@calendrix/react` also keeps callbacks and arrays stable between renders. In Vue the whole composable is about 20 lines (`apps/vue-proto/src/use-calendar.ts`):
 
 ```ts
-import { useSyncExternalStore, useRef, useEffect } from 'react';
-import { createCalendar, type CalendarOptions } from '@calendrix/core';
+export function useCalendar<M extends SelectionMode = 'single'>(
+  options: MaybeRefOrGetter<Partial<CalendarOptions<M>>>,
+) {
+  const read = () => toValue(options);
+  const calendar = createCalendar<M>(read());
+  const state = shallowRef(calendar.getState());
 
-export function useCalendar(options: CalendarOptions) {
-  const ref = useRef<ReturnType<typeof createCalendar<'single'>>>();
-  if (!ref.current) ref.current = createCalendar(options);
-  const cal = ref.current;
+  const unsubscribe = calendar.subscribe(() => {
+    state.value = calendar.getState();
+  });
+  watch(read, (next) => calendar.setOptions(next));
 
-  useEffect(() => {
-    cal.setOptions(options);
-  }); // sync props
-  useEffect(() => () => cal.destroy(), [cal]);
+  onScopeDispose(() => {
+    unsubscribe();
+    calendar.destroy();
+  });
 
-  const state = useSyncExternalStore(cal.subscribe, cal.getState, cal.getState);
-  return { state, calendar: cal };
+  return { calendar, state };
 }
 ```
 
-**Vue:** `shallowRef(cal.getState())` plus `cal.subscribe(() => ref.value = cal.getState())` inside `onScopeDispose`.
-
-**Angular:** `signal(cal.getState())` plus `cal.subscribe(() => sig.set(cal.getState()))` inside `DestroyRef`.
-
 ---
 
-## 7. Open decisions (before freezing the API)
+## 7. Decisions made while building the adapters
 
-These are intentionally left open. Find the answers by building the Angular and Vue prototypes.
+These were open before the adapters existed. React, Angular and the Vue prototype answered them.
 
-1. **Internal date representation:** a `CalendarDate` triple (year/month/day) with a `system` field, or an epoch-day number? The triple is more readable; the epoch day makes conversion simpler. Proposal: triple in the public API, epoch day only inside calendar implementations.
-2. **Prop getters and handlers:** one single object (convenient for React) or separate `attrs` and `handlers` (easier for Vue/Angular, where event names differ)? **Decided in M1c:** separate them, with DOM attribute and event names (see [ADR 0006](adr/0006-selection-keyboard-props.md)); to be validated by the Angular and Vue prototypes.
-3. **Time zone safety:** "today" in which time zone? Add a `timeZone` option and an injectable `now()` for tests.
-4. **Temporal API:** for now rely on `Intl.DateTimeFormat` with `calendar: 'persian'` and hide it behind `CalendarImplementation`, so a later migration needs no API change.
-5. **Multiple months:** showing 2 or 3 months side by side (for range selection). In `state`, should this be `months: MonthGrid[]` or a single month? If you plan to support it, make it an array now.
+1. **Internal date representation.** `CalendarDate` is a triple (`system`, `year`, `month`, `day`) in the public API. The epoch day is used only inside the calendar implementations (`CalendarImplementation.toEpochDay`), and it is the pivot for converting between systems.
+2. **Prop getters and handlers.** `attrs` and `handlers` are separate objects with DOM attribute and event names (ADR 0006). All three adapters apply them without a change of format. The rule for boolean attributes is in the documentation of `ElementProps` and in `normalizeAttributes` (ADR 0019).
+3. **Time zone safety.** The options `timeZone` and `now` decide "today". They are read when the core is created (ADR 0015, finding 3).
+4. **Temporal API.** Not used. Calendar arithmetic lives in `CalendarImplementation` (the Persian calendar is a plugin); the names of months and days and the numerals come from `Intl`.
+5. **Multiple months.** `visibleMonths` (1 to 3) and `grids: MonthGrid[]`. The first month is also described by `weeks`, `monthLabel` and the like.
+
+What is left before the freeze of v1 is listed in the roadmap (M3).
 
 ---
 
