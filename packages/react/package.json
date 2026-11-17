@@ -35,7 +35,7 @@
     "test": "vitest run --passWithNoTests"
   },
   "peerDependencies": {
-    "@calendrix/core": "workspace:*",
+    "@calendrix/core": "workspace:^",
     "react": ">=18",
     "react-dom": ">=18"
   },
