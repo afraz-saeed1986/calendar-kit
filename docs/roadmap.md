@@ -62,7 +62,7 @@ Dates are intentionally omitted; milestones are ordered by dependency, not by ca
 
 - [ ] Documentation site with live demos for all three frameworks
 - [ ] Bundle size and performance numbers in the README
-- [ ] Peer dependency of the adapters on `@calendrix/core`: from the exact `0.0.0` to a range (`^x.y.z`)
+- [x] Peer dependency of the adapters on `@calendrix/core`: from the exact `0.0.0` to a range (`workspace:^` for React and Vue, which pnpm turns into `^<version>` when it publishes; `^0.1.0` written by hand for Angular, which is published from `dist/`). All five packages get the version `0.1.0` together at the release.
 - [ ] Publish `0.1.0`
 
 ## M6: Finance plugin
