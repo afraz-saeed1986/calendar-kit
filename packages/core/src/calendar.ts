@@ -167,6 +167,21 @@ function normalizeSelection(
   return convertDate(raw, system);
 }
 
+/**
+ * The props of an element while the whole calendar is `disabled`: out of the tab order, marked as
+ * disabled, a native button really disabled, and no handlers. The root also gets `data-disabled`.
+ */
+function inert(props: ElementProps<object>, isRoot: boolean): ElementProps<object> {
+  const attrs: Record<string, string | number | boolean | undefined> = {
+    ...props.attrs,
+    'aria-disabled': true,
+  };
+  if (isRoot) attrs['data-disabled'] = true;
+  if ('tabindex' in attrs) attrs.tabindex = -1;
+  if (attrs.type === 'button') attrs.disabled = true;
+  return { attrs, handlers: {} };
+}
+
 /** A visible month: where it starts and how long it is. */
 interface GridInfo {
   year: number;
@@ -265,6 +280,7 @@ export function createCalendar<M extends SelectionMode = 'single'>(
   const getMode = (): SelectionMode => options.selection ?? 'single';
   const getVisibleCount = () => clampMonths(options.visibleMonths);
   const getToday = () => todayEpochDay(options.now ?? (() => new Date()), options.timeZone);
+  const isDisabled = () => options.disabled === true;
 
   let internalValue: Selection = options.defaultValue ?? emptyValue(getMode());
   /** Controlled when `value` is passed (even as null), otherwise the value we keep ourselves. */
@@ -551,6 +567,7 @@ export function createCalendar<M extends SelectionMode = 'single'>(
       system: v.system,
       locale: v.locale,
       direction: v.direction,
+      disabled: isDisabled(),
       weekStart: v.weekStart,
       selection: v.mode,
       value: v.value,
@@ -681,7 +698,7 @@ export function createCalendar<M extends SelectionMode = 'single'>(
   }
 
   function previewTo(date: CalendarDate | null): void {
-    if (getMode() !== 'range' || anchor === null) return;
+    if (isDisabled() || getMode() !== 'range' || anchor === null) return;
     const next = date ? getCalendar(getSystem()).toEpochDay(convertDate(date, getSystem())) : null;
     if (next === previewEpoch) return;
     previewEpoch = next;
@@ -815,6 +832,7 @@ export function createCalendar<M extends SelectionMode = 'single'>(
    * number and moves the DOM focus.
    */
   function handleKeyDown(event: KeyEventLike): boolean {
+    if (isDisabled()) return false;
     const before = focusRequest;
     focusWanted = true;
     let handled = false;
@@ -1089,6 +1107,31 @@ export function createCalendar<M extends SelectionMode = 'single'>(
       listeners.clear();
     },
   };
+
+  // While the calendar is disabled, the props of every element describe an inert element.
+  const propGetters = [
+    'getRootProps',
+    'getGridProps',
+    'getDayProps',
+    'getPrevButtonProps',
+    'getNextButtonProps',
+    'getMonthButtonProps',
+    'getYearButtonProps',
+    'getMonthProps',
+    'getYearProps',
+  ] as const;
+  const getters = calendar as unknown as Record<
+    string,
+    (...args: unknown[]) => ElementProps<object>
+  >;
+  for (const name of propGetters) {
+    const original = getters[name];
+    if (!original) continue;
+    getters[name] = (...args) => {
+      const props = original(...args);
+      return isDisabled() ? inert(props, name === 'getRootProps') : props;
+    };
+  }
 
   return calendar as unknown as Calendar<M>;
 }

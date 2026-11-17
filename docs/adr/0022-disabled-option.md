@@ -26,7 +26,7 @@ the new option is about the whole widget. The names stay apart: `disabled` on op
    also covers the navigation of a calendar: its buttons and keys do not move the month. A
    disabled widget is inert, like a disabled `<input>`.
 3. **What it does not block: the application.** The methods (`select`, `setView`, `nextMonth`,
-   `increment`, `clear`, `focusSegment` and the like) and `setOptions` keep working. A form must
+   `increment`, `clear` and the like) and `setOptions` keep working. A form must
    still be able to write a value into a disabled control (`writeValue`), and the application is
    in charge of what it calls. Only the paths that come from a user event are guarded.
 4. **Attributes.** Only while `disabled` is true: the root has `aria-disabled="true"` and
@@ -42,6 +42,13 @@ the new option is about the whole widget. The names stay apart: `disabled` on op
    this one.
 7. **Out of scope.** `readOnly` (visible and focusable, not editable) is a different behaviour
    and is not added now.
+
+8. **Which methods count as the user.** `handleKeyDown`, `previewTo` and `focusSegment` exist
+   to be called by adapters from DOM events (key, pointer, focus), so they are guarded like the
+   handlers; the other methods are the application's. One function wraps the nine prop getters of
+   the calendar and makes their result inert while `disabled` is true; the time field marks its
+   own elements. The `data-disabled` of a day keeps meaning "outside `minDate`..`maxDate`", so
+   only the root gets `data-disabled` for the whole widget.
 
 ## Tests
 

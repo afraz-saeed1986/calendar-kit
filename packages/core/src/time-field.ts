@@ -134,6 +134,7 @@ export function createTimeField(initial: TimeFieldOptions = {}): TimeField {
     return {
       locale: loc,
       direction: directionOf(loc),
+      disabled: options.disabled === true,
       hourCycle,
       value,
       segments,
@@ -255,7 +256,9 @@ export function createTimeField(initial: TimeFieldOptions = {}): TimeField {
       refresh();
     },
 
-    focusSegment: setActive,
+    focusSegment(type) {
+      if (options.disabled !== true) setActive(type);
+    },
 
     increment(type, direction) {
       buffer = '';
@@ -268,6 +271,7 @@ export function createTimeField(initial: TimeFieldOptions = {}): TimeField {
     },
 
     handleKeyDown(type: TimeSegmentType, event: KeyEventLike): boolean {
+      if (options.disabled === true) return false;
       if (event.ctrlKey || event.metaKey || event.altKey) return false;
       if (activeSegment !== type) setActive(type);
 
@@ -306,6 +310,8 @@ export function createTimeField(initial: TimeFieldOptions = {}): TimeField {
           'aria-label': timeLabelsFor(state.locale, options.labels).time,
           // Times are read left to right, hour first, also in right-to-left languages.
           dir: 'ltr',
+          'aria-disabled': options.disabled ? true : undefined,
+          'data-disabled': options.disabled || undefined,
         },
         handlers: {},
       };
@@ -319,7 +325,8 @@ export function createTimeField(initial: TimeFieldOptions = {}): TimeField {
       return {
         attrs: {
           role: 'spinbutton',
-          tabindex: 0,
+          tabindex: options.disabled ? -1 : 0,
+          'aria-disabled': options.disabled ? true : undefined,
           inputmode: type === 'period' ? undefined : 'numeric',
           'aria-label': segment.label,
           'aria-valuenow': segment.numericValue ?? undefined,
@@ -333,7 +340,7 @@ export function createTimeField(initial: TimeFieldOptions = {}): TimeField {
           keydown: (event: KeyEventLike) => {
             field.handleKeyDown(type, event);
           },
-          focus: () => setActive(type),
+          focus: () => field.focusSegment(type),
         },
       };
     },

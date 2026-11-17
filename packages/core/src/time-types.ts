@@ -49,6 +49,13 @@ export interface TimeFieldOptions {
   defaultValue?: TimeValue | null;
   onChange?: (value: TimeValue | null) => void;
 
+  /**
+   * The user cannot change anything: the handlers of the props do nothing, and `handleKeyDown`
+   * and `focusSegment` are ignored. The methods (`increment`, `clear`) and `setOptions` still
+   * work. Default: false (ADR 0022).
+   */
+  disabled?: boolean;
+
   labels?: Partial<TimeFieldLabels>;
 }
 
@@ -72,6 +79,8 @@ export interface TimeFieldState {
   readonly value: TimeValue | null;
   /** In display order for the locale. */
   readonly segments: ReadonlyArray<TimeSegment>;
+  /** True when the field is `disabled`: the user cannot change it. */
+  readonly disabled: boolean;
   readonly activeSegment: TimeSegmentType | null;
   /**
    * Grows by one when typing completes a segment and the core makes the next one active: the DOM
