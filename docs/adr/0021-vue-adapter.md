@@ -27,7 +27,7 @@ The v1 API of the core is frozen (ADR 0020). `@calendrix/react` and `@calendrix/
 
 **Tests.** Vitest, `@vue/test-utils` and jsdom, as in the prototype. The same cases as the Angular library: keyboard, ranges, views, popover, pickers, typed text, options that go back to `undefined`.
 
-**Demo.** `apps/vue-proto` stays as the demo until the adapter is complete. Then its own components are replaced by the package, and it is renamed to `apps/vue-demo`. A smoke test of server rendering (`vite build --ssr`) comes in the last stage.
+**Demo.** `apps/vue-demo` uses the built package. It replaced `apps/vue-proto` when the adapter was complete. The smoke test of server rendering renders the four components with `renderToString` in a Node environment.
 
 ## Stages
 

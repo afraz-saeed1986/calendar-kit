@@ -304,7 +304,7 @@ React, Angular and a Vue prototype use the same core (ADR 0015, ADR 0019). These
 5. **Props.** Apply the `{ attrs, handlers }` of the prop getters to the element. `normalizeAttributes` writes the attributes as strings (React DOM does the same by itself). Handler names are DOM event names.
 6. **Focus.** Move the DOM focus when `focusRequest` changes (see section 3).
 
-In Angular the core is created in `ngOnInit`, `subscribe` sets a `signal`, `DestroyRef` closes it and an `effect` calls `setOptions`. In React, `useCalendar` of `@calendrix/react` also keeps callbacks and arrays stable between renders. In Vue the whole composable is about 20 lines (`apps/vue-proto/src/use-calendar.ts`):
+In Angular the core is created in `ngOnInit`, `subscribe` sets a `signal`, `DestroyRef` closes it and an `effect` calls `setOptions`. In React, `useCalendar` of `@calendrix/react` also keeps callbacks and arrays stable between renders. In Vue the whole composable is about 20 lines (`packages/vue/src/use-calendar.ts`):
 
 ```ts
 export function useCalendar<M extends SelectionMode = 'single'>(
