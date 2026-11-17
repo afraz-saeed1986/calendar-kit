@@ -39,6 +39,8 @@ const props = withDefaults(
     timeZone?: string;
     now?: () => Date;
     plugins?: CalendarOptions<M>['plugins'];
+    /** The user cannot change anything (ADR 0022). */
+    disabled?: boolean;
   }>(),
   // A Vue boolean prop that is not passed becomes `false`; here "not passed" must stay `undefined`.
   { allowUnavailableInRange: undefined },
@@ -77,6 +79,7 @@ const { calendar, state } = useCalendar<M>(() => ({
   timeZone: props.timeZone,
   now: props.now,
   plugins: props.plugins,
+  disabled: props.disabled,
   onChange: (next: SelectionValue<M>) => emit('update:modelValue', next),
   onFocusedDateChange: (date: CalendarDate) => emit('focusedDateChange', date),
 }));

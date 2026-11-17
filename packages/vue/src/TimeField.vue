@@ -24,6 +24,8 @@ const props = withDefaults(
     minTime?: TimeValue;
     maxTime?: TimeValue;
     labels?: TimeFieldOptions['labels'];
+    /** The user cannot change anything (ADR 0022). */
+    disabled?: boolean;
   }>(),
   // A Vue boolean prop that is not passed becomes `false`; here "not passed" must stay `undefined`.
   { showSeconds: undefined },
@@ -45,6 +47,7 @@ const { field, state } = useTimeField(() => ({
   minTime: props.minTime,
   maxTime: props.maxTime,
   labels: props.labels,
+  disabled: props.disabled,
   onChange: (next: TimeValue | null) => emit('update:modelValue', next),
 }));
 
