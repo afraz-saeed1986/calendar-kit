@@ -58,6 +58,34 @@ importers:
         specifier: ^5.4.8
         version: 5.4.21(@types/node@24.19.2)(less@4.9.1)(sass@1.108.1)
 
+  apps/vue-demo:
+    dependencies:
+      '@calendrix/core':
+        specifier: workspace:*
+        version: link:../../packages/core
+      '@calendrix/persian':
+        specifier: workspace:*
+        version: link:../../packages/persian
+      '@calendrix/vue':
+        specifier: workspace:*
+        version: link:../../packages/vue
+      '@floating-ui/dom':
+        specifier: ^1.6.12
+        version: 1.8.0
+      vue:
+        specifier: ^3.5.13
+        version: 3.5.45(typescript@5.9.3)
+    devDependencies:
+      '@vitejs/plugin-vue':
+        specifier: ^5.2.1
+        version: 5.2.4(vite@5.4.21(@types/node@24.19.2)(less@4.9.1)(sass@1.108.1))(vue@3.5.45(typescript@5.9.3))
+      vite:
+        specifier: ^5.4.8
+        version: 5.4.21(@types/node@24.19.2)(less@4.9.1)(sass@1.108.1)
+      vue-tsc:
+        specifier: ^2.1.10
+        version: 2.2.12(typescript@5.9.3)
+
   apps/vue-proto:
     dependencies:
       '@calendrix/core':
