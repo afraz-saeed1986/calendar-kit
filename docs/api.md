@@ -332,7 +332,7 @@ export function useCalendar<M extends SelectionMode = 'single'>(
 
 ## 7. Decisions made while building the adapters
 
-These were open before the adapters existed. React, Angular and the Vue prototype answered them.
+These were open before the adapters existed. React, Angular and Vue answered them.
 
 1. **Internal date representation.** `CalendarDate` is a triple (`system`, `year`, `month`, `day`) in the public API. The epoch day is used only inside the calendar implementations (`CalendarImplementation.toEpochDay`), and it is the pivot for converting between systems.
 2. **Prop getters and handlers.** `attrs` and `handlers` are separate objects with DOM attribute and event names (ADR 0006). All three adapters apply them without a change of format. The rule for boolean attributes is in the documentation of `ElementProps` and in `normalizeAttributes` (ADR 0019).

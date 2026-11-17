@@ -48,7 +48,7 @@ Dates are intentionally omitted; milestones are ordered by dependency, not by ca
 ## M4: Full adapters, range selection, a11y
 
 - [x] Angular adapter complete (four components, `ControlValueAccessor` on the pickers, shared styles, server rendering)
-- [ ] Vue adapter complete (components, pickers, popover)
+- [x] Vue adapter complete (four components, pickers, popover, shared styles, server rendering) ([ADR 0021](adr/0021-vue-adapter.md))
 - [ ] Range in `DateTimePicker` (a start and an end, each with a time)
 - [ ] Time field on touch devices (hidden input for the on-screen keyboard)
 - [ ] Screen reader testing and automated a11y checks
