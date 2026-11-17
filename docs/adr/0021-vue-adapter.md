@@ -47,4 +47,18 @@ The four components pass the tests above, the demo app uses the package, the sty
 
 ## Findings
 
-(Written per stage.)
+The core needed no change for Vue: the API frozen by ADR 0020 was enough. The findings below are about Vue itself.
+
+1. **A Vue boolean prop that is not passed is `false`, not `undefined`.** In the core `undefined` means "not set" (ADR 0019), so a component that passes `false` for an option the user never gave changes its default. Every boolean prop of the components whose core default is not `false` has an explicit `undefined` default (`withDefaults`): `allowUnavailableInRange`, `closeOnSelect` and `showSeconds`. `portal` has the default `true` on purpose. React and Angular have no such rule.
+2. **`v-bind` with handlers plus an explicit `@keydown` calls both.** React solves it by writing `onKeyDown` after the spread, which replaces the handler. In Vue the components bind only the attributes (`toVueProps(props, false)`) when they wire the event themselves (`keydown` and `focus` of the grid and of the time segments), and bind the handlers too only where the prop getter is the single source (days, months, years, buttons).
+3. **A `.vue` file cannot export a type.** `DatePickerLabels` lives in its own `.ts` file, and there is no exported `CalendarProps`: the props are declared in the component and can be read with `InstanceType`.
+4. **Generic components work.** `<script setup generic="M extends SelectionMode = 'single'">` is enough with `vue-tsc` 2.x, and the build emits one `*.vue.d.ts` per component. The two inner components (`CalendarHeader`, `CalendarDays`) are generic too: `Calendar<'single'>` is not assignable to `Calendar<SelectionMode>` (same finding as in the core tests).
+5. **The focus request needs no counter.** `watch(() => state.focusRequest, focus, { flush: 'post' })` does not run for the first value and runs after the DOM is updated. It replaces the `seenFocusRequest` of React and Angular.
+6. **The popover is a composable and a template.** `usePickerPopover` keeps the open state, the position, the click outside, Escape and the focus on open; the position uses `@floating-ui/dom` directly, a peer dependency. The listeners are added by a post-flush watcher on `open` and removed with `onCleanup`. `<Teleport to="body" :disabled="!portal">` replaces `renderLayer`, and `useId()` (Vue 3.5) gives the dialog id. Because the popover is not rendered while closed, nothing in it runs on the server.
+7. **The "the text must stay as typed" flag** is reset with `nextTick` after the commit, not after every render as in React. If the parent does not accept the value, the flag cannot stay set.
+8. **Server rendering works.** The tests for it run in the `node` environment (in `jsdom` a `document` always exists and an access in `setup` would go unnoticed): the four components render without a DOM and the closed pickers render no dialog. A hydration check in a real browser is not done yet.
+9. **Build.** Vite library mode makes `index.js` (ES) and `index.cjs`, and `vue-tsc` makes the declarations; `vue`, `@calendrix/core` and `@floating-ui/dom` are external. Known gap: there is no `index.d.cts` for CommonJS consumers (the React package has one). Check it before the first release.
+
+### Result
+
+The four components (`Calendar`, `TimeField`, `DatePicker`, `DateTimePicker`), the composables (`useCalendar`, `useTimeField`) and `toVueProps` are in `@calendrix/vue`, with 55 tests. The styles ship in the package (`@calendrix/vue/styles.css`), `apps/vue-demo` uses the built package, and `apps/vue-proto` is removed.
