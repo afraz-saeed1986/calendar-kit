@@ -11,7 +11,7 @@ export default defineConfig({
     },
     sourcemap: true,
     rollupOptions: {
-      external: ['vue', '@calendrix/core'],
+      external: ['vue', '@calendrix/core', '@floating-ui/dom'],
     },
   },
   test: { environment: 'jsdom' },
