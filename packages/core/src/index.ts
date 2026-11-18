@@ -34,6 +34,14 @@ export { formatDateRange, parseDateRange } from './text-range';
 export type { DateField, DatePattern, TextDateOptions } from './text-date';
 export { formatDateTime, formatTime, parseDateTime, parseTime } from './text-time';
 export type { TextTimeOptions } from './text-time';
+export {
+  formatDateTimeRange,
+  parseDateTimeRange,
+  stickEndToStart,
+  type DateTimeMode,
+  type DateTimePickerValue,
+  type DateTimeRange,
+} from './datetime-range';
 export type {
   DateTimeValue,
   HourCycle,

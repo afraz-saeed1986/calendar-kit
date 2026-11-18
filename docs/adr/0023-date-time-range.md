@@ -43,6 +43,11 @@ The roadmap lists "Range in `DateTimePicker`" (M4).
 9. **Adapters.** React, Vue and Angular get the same `selection` prop, the same value and the
    same labels. In Angular the `ControlValueAccessor` carries `DateTimeRange | null`.
 
+10. **The order rule is in the core.** `stickEndToStart(range)` returns the range with the end
+    set to the start when the end is earlier, and the same object when nothing changes, so the
+    three adapters do not each write the rule. A typed text whose end is earlier than its start is
+    swapped by `parseDateTimeRange`, as `parseDateRange` does for dates.
+
 ## Tests
 
 - Core: `formatDateTimeRange` and `parseDateTimeRange` round-trip in en-US, de-DE and fa-IR with

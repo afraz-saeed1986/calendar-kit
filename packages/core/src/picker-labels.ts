@@ -1,3 +1,4 @@
+
 /** Texts the pickers put on their own buttons. */
 export interface PickerLabels {
   /** The button that opens the calendar. */
@@ -6,6 +7,10 @@ export interface PickerLabels {
   dialog: string;
   clear: string;
   done: string;
+  /** A range with times: the name of the time field of the start. */
+  startTime: string;
+  /** A range with times: the name of the time field of the end. */
+  endTime: string;
 }
 
 /** Which picker the texts are for: a date picker has no time. */
@@ -16,6 +21,8 @@ const EN: PickerLabels = {
   dialog: 'Choose date and time',
   clear: 'Clear',
   done: 'Done',
+  startTime: 'Start time',
+  endTime: 'End time',
 };
 
 const MESSAGES: Record<string, PickerLabels> = {
@@ -25,12 +32,16 @@ const MESSAGES: Record<string, PickerLabels> = {
     dialog: 'انتخاب تاریخ و زمان',
     clear: 'پاک کردن',
     done: 'تأیید',
+    startTime: 'زمان شروع',
+    endTime: 'زمان پایان',
   },
   de: {
     openCalendar: 'Datum und Uhrzeit wählen',
     dialog: 'Datum und Uhrzeit wählen',
     clear: 'Löschen',
     done: 'Fertig',
+    startTime: 'Startzeit',
+    endTime: 'Endzeit',
   },
 };
 

@@ -5,14 +5,14 @@ import type { DateRange } from './types';
 const DEFAULT_LOCALE = 'en-US';
 
 /** What `formatDateRange` writes between the two dates: an en dash with spaces. */
-const SEPARATOR = ' \u2013 ';
+export const SEPARATOR = ' \u2013 ';
 
 /**
  * The separators accepted between the two dates: an en dash or an em dash (with or without
  * spaces), a hyphen with spaces around it, and the words "to", "تا" (Persian) and "bis" (German)
  * with spaces around them. A hyphen without spaces is not one: it can be part of a date.
  */
-const SEPARATORS = /\s*[\u2013\u2014]\s*|\s+-\s+|\s+(?:to|تا|bis)\s+/i;
+export const SEPARATORS = /\s*[\u2013\u2014]\s*|\s+-\s+|\s+(?:to|تا|bis)\s+/i;
 
 /**
  * Write a range the way the locale writes dates, with an en dash between them:
