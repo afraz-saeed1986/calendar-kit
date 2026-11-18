@@ -502,3 +502,20 @@
     background: Highlight;
   }
 }
+
+/* A range with times: two labelled time fields in the footer of the popover. */
+.calendrix-time-range {
+  display: grid;
+  gap: 8px;
+}
+
+.calendrix-time-row {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  gap: 12px;
+}
+
+.calendrix-time-label {
+  font-size: 0.875em;
+}

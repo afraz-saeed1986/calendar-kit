@@ -1,26 +1,37 @@
 import {
   convertDate,
   formatDateTime,
+  formatDateTimeRange,
   parseDateTime,
+  parseDateTimeRange,
+  pickerLabelsFor,
   registerCalendar,
+  stickEndToStart,
   type CalendarDate,
   type CalendarOptions,
   type CalendarSystem,
+  type DateRange,
+  type DateTimeMode,
+  type DateTimePickerValue,
+  type DateTimeRange,
   type DateTimeValue,
   type HourCycle,
+  type PickerLabels,
   type TimeValue,
 } from '@calendrix/core';
 import { useEffect, useRef, useState } from 'react';
 import { Calendar } from './calendar';
-import { pickerLabelsFor, type PickerLabels } from '@calendrix/core';
 import { TimeField } from './time-field';
 import { usePickerPopover } from './use-picker-popover';
 
-export interface DateTimePickerProps {
-  /** The picked date and time. Passing it (even `null`) makes the picker controlled. */
-  value?: DateTimeValue | null;
-  defaultValue?: DateTimeValue | null;
-  onChange?: (value: DateTimeValue | null) => void;
+export interface DateTimePickerProps<M extends DateTimeMode = 'single'> {
+  /** One date and time (default), or a range with a start and an end, each with a time. */
+  selection?: M;
+  /** The picked date and time. Passing it (even `null`) makes the picker controlled. The type follows `selection`. */
+  value?: DateTimePickerValue<M>;
+  defaultValue?: DateTimePickerValue<M>;
+  /** In `range` mode it is called when the range is complete, or when a time of a complete range changes. */
+  onChange?: (value: DateTimePickerValue<M>) => void;
 
   /** Calendar system shown and understood when typing. Default: 'gregory'. */
   system?: CalendarSystem;
@@ -43,7 +54,7 @@ export interface DateTimePickerProps {
   weekStart?: CalendarOptions['weekStart'];
   /** Default: from the locale. */
   direction?: CalendarOptions['direction'];
-  /** How many months the calendar shows: 1 (default), 2 or 3. */
+  /** How many months the calendar shows: 1 (default; 2 for `range`), 2 or 3. */
   visibleMonths?: number;
   isDateUnavailable?: (date: CalendarDate) => boolean;
   /** Plugins register calendar systems, for example `persianPlugin`. */
@@ -65,6 +76,11 @@ export interface DateTimePickerProps {
 }
 
 const MIDNIGHT: TimeValue = { hour: 0, minute: 0, second: 0 };
+
+/** The two shapes the picker works with inside; the public type follows `selection`. */
+type Value = DateTimeValue | DateTimeRange | null;
+
+const isRange = (value: Value): value is DateTimeRange => value !== null && 'start' in value;
 
 function CalendarIcon() {
   return (
@@ -93,11 +109,14 @@ function CalendarIcon() {
 /**
  * A text input and a popover with a calendar and a time field. The user can type a date and a
  * time or pick them; the value is the same `{ date, time }` the core uses (no time zone: see
- * `toInstant`). It has no styles of its own, see `@calendrix/react/styles.css`.
+ * `toInstant`). With `selection="range"` the value is `{ start, end }`, each with a date and a
+ * time, and the popover has two time fields (ADR 0023). It has no styles of its own, see
+ * `@calendrix/react/styles.css`.
  */
-export function DateTimePicker({
+export function DateTimePicker<M extends DateTimeMode = 'single'>({
+  selection = 'single' as M,
   value: controlledValue,
-  defaultValue = null,
+  defaultValue,
   onChange,
   system = 'gregory',
   locale = 'en-US',
@@ -109,6 +128,7 @@ export function DateTimePicker({
   minTime,
   maxTime,
   plugins,
+  visibleMonths,
   labels,
   placeholder,
   disabled,
@@ -116,17 +136,22 @@ export function DateTimePicker({
   className,
   portal = true,
   ...calendarOptions
-}: DateTimePickerProps) {
+}: DateTimePickerProps<M>) {
   // Typing a date in a calendar from a plugin works before the popover has ever been opened.
   for (const plugin of plugins ?? []) {
     for (const calendar of plugin.calendars ?? []) registerCalendar(calendar);
   }
 
-  const [internalValue, setInternalValue] = useState<DateTimeValue | null>(defaultValue);
+  const isRangeMode = selection === 'range';
+  const [internalValue, setInternalValue] = useState<Value>((defaultValue ?? null) as Value);
   const isControlled = controlledValue !== undefined;
-  const value = isControlled ? controlledValue : internalValue;
-  /** A time chosen before any date. It becomes part of the value when a date is picked. */
-  const [draftTime, setDraftTime] = useState<TimeValue | null>(null);
+  const value = (isControlled ? controlledValue : internalValue) as Value;
+  /**
+   * A time chosen before any date. It becomes part of the value when a date is picked. In
+   * `single` mode `draftStart` is the only one; in `range` mode there is one for each end.
+   */
+  const [draftStart, setDraftStart] = useState<TimeValue | null>(null);
+  const [draftEnd, setDraftEnd] = useState<TimeValue | null>(null);
 
   const [touched, setTouched] = useState(false);
 
@@ -134,14 +159,30 @@ export function DateTimePicker({
     usePickerPopover({ portal });
   const text_ = pickerLabelsFor(locale, labels);
 
-  const format = (next: DateTimeValue) =>
-    formatDateTime(next, { locale, hourCycle, seconds: showSeconds });
+  const textOptions = { locale, hourCycle, seconds: showSeconds };
+  const format = (next: Value): string => {
+    if (next === null) return '';
+    return isRange(next) ? formatDateTimeRange(next, textOptions) : formatDateTime(next, textOptions);
+  };
+  const parse = (next: string): Value =>
+    isRangeMode
+      ? parseDateTimeRange(next, { locale, system })
+      : parseDateTime(next, { locale, system });
 
   // The value in the calendar system on screen.
-  const shown: DateTimeValue | null = value
-    ? { date: convertDate(value.date, system), time: value.time }
-    : null;
-  const valueKey = shown ? format(shown) : '';
+  const inSystem = (point: DateTimeValue): DateTimeValue => ({
+    date: convertDate(point.date, system),
+    time: point.time,
+  });
+  const shown: Value =
+    value === null
+      ? null
+      : isRange(value)
+        ? { start: inSystem(value.start), end: inSystem(value.end) }
+        : inSystem(value);
+  const shownPoint = shown !== null && !isRange(shown) ? shown : null;
+  const shownRange = shown !== null && isRange(shown) ? shown : null;
+  const valueKey = format(shown);
 
   const [text, setText] = useState(valueKey);
   /** True while the value is changing because the user typed it: the text must stay as typed. */
@@ -160,9 +201,9 @@ export function DateTimePicker({
     typing.current = false;
   });
 
-  const commit = (next: DateTimeValue | null) => {
+  const commit = (next: Value) => {
     if (!isControlled) setInternalValue(next);
-    onChange?.(next);
+    onChange?.(next as DateTimePickerValue<M>);
   };
 
   const handleText = (next: string) => {
@@ -174,7 +215,7 @@ export function DateTimePicker({
       }
       return;
     }
-    const parsed = parseDateTime(next, { locale, system });
+    const parsed = parse(next);
     if (!parsed) return;
     if (format(parsed) !== valueKey) typing.current = true;
     commit(parsed);
@@ -183,34 +224,67 @@ export function DateTimePicker({
   const handleBlur = () => {
     setTouched(true);
     // A valid text is written the standard way once the user is done typing.
-    if (text.trim() !== '' && parseDateTime(text, { locale, system })) setText(valueKey);
+    if (text.trim() !== '' && parse(text)) setText(valueKey);
   };
 
-  const invalid = touched && text.trim() !== '' && parseDateTime(text, { locale, system }) === null;
+  const invalid = touched && text.trim() !== '' && parse(text) === null;
+
+  const defaultTime = minTime ?? MIDNIGHT;
 
   const pickDate = (date: CalendarDate | null) => {
     if (!date) return commit(null);
-    commit({ date, time: shown?.time ?? draftTime ?? minTime ?? MIDNIGHT });
+    commit({ date, time: shownPoint?.time ?? draftStart ?? defaultTime });
   };
 
-  const pickTime = (time: TimeValue | null) => {
-    if (shown) {
-      // Clearing the time of a picked date puts it back to the start of the day.
-      commit({ date: shown.date, time: time ?? minTime ?? MIDNIGHT });
+  /** The second day of a range: the times are the ones already chosen, or the default. */
+  const pickRange = (range: DateRange | null) => {
+    if (!range) return commit(null);
+    commit(
+      stickEndToStart({
+        start: { date: range.start, time: shownRange?.start.time ?? draftStart ?? defaultTime },
+        end: { date: range.end, time: shownRange?.end.time ?? draftEnd ?? defaultTime },
+      }),
+    );
+  };
+
+  const pickTime = (which: 'start' | 'end', time: TimeValue | null) => {
+    // Clearing the time of a picked date puts it back to the start of the day.
+    const next = time ?? defaultTime;
+    if (shownRange) {
+      commit(
+        stickEndToStart({
+          start: which === 'start' ? { ...shownRange.start, time: next } : shownRange.start,
+          end: which === 'end' ? { ...shownRange.end, time: next } : shownRange.end,
+        }),
+      );
+    } else if (shownPoint) {
+      commit({ date: shownPoint.date, time: next });
+    } else if (which === 'start') {
+      setDraftStart(time);
     } else {
-      setDraftTime(time);
+      setDraftEnd(time);
     }
   };
 
   const clear = () => {
-    setDraftTime(null);
+    setDraftStart(null);
+    setDraftEnd(null);
     commit(null);
   };
 
-  const samplePlaceholder = format({
+  const sampleStart: DateTimeValue = {
     date: convertDate({ system: 'gregory', year: 2026, month: 10, day: 14 }, system),
     time: { hour: 9, minute: 30, second: 0 },
-  });
+  };
+  const sampleEnd: DateTimeValue = {
+    date: convertDate({ system: 'gregory', year: 2026, month: 10, day: 21 }, system),
+    time: { hour: 17, minute: 0, second: 0 },
+  };
+  const samplePlaceholder = isRangeMode
+    ? format({ start: sampleStart, end: sampleEnd })
+    : format(sampleStart);
+
+  const timeProps = { locale, hourCycle, showSeconds, hourStep, minuteStep, secondStep, minTime, maxTime };
 
   return (
     <div ref={setWrapper} className={['calendrix-picker', className].filter(Boolean).join(' ')}>
@@ -273,27 +347,61 @@ export function DateTimePicker({
       {open &&
         renderLayer(
           <div {...popoverProps} aria-label={text_.dialog}>
-            <Calendar
-              system={system}
-              locale={locale}
-              plugins={plugins}
-              value={shown?.date ?? null}
-              onChange={pickDate}
-              {...calendarOptions}
-            />
-            <div className="calendrix-popover-footer">
-              <TimeField
+            {isRangeMode ? (
+              <Calendar<'range'>
+                selection="range"
+                system={system}
                 locale={locale}
-                hourCycle={hourCycle}
-                showSeconds={showSeconds}
-                hourStep={hourStep}
-                minuteStep={minuteStep}
-                secondStep={secondStep}
-                minTime={minTime}
-                maxTime={maxTime}
-                value={shown ? shown.time : draftTime}
-                onChange={pickTime}
+                plugins={plugins}
+                value={shownRange ? { start: shownRange.start.date, end: shownRange.end.date } : null}
+                onChange={pickRange}
+                visibleMonths={visibleMonths ?? 2}
+                {...calendarOptions}
               />
+            ) : (
+              <Calendar
+                system={system}
+                locale={locale}
+                plugins={plugins}
+                value={shownPoint?.date ?? null}
+                onChange={pickDate}
+                visibleMonths={visibleMonths}
+                {...calendarOptions}
+              />
+            )}
+            <div className="calendrix-popover-footer">
+              {isRangeMode ? (
+                <div className="calendrix-time-range">
+                  <div className="calendrix-time-row">
+                    <span className="calendrix-time-label" aria-hidden="true">
+                      {text_.startTime}
+                    </span>
+                    <TimeField
+                      {...timeProps}
+                      labels={{ time: text_.startTime }}
+                      value={shownRange ? shownRange.start.time : draftStart}
+                      onChange={(time) => pickTime('start', time)}
+                    />
+                  </div>
+                  <div className="calendrix-time-row">
+                    <span className="calendrix-time-label" aria-hidden="true">
+                      {text_.endTime}
+                    </span>
+                    <TimeField
+                      {...timeProps}
+                      labels={{ time: text_.endTime }}
+                      value={shownRange ? shownRange.end.time : draftEnd}
+                      onChange={(time) => pickTime('end', time)}
+                    />
+                  </div>
+                </div>
+              ) : (
+                <TimeField
+                  {...timeProps}
+                  value={shownPoint ? shownPoint.time : draftStart}
+                  onChange={(time) => pickTime('start', time)}
+                />
+              )}
               <div className="calendrix-actions">
                 <button type="button" className="calendrix-action" onClick={clear}>
                   {text_.clear}
