@@ -70,7 +70,7 @@ Both adapters (Angular full, Vue prototype) pass their tests, and each question 
 ### Styles, forms and server rendering (stage 6)
 
 18. **Stylesheet (question 8).** `ng-packagr` cannot read assets outside the library root, so `scripts/copy-styles.mjs` copies `packages/styles/styles.css` into `dist/calendrix-angular/` after `ng build`, and the package exports `./styles.css` (ADR 0017). The library must be built before the demo apps, because the `paths` key in `tsconfig.json` points to `dist/`.
-19. **Forms.** `ControlValueAccessor` on the two pickers only (ADR 0018). `Calendar` and `TimeField` are not accessors because the core has no `disabled` option. `writeValue` never calls `onChange`; the disabled state of the form and the `disabled` input are merged.
+19. **Forms.** `ControlValueAccessor` on the two pickers only (ADR 0018). `Calendar` and `TimeField` became accessors later, when the core got a `disabled` option (ADR 0022). `writeValue` never calls `onChange`; the disabled state of the form and the `disabled` input are merged.
 20. **Tests.** The Angular 21 `TestBed` is zoneless: changing a plain property of a host component does not mark the view dirty and gives `NG0100`. Test hosts must use signals.
 21. **Server rendering (question 7).** Verified with the `demo-ssr` app. The popover exists only after a user action, so it cannot cause a hydration mismatch. "Today" can differ between server and client near midnight, so pass `timeZone` (or `focusedDate`) for deterministic output.
 

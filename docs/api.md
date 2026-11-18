@@ -95,6 +95,12 @@ export interface CalendarOptions<M extends SelectionMode = 'single'> {
   /** Clock used for "today". Inject a fixed clock in tests. Default: `() => new Date()`. */
   now?: () => Date;
 
+  /**
+   * The user cannot change anything: the props describe inert elements, and `handleKeyDown` and
+   * `previewTo` are ignored. The methods and `setOptions` still work. Default: false (ADR 0022).
+   */
+  disabled?: boolean;
+
   /** Plugins register calendar systems and decorate days. */
   plugins?: CalendarPlugin[];
 }
@@ -114,6 +120,8 @@ export interface CalendarState<M extends SelectionMode = 'single'> {
   readonly locale: string;
   readonly direction: Direction;
   readonly weekStart: WeekStart;
+  /** True when the calendar is `disabled`: the user cannot change it. */
+  readonly disabled: boolean;
   /** The selection mode: 'single', 'range' or 'multiple'. */
   readonly selection: M;
   /** The selection, in the calendar system being displayed. */
