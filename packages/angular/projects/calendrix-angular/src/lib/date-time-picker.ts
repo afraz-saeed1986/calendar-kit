@@ -19,12 +19,19 @@ import {
 import {
   convertDate,
   formatDateTime,
+  formatDateTimeRange,
   parseDateTime,
+  parseDateTimeRange,
   pickerLabelsFor,
   registerCalendar,
+  stickEndToStart,
   type CalendarDate,
   type CalendarOptions,
   type CalendarSystem,
+  type DateRange,
+  type DateTimeMode,
+  type DateTimePickerValue,
+  type DateTimeRange,
   type DateTimeValue,
   type HourCycle,
   type PickerLabels,
@@ -37,14 +44,21 @@ import { CalendrixTimeField } from './time-field';
 
 const MIDNIGHT: TimeValue = { hour: 0, minute: 0, second: 0 };
 
+/** The two shapes the picker works with inside; the public type follows `selection`. */
+type Value = DateTimeValue | DateTimeRange | null;
+const isRange = (value: Value): value is DateTimeRange => value !== null && 'start' in value;
+
 let nextDialogId = 0;
 
 /**
  * A text input and a popover with a calendar and a time field. The user can type a date and a
  * time or pick them; the value is the same `{ date, time }` the core uses (no time zone: see
- * `toInstant`). It has no styles of its own, see the `calendrix-*` classes.
+ * `toInstant`). With `selection="range"` the value is `{ start, end }`, each with a date and a
+ * time, and the popover has two time fields (ADR 0023). It has no styles of its own, see the
+ * `calendrix-*` classes.
  *
- * Use `[(value)]`, or `[defaultValue]` and `(valueChange)`.
+ * Use `[(value)]`, or `[defaultValue]` and `(valueChange)`. The type of the value follows
+ * `selection`.
  */
 @Component({
   selector: 'calendrix-date-time-picker',
@@ -134,34 +148,92 @@ let nextDialogId = 0;
           [portal]="portal()"
           (dismiss)="onDismiss($event)"
         >
-          <calendrix-calendar
-            [system]="system()"
-            [locale]="locale()"
-            [plugins]="plugins()"
-            [value]="shown()?.date ?? null"
-            (valueChange)="pickDate($event)"
-            [minDate]="minDate()"
-            [maxDate]="maxDate()"
-            [isDateUnavailable]="isDateUnavailable()"
-            [weekStart]="weekStart()"
-            [direction]="direction()"
-            [visibleMonths]="visibleMonths()"
-            [timeZone]="timeZone()"
-            [now]="now()"
-          />
-          <div class="calendrix-popover-footer">
-            <calendrix-time-field
+          @if (isRangeMode()) {
+            <calendrix-calendar
+              [selection]="'range'"
+              [system]="system()"
               [locale]="locale()"
-              [hourCycle]="hourCycle()"
-              [showSeconds]="showSeconds()"
-              [hourStep]="hourStep()"
-              [minuteStep]="minuteStep()"
-              [secondStep]="secondStep()"
-              [minTime]="minTime()"
-              [maxTime]="maxTime()"
-              [value]="shown() ? shown()!.time : draftTime()"
-              (valueChange)="pickTime($event)"
+              [plugins]="plugins()"
+              [value]="calendarRange()"
+              (valueChange)="pickRange($event)"
+              [minDate]="minDate()"
+              [maxDate]="maxDate()"
+              [isDateUnavailable]="isDateUnavailable()"
+              [weekStart]="weekStart()"
+              [direction]="direction()"
+              [visibleMonths]="visibleMonths() ?? 2"
+              [timeZone]="timeZone()"
+              [now]="now()"
             />
+          } @else {
+            <calendrix-calendar
+              [system]="system()"
+              [locale]="locale()"
+              [plugins]="plugins()"
+              [value]="shownPoint()?.date ?? null"
+              (valueChange)="pickDate($event)"
+              [minDate]="minDate()"
+              [maxDate]="maxDate()"
+              [isDateUnavailable]="isDateUnavailable()"
+              [weekStart]="weekStart()"
+              [direction]="direction()"
+              [visibleMonths]="visibleMonths()"
+              [timeZone]="timeZone()"
+              [now]="now()"
+            />
+          }
+          <div class="calendrix-popover-footer">
+            @if (isRangeMode()) {
+              <div class="calendrix-time-range">
+                <div class="calendrix-time-row">
+                  <span class="calendrix-time-label" aria-hidden="true">{{
+                    texts().startTime
+                  }}</span>
+                  <calendrix-time-field
+                    [locale]="locale()"
+                    [hourCycle]="hourCycle()"
+                    [showSeconds]="showSeconds()"
+                    [hourStep]="hourStep()"
+                    [minuteStep]="minuteStep()"
+                    [secondStep]="secondStep()"
+                    [minTime]="minTime()"
+                    [maxTime]="maxTime()"
+                    [labels]="startLabels()"
+                    [value]="shownRange() ? shownRange()!.start.time : draftStart()"
+                    (valueChange)="pickTime('start', $event)"
+                  />
+                </div>
+                <div class="calendrix-time-row">
+                  <span class="calendrix-time-label" aria-hidden="true">{{ texts().endTime }}</span>
+                  <calendrix-time-field
+                    [locale]="locale()"
+                    [hourCycle]="hourCycle()"
+                    [showSeconds]="showSeconds()"
+                    [hourStep]="hourStep()"
+                    [minuteStep]="minuteStep()"
+                    [secondStep]="secondStep()"
+                    [minTime]="minTime()"
+                    [maxTime]="maxTime()"
+                    [labels]="endLabels()"
+                    [value]="shownRange() ? shownRange()!.end.time : draftEnd()"
+                    (valueChange)="pickTime('end', $event)"
+                  />
+                </div>
+              </div>
+            } @else {
+              <calendrix-time-field
+                [locale]="locale()"
+                [hourCycle]="hourCycle()"
+                [showSeconds]="showSeconds()"
+                [hourStep]="hourStep()"
+                [minuteStep]="minuteStep()"
+                [secondStep]="secondStep()"
+                [minTime]="minTime()"
+                [maxTime]="maxTime()"
+                [value]="shownPoint() ? shownPoint()!.time : draftStart()"
+                (valueChange)="pickTime('start', $event)"
+              />
+            }
             <div class="calendrix-actions">
               <button type="button" class="calendrix-action" (click)="clear()">
                 {{ texts().clear }}
@@ -180,10 +252,14 @@ let nextDialogId = 0;
     </div>
   `,
 })
-export class CalendrixDateTimePicker implements OnInit, ControlValueAccessor {
-  /** The picked date and time. Use `[(value)]`. `null` means nothing is picked. */
-  readonly value = model<DateTimeValue | null>();
-  readonly defaultValue = input<DateTimeValue | null>();
+export class CalendrixDateTimePicker<M extends DateTimeMode = 'single'>
+  implements OnInit, ControlValueAccessor
+{
+  /** One date and time (default), or a range with a start and an end, each with a time. */
+  readonly selection = input<M>('single' as M);
+  /** The picked value. Use `[(value)]`. The type follows `selection`. `null` means nothing. */
+  readonly value = model<DateTimePickerValue<M>>();
+  readonly defaultValue = input<DateTimePickerValue<M>>();
 
   /** Calendar system shown and understood when typing. Default: 'gregory'. */
   readonly system = input<CalendarSystem>('gregory');
@@ -206,7 +282,7 @@ export class CalendrixDateTimePicker implements OnInit, ControlValueAccessor {
   readonly weekStart = input<CalendarOptions['weekStart']>();
   /** Default: from the locale. */
   readonly direction = input<CalendarOptions['direction']>();
-  /** How many months the calendar shows: 1 (default), 2 or 3. */
+  /** How many months the calendar shows: 1 (default; 2 for `range`), 2 or 3. */
   readonly visibleMonths = input<number>();
   readonly isDateUnavailable = input<(date: CalendarDate) => boolean>();
   /** Plugins register calendar systems, for example `persianPlugin`. */
@@ -227,8 +303,12 @@ export class CalendrixDateTimePicker implements OnInit, ControlValueAccessor {
 
   protected readonly open = signal(false);
   protected readonly text = signal('');
-  /** A time chosen before any date. It becomes part of the value when a date is picked. */
-  protected readonly draftTime = signal<TimeValue | null>(null);
+  /**
+   * A time chosen before any date. It becomes part of the value when a date is picked. In
+   * `single` mode `draftStart` is the only one; in `range` mode there is one for each end.
+   */
+  protected readonly draftStart = signal<TimeValue | null>(null);
+  protected readonly draftEnd = signal<TimeValue | null>(null);
   private readonly touched = signal(false);
   protected readonly dialogId = `calendrix-dialog-${nextDialogId++}`;
 
@@ -237,25 +317,46 @@ export class CalendrixDateTimePicker implements OnInit, ControlValueAccessor {
   /** True while the value is changing because the user typed it: the text must stay as typed. */
   private typing = false;
 
+  protected readonly isRangeMode = computed(() => this.selection() === 'range');
+
   /** The value as the parent gave it, or the default until a first change. */
-  private readonly current = computed<DateTimeValue | null>(() => {
-    const value = this.value();
-    return value !== undefined ? value : (this.defaultValue() ?? null);
+  private readonly current = computed<Value>(() => {
+    const value = this.value() as Value | undefined;
+    return value !== undefined ? value : ((this.defaultValue() as Value | undefined) ?? null);
   });
+
+  private inSystem(point: DateTimeValue): DateTimeValue {
+    return { date: convertDate(point.date, this.system()), time: point.time };
+  }
 
   /** The value in the calendar system on screen. */
-  protected readonly shown = computed<DateTimeValue | null>(() => {
+  private readonly shown = computed<Value>(() => {
     this.registerPlugins();
     const value = this.current();
-    return value ? { date: convertDate(value.date, this.system()), time: value.time } : null;
+    if (value === null) return null;
+    return isRange(value)
+      ? { start: this.inSystem(value.start), end: this.inSystem(value.end) }
+      : this.inSystem(value);
+  });
+  protected readonly shownPoint = computed<DateTimeValue | null>(() => {
+    const shown = this.shown();
+    return shown !== null && !isRange(shown) ? shown : null;
+  });
+  protected readonly shownRange = computed<DateTimeRange | null>(() => {
+    const shown = this.shown();
+    return shown !== null && isRange(shown) ? shown : null;
+  });
+  /** The dates of a complete range, for the calendar. */
+  protected readonly calendarRange = computed<DateRange | null>(() => {
+    const range = this.shownRange();
+    return range ? { start: range.start.date, end: range.end.date } : null;
   });
 
-  private readonly valueKey = computed(() => {
-    const shown = this.shown();
-    return shown ? this.format(shown) : '';
-  });
+  private readonly valueKey = computed(() => this.format(this.shown()));
 
   protected readonly texts = computed(() => pickerLabelsFor(this.locale(), this.labels()));
+  protected readonly startLabels = computed(() => ({ time: this.texts().startTime }));
+  protected readonly endLabels = computed(() => ({ time: this.texts().endTime }));
   protected readonly hasValue = computed(() => this.current() !== null);
 
   protected readonly invalid = computed(
@@ -264,10 +365,15 @@ export class CalendrixDateTimePicker implements OnInit, ControlValueAccessor {
 
   protected readonly samplePlaceholder = computed(() => {
     this.registerPlugins();
-    return this.format({
+    const start: DateTimeValue = {
       date: convertDate({ system: 'gregory', year: 2026, month: 10, day: 14 }, this.system()),
       time: { hour: 9, minute: 30, second: 0 },
-    });
+    };
+    const end: DateTimeValue = {
+      date: convertDate({ system: 'gregory', year: 2026, month: 10, day: 21 }, this.system()),
+      time: { hour: 17, minute: 0, second: 0 },
+    };
+    return this.format(this.isRangeMode() ? { start, end } : start);
   });
 
   constructor() {
@@ -289,7 +395,7 @@ export class CalendrixDateTimePicker implements OnInit, ControlValueAccessor {
   }
 
   // ControlValueAccessor: a form writes the value in and hears about changes made by the user.
-  private onChangeFn: (value: DateTimeValue | null) => void = () => undefined;
+  private onChangeFn: (value: DateTimePickerValue<M>) => void = () => undefined;
   private onTouchedFn: () => void = () => undefined;
   private readonly formDisabled = signal(false);
   /** Disabled by the `disabled` input or by the form. */
@@ -297,10 +403,10 @@ export class CalendrixDateTimePicker implements OnInit, ControlValueAccessor {
 
   writeValue(value: unknown): void {
     // null or undefined from a form (a reset, a new control) means empty.
-    this.value.set((value ?? null) as DateTimeValue | null);
+    this.value.set((value ?? null) as DateTimePickerValue<M>);
   }
 
-  registerOnChange(fn: (value: DateTimeValue | null) => void): void {
+  registerOnChange(fn: (value: DateTimePickerValue<M>) => void): void {
     this.onChangeFn = fn;
   }
 
@@ -319,22 +425,25 @@ export class CalendrixDateTimePicker implements OnInit, ControlValueAccessor {
     }
   }
 
-  private format(next: DateTimeValue): string {
-    return formatDateTime(next, {
+  private format(next: Value): string {
+    if (next === null) return '';
+    const options = {
       locale: this.locale(),
       hourCycle: this.hourCycle(),
       seconds: this.showSeconds(),
-    });
+    };
+    return isRange(next) ? formatDateTimeRange(next, options) : formatDateTime(next, options);
   }
 
-  private parse(text: string): DateTimeValue | null {
+  private parse(text: string): Value {
     this.registerPlugins();
-    return parseDateTime(text, { locale: this.locale(), system: this.system() });
+    const options = { locale: this.locale(), system: this.system() };
+    return this.isRangeMode() ? parseDateTimeRange(text, options) : parseDateTime(text, options);
   }
 
-  private commit(next: DateTimeValue | null): void {
-    this.value.set(next);
-    this.onChangeFn(next);
+  private commit(next: Value): void {
+    this.value.set(next as DateTimePickerValue<M>);
+    this.onChangeFn(next as DateTimePickerValue<M>);
   }
 
   /** The flag only covers the render caused by typing. A later change from the parent updates the text. */
@@ -382,29 +491,67 @@ export class CalendrixDateTimePicker implements OnInit, ControlValueAccessor {
     }
   }
 
+  private defaultTime(): TimeValue {
+    return this.minTime() ?? MIDNIGHT;
+  }
+
   protected pickDate(date: CalendarDate | null | undefined): void {
     if (date === undefined) return;
     if (date === null) {
       this.commit(null);
       return;
     }
-    const time = this.shown()?.time ?? this.draftTime() ?? this.minTime() ?? MIDNIGHT;
+    const time = this.shownPoint()?.time ?? this.draftStart() ?? this.defaultTime();
     this.commit({ date, time });
   }
 
-  protected pickTime(time: TimeValue | null | undefined): void {
+  /** The second day of a range: the times are the ones already chosen, or the default. */
+  protected pickRange(range: DateRange | null | undefined): void {
+    if (range === undefined) return;
+    if (range === null) {
+      this.commit(null);
+      return;
+    }
+    const shown = this.shownRange();
+    this.commit(
+      stickEndToStart({
+        start: {
+          date: range.start,
+          time: shown?.start.time ?? this.draftStart() ?? this.defaultTime(),
+        },
+        end: {
+          date: range.end,
+          time: shown?.end.time ?? this.draftEnd() ?? this.defaultTime(),
+        },
+      }),
+    );
+  }
+
+  protected pickTime(which: 'start' | 'end', time: TimeValue | null | undefined): void {
     if (time === undefined) return;
-    const shown = this.shown();
-    if (shown) {
-      // Clearing the time of a picked date puts it back to the start of the day.
-      this.commit({ date: shown.date, time: time ?? this.minTime() ?? MIDNIGHT });
+    // Clearing the time of a picked date puts it back to the start of the day.
+    const next = time ?? this.defaultTime();
+    const range = this.shownRange();
+    const point = this.shownPoint();
+    if (range) {
+      this.commit(
+        stickEndToStart({
+          start: which === 'start' ? { ...range.start, time: next } : range.start,
+          end: which === 'end' ? { ...range.end, time: next } : range.end,
+        }),
+      );
+    } else if (point) {
+      this.commit({ date: point.date, time: next });
+    } else if (which === 'start') {
+      this.draftStart.set(time);
     } else {
-      this.draftTime.set(time);
+      this.draftEnd.set(time);
     }
   }
 
   protected clear(): void {
-    this.draftTime.set(null);
+    this.draftStart.set(null);
+    this.draftEnd.set(null);
     this.commit(null);
   }
 
