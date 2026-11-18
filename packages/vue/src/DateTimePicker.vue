@@ -1,13 +1,20 @@
-<script setup lang="ts">
+<script setup lang="ts" generic="M extends DateTimeMode = 'single'">
 import {
   convertDate,
   formatDateTime,
+  formatDateTimeRange,
   parseDateTime,
+  parseDateTimeRange,
   pickerLabelsFor,
   registerCalendar,
+  stickEndToStart,
   type CalendarDate,
   type CalendarOptions,
   type CalendarSystem,
+  type DateRange,
+  type DateTimeMode,
+  type DateTimePickerValue,
+  type DateTimeRange,
   type DateTimeValue,
   type HourCycle,
   type PickerLabels,
@@ -21,13 +28,17 @@ import { usePickerPopover } from './use-picker-popover';
 /**
  * A text input and a popover with a calendar and a time field. The user can type a date and a
  * time or pick them; the value is the same `{ date, time }` the core uses (no time zone: see
- * `toInstant`). It has no styles of its own, see `@calendrix/vue/styles.css`. `modelValue` is the
- * picked date and time; `v-model` makes the picker controlled (`null` means "controlled, empty").
+ * `toInstant`). With `selection="range"` the value is `{ start, end }`, each with a date and a
+ * time, and the popover has two time fields (ADR 0023). It has no styles of its own, see
+ * `@calendrix/vue/styles.css`. `modelValue` is the picked value; `v-model` makes the picker
+ * controlled (`null` means "controlled, empty").
  */
 const props = withDefaults(
   defineProps<{
-    modelValue?: DateTimeValue | null;
-    defaultValue?: DateTimeValue | null;
+    /** One date and time (default), or a range with a start and an end, each with a time. */
+    selection?: M;
+    modelValue?: DateTimePickerValue<M>;
+    defaultValue?: DateTimePickerValue<M>;
     system?: CalendarSystem;
     locale?: string;
     /** 12 or 24. Default: the locale's own habit. */
@@ -43,7 +54,7 @@ const props = withDefaults(
     maxDate?: CalendarDate;
     weekStart?: CalendarOptions['weekStart'];
     direction?: CalendarOptions['direction'];
-    /** How many months the calendar shows: 1 (default), 2 or 3. */
+    /** How many months the calendar shows: 1 (default; 2 for `range`), 2 or 3. */
     visibleMonths?: number;
     isDateUnavailable?: (date: CalendarDate) => boolean;
     plugins?: CalendarOptions['plugins'];
@@ -63,9 +74,13 @@ const props = withDefaults(
   { system: 'gregory', locale: 'en-US', portal: true, showSeconds: undefined },
 );
 
-const emit = defineEmits<{ 'update:modelValue': [value: DateTimeValue | null] }>();
+const emit = defineEmits<{ 'update:modelValue': [value: DateTimePickerValue<M>] }>();
 
 const MIDNIGHT: TimeValue = { hour: 0, minute: 0, second: 0 };
+
+/** The two shapes the picker works with inside; the public type follows `selection`. */
+type Value = DateTimeValue | DateTimeRange | null;
+const isRange = (value: Value): value is DateTimeRange => value !== null && 'start' in value;
 
 // Typing a date in a calendar from a plugin works before the popover has ever been opened.
 function registerPlugins(plugins: CalendarOptions['plugins']): void {
@@ -76,32 +91,57 @@ function registerPlugins(plugins: CalendarOptions['plugins']): void {
 registerPlugins(props.plugins);
 watch(() => props.plugins, registerPlugins);
 
-const internalValue = shallowRef<DateTimeValue | null>(props.defaultValue ?? null);
+const isRangeMode = computed(() => props.selection === 'range');
+
+const internalValue = shallowRef<Value>((props.defaultValue ?? null) as Value);
 const isControlled = computed(() => props.modelValue !== undefined);
-const value = computed(() => (isControlled.value ? props.modelValue : internalValue.value) ?? null);
-/** A time chosen before any date. It becomes part of the value when a date is picked. */
-const draftTime = shallowRef<TimeValue | null>(null);
+const value = computed<Value>(
+  () => ((isControlled.value ? props.modelValue : internalValue.value) ?? null) as Value,
+);
+/**
+ * A time chosen before any date. It becomes part of the value when a date is picked. In `single`
+ * mode `draftStart` is the only one; in `range` mode there is one for each end.
+ */
+const draftStart = shallowRef<TimeValue | null>(null);
+const draftEnd = shallowRef<TimeValue | null>(null);
 
 const touched = ref(false);
 
 const { open, close, inputRef, wrapperRef, popoverRef, dialogId, popoverStyle, trapTab } =
   usePickerPopover({ portal: () => props.portal });
-const text_ = computed(() => pickerLabelsFor(props.locale, props.labels));
+const texts = computed(() => pickerLabelsFor(props.locale, props.labels));
+const startLabels = computed(() => ({ time: texts.value.startTime }));
+const endLabels = computed(() => ({ time: texts.value.endTime }));
 
-const format = (next: DateTimeValue) =>
-  formatDateTime(next, {
-    locale: props.locale,
-    hourCycle: props.hourCycle,
-    seconds: props.showSeconds,
-  });
+const format = (next: Value): string => {
+  if (next === null) return '';
+  const options = { locale: props.locale, hourCycle: props.hourCycle, seconds: props.showSeconds };
+  return isRange(next) ? formatDateTimeRange(next, options) : formatDateTime(next, options);
+};
+const parse = (next: string): Value =>
+  isRangeMode.value
+    ? parseDateTimeRange(next, { locale: props.locale, system: props.system })
+    : parseDateTime(next, { locale: props.locale, system: props.system });
 
 /** The value in the calendar system on screen. */
-const shown = computed<DateTimeValue | null>(() =>
-  value.value
-    ? { date: convertDate(value.value.date, props.system), time: value.value.time }
-    : null,
+const inSystem = (point: DateTimeValue): DateTimeValue => ({
+  date: convertDate(point.date, props.system),
+  time: point.time,
+});
+const shown = computed<Value>(() => {
+  const current = value.value;
+  if (current === null) return null;
+  return isRange(current)
+    ? { start: inSystem(current.start), end: inSystem(current.end) }
+    : inSystem(current);
+});
+const shownPoint = computed(() => (shown.value !== null && !isRange(shown.value) ? shown.value : null));
+const shownRange = computed(() => (shown.value !== null && isRange(shown.value) ? shown.value : null));
+/** The dates of a complete range, for the calendar. */
+const calendarRange = computed<DateRange | null>(() =>
+  shownRange.value ? { start: shownRange.value.start.date, end: shownRange.value.end.date } : null,
 );
-const valueKey = computed(() => (shown.value ? format(shown.value) : ''));
+const valueKey = computed(() => format(shown.value));
 
 const text = ref(valueKey.value);
 /** True while the value is changing because the user typed it: the text must stay as typed. */
@@ -115,12 +155,10 @@ watch(valueKey, () => {
   text.value = valueKey.value;
 });
 
-function commit(next: DateTimeValue | null): void {
+function commit(next: Value): void {
   if (!isControlled.value) internalValue.value = next;
-  emit('update:modelValue', next);
+  emit('update:modelValue', next as DateTimePickerValue<M>);
 }
-
-const parse = (next: string) => parseDateTime(next, { locale: props.locale, system: props.system });
 
 function onInput(event: Event): void {
   const next = (event.target as HTMLInputElement).value;
@@ -159,25 +197,60 @@ const invalid = computed(
   () => touched.value && text.value.trim() !== '' && parse(text.value) === null,
 );
 
+const defaultTime = computed(() => props.minTime ?? MIDNIGHT);
+
 function pickDate(date: CalendarDate | null): void {
   if (!date) {
     commit(null);
     return;
   }
-  commit({ date, time: shown.value?.time ?? draftTime.value ?? props.minTime ?? MIDNIGHT });
+  commit({ date, time: shownPoint.value?.time ?? draftStart.value ?? defaultTime.value });
 }
 
-function pickTime(time: TimeValue | null): void {
-  if (shown.value) {
-    // Clearing the time of a picked date puts it back to the start of the day.
-    commit({ date: shown.value.date, time: time ?? props.minTime ?? MIDNIGHT });
+/** The second day of a range: the times are the ones already chosen, or the default. */
+function pickRange(range: DateRange | null): void {
+  if (!range) {
+    commit(null);
+    return;
+  }
+  commit(
+    stickEndToStart({
+      start: {
+        date: range.start,
+        time: shownRange.value?.start.time ?? draftStart.value ?? defaultTime.value,
+      },
+      end: {
+        date: range.end,
+        time: shownRange.value?.end.time ?? draftEnd.value ?? defaultTime.value,
+      },
+    }),
+  );
+}
+
+function pickTime(which: 'start' | 'end', time: TimeValue | null): void {
+  // Clearing the time of a picked date puts it back to the start of the day.
+  const next = time ?? defaultTime.value;
+  const range = shownRange.value;
+  const point = shownPoint.value;
+  if (range) {
+    commit(
+      stickEndToStart({
+        start: which === 'start' ? { ...range.start, time: next } : range.start,
+        end: which === 'end' ? { ...range.end, time: next } : range.end,
+      }),
+    );
+  } else if (point) {
+    commit({ date: point.date, time: next });
+  } else if (which === 'start') {
+    draftStart.value = time;
   } else {
-    draftTime.value = time;
+    draftEnd.value = time;
   }
 }
 
 function clear(): void {
-  draftTime.value = null;
+  draftStart.value = null;
+  draftEnd.value = null;
   commit(null);
 }
 
@@ -186,12 +259,17 @@ function clearAndFocus(): void {
   inputRef.value?.focus();
 }
 
-const samplePlaceholder = computed(() =>
-  format({
+const samplePlaceholder = computed(() => {
+  const sampleStart: DateTimeValue = {
     date: convertDate({ system: 'gregory', year: 2026, month: 10, day: 14 }, props.system),
     time: { hour: 9, minute: 30, second: 0 },
-  }),
-);
+  };
+  const sampleEnd: DateTimeValue = {
+    date: convertDate({ system: 'gregory', year: 2026, month: 10, day: 21 }, props.system),
+    time: { hour: 17, minute: 0, second: 0 },
+  };
+  return format(isRangeMode.value ? { start: sampleStart, end: sampleEnd } : sampleStart);
+});
 </script>
 
 <template>
@@ -216,7 +294,7 @@ const samplePlaceholder = computed(() =>
         v-if="!disabled && value !== null"
         type="button"
         class="calendrix-toggle calendrix-clear"
-        :aria-label="text_.clear"
+        :aria-label="texts.clear"
         @click="clearAndFocus"
       >
         <svg aria-hidden="true" focusable="false" width="14" height="14" viewBox="0 0 14 14">
@@ -226,7 +304,7 @@ const samplePlaceholder = computed(() =>
       <button
         type="button"
         class="calendrix-toggle"
-        :aria-label="text_.openCalendar"
+        :aria-label="texts.openCalendar"
         aria-haspopup="dialog"
         :aria-expanded="open"
         :aria-controls="open ? dialogId : undefined"
@@ -249,14 +327,32 @@ const samplePlaceholder = computed(() =>
         class="calendrix-popover"
         :style="popoverStyle"
         tabindex="-1"
-        :aria-label="text_.dialog"
+        :aria-label="texts.dialog"
         @keydown="trapTab"
       >
         <Calendar
+          v-if="isRangeMode"
+          selection="range"
           :system="system"
           :locale="locale"
           :plugins="plugins"
-          :model-value="shown?.date ?? null"
+          :model-value="calendarRange"
+          :min-date="minDate"
+          :max-date="maxDate"
+          :is-date-unavailable="isDateUnavailable"
+          :week-start="weekStart"
+          :direction="direction"
+          :visible-months="visibleMonths ?? 2"
+          :time-zone="timeZone"
+          :now="now"
+          @update:model-value="pickRange"
+        />
+        <Calendar
+          v-else
+          :system="system"
+          :locale="locale"
+          :plugins="plugins"
+          :model-value="shownPoint?.date ?? null"
           :min-date="minDate"
           :max-date="maxDate"
           :is-date-unavailable="isDateUnavailable"
@@ -268,7 +364,42 @@ const samplePlaceholder = computed(() =>
           @update:model-value="pickDate"
         />
         <div class="calendrix-popover-footer">
+          <div v-if="isRangeMode" class="calendrix-time-range">
+            <div class="calendrix-time-row">
+              <span class="calendrix-time-label" aria-hidden="true">{{ texts.startTime }}</span>
+              <TimeField
+                :locale="locale"
+                :hour-cycle="hourCycle"
+                :show-seconds="showSeconds"
+                :hour-step="hourStep"
+                :minute-step="minuteStep"
+                :second-step="secondStep"
+                :min-time="minTime"
+                :max-time="maxTime"
+                :labels="startLabels"
+                :model-value="shownRange ? shownRange.start.time : draftStart"
+                @update:model-value="pickTime('start', $event)"
+              />
+            </div>
+            <div class="calendrix-time-row">
+              <span class="calendrix-time-label" aria-hidden="true">{{ texts.endTime }}</span>
+              <TimeField
+                :locale="locale"
+                :hour-cycle="hourCycle"
+                :show-seconds="showSeconds"
+                :hour-step="hourStep"
+                :minute-step="minuteStep"
+                :second-step="secondStep"
+                :min-time="minTime"
+                :max-time="maxTime"
+                :labels="endLabels"
+                :model-value="shownRange ? shownRange.end.time : draftEnd"
+                @update:model-value="pickTime('end', $event)"
+              />
+            </div>
+          </div>
           <TimeField
+            v-else
             :locale="locale"
             :hour-cycle="hourCycle"
             :show-seconds="showSeconds"
@@ -277,13 +408,13 @@ const samplePlaceholder = computed(() =>
             :second-step="secondStep"
             :min-time="minTime"
             :max-time="maxTime"
-            :model-value="shown ? shown.time : draftTime"
-            @update:model-value="pickTime"
+            :model-value="shownPoint ? shownPoint.time : draftStart"
+            @update:model-value="pickTime('start', $event)"
           />
           <div class="calendrix-actions">
-            <button type="button" class="calendrix-action" @click="clear">{{ text_.clear }}</button>
+            <button type="button" class="calendrix-action" @click="clear">{{ texts.clear }}</button>
             <button type="button" class="calendrix-action calendrix-action-primary" @click="close(true)">
-              {{ text_.done }}
+              {{ texts.done }}
             </button>
           </div>
         </div>
