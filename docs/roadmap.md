@@ -56,7 +56,7 @@ Dates are intentionally omitted; milestones are ordered by dependency, not by ca
 - [ ] Typed dates are checked against `minDate`, `maxDate` and unavailable days in the pickers
 - [ ] An invalid typed text can be cleared with the ✕ button
 - [ ] `data-theme` of a parent reaches the popover that is moved to `<body>`
-- [ ] A `disabled` option in the core, so that `Calendar` and `TimeField` can be form controls in Angular
+- [x] A `disabled` option in the core, so that `Calendar` and `TimeField` can be form controls in Angular ([ADR 0022](adr/0022-disabled-option.md)): done in the core, React, Vue, and Angular (`ControlValueAccessor` on `Calendar` and `TimeField`)
 
 ## M5: Documentation and first release
 

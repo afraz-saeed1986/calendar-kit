@@ -66,6 +66,16 @@ the new option is about the whole widget. The names stay apart: `disabled` on op
 The tests pass in the core and in the three adapters, `docs/api.md` describes the option, and
 the roadmap item is checked.
 
+## Result
+
+Done in the core (`disabled` in the options and the state of `createCalendar` and
+`createTimeField`; one `inert` function wraps the nine prop getters of the calendar; 11 tests).
+React needed no code, because its components pass every option on (7 tests). Vue has a
+`disabled` prop on `Calendar` and `TimeField` (6 tests). Angular has a `disabled` input and a
+`ControlValueAccessor` on `CalendrixCalendar` and `CalendrixTimeField`: `writeValue(null)` means
+empty (`[]` in `multiple` mode), `setDisabledState` sets the option, and the control is touched
+when the focus leaves the whole component (`focusout`, not each cell or segment) (11 tests).
+
 ## Alternatives
 
 - **Block the methods too.** Simpler to explain, but then `writeValue` of a disabled form control

@@ -58,7 +58,7 @@ Needs a new ADR that supersedes this one:
 
 ## Already planned as additions
 
-These do not break the freeze: a `disabled` option (so that `Calendar` and `TimeField` can be form controls in Angular), a state machine for typed text (finding 12 of ADR 0015), and a range in `DateTimePicker`.
+These do not break the freeze: a `disabled` option (done: [ADR 0022](0022-disabled-option.md)), a state machine for typed text (finding 12 of ADR 0015), and a range in `DateTimePicker`.
 
 ## Alternatives
 

@@ -236,6 +236,8 @@ export interface KeyEventLike {
 
 **Prop getter contract:** every prop getter returns `{ attrs, handlers }`. `attrs` use DOM attribute names and `handlers` use DOM event names, so each adapter maps them to its own syntax (React `onClick` and `tabIndex`, Vue `@click`, Angular `(click)`). Attributes with the value `undefined` are left off. In `aria-*` and `data-*` attributes a boolean is written as text (`"true"`, `"false"`); in any other attribute `true` means present and `false` means absent. `normalizeAttributes` applies this rule. `getDayProps` returns `role="gridcell"`, `tabindex` (`0` only for the focused day), `aria-selected`, `aria-disabled`, `aria-current`, `aria-label` (the full date in the active locale), `data-*` attributes for styling and a `click` handler. `getGridProps` returns `role="grid"`, `aria-label` and the single `keydown` handler. See [ADR 0006](adr/0006-selection-keyboard-props.md).
 
+**`disabled`** ([ADR 0022](adr/0022-disabled-option.md)). `createCalendar` and `createTimeField` accept `disabled: true`, and their state has `disabled`. It stops what the user does: the props of every element become inert (`tabindex="-1"`, `aria-disabled="true"`, a real `disabled` on buttons, `data-disabled` on the root, and no handlers), and `handleKeyDown`, `previewTo` (calendar) and `focusSegment` (time field) are ignored. It does not stop what the application does: `select`, `nextMonth`, `increment`, `clear` and `setOptions` still work, so a form can write a value into a disabled control. `DayCell.isDisabled` is something else: one day outside `minDate`..`maxDate`.
+
 ---
 
 ## 5. Plugin system
