@@ -4,6 +4,8 @@ import {
   DestroyRef,
   ElementRef,
   afterEveryRender,
+  booleanAttribute,
+  forwardRef,
   computed,
   effect,
   inject,
@@ -20,6 +22,7 @@ import {
   type TimeSegmentType,
   type TimeValue,
 } from '@calendrix/core';
+import { NG_VALUE_ACCESSOR, type ControlValueAccessor } from '@angular/forms';
 import { CalendrixPropsDirective } from './props-directive';
 
 /**
@@ -30,9 +33,17 @@ import { CalendrixPropsDirective } from './props-directive';
 @Component({
   selector: 'calendrix-time-field',
   imports: [CalendrixPropsDirective],
+  providers: [
+    { provide: NG_VALUE_ACCESSOR, useExisting: forwardRef(() => CalendrixTimeField), multi: true },
+  ],
   changeDetection: ChangeDetectionStrategy.OnPush,
   template: `
-    <div class="calendrix-time-field" [calendrixProps]="view().root" [calendrixHandlers]="false">
+    <div
+      class="calendrix-time-field"
+      [calendrixProps]="view().root"
+      [calendrixHandlers]="false"
+      (focusout)="onFocusOut($event)"
+    >
       @for (item of view().segments; track item.segment.type) {
         @if (item.separator) {
           <span class="calendrix-separator" aria-hidden="true">:</span>
@@ -49,7 +60,7 @@ import { CalendrixPropsDirective } from './props-directive';
     </div>
   `,
 })
-export class CalendrixTimeField implements OnInit {
+export class CalendrixTimeField implements OnInit, ControlValueAccessor {
   /** The time. Use `[(value)]`. `null` means an empty field. */
   readonly value = model<TimeValue | null>();
   readonly defaultValue = input<TimeValue | null>();
@@ -68,6 +79,8 @@ export class CalendrixTimeField implements OnInit {
   readonly minTime = input<TimeValue>();
   readonly maxTime = input<TimeValue>();
   readonly labels = input<Partial<TimeFieldLabels>>();
+  /** The user cannot change anything (ADR 0022). A form can also disable the field. */
+  readonly disabledInput = input(false, { alias: 'disabled', transform: booleanAttribute });
 
   /** Created again in `ngOnInit`: the core reads some options only when it is created. */
   protected field = createTimeField({});
@@ -78,7 +91,10 @@ export class CalendrixTimeField implements OnInit {
   /** The last `focusRequest` of the core that this component has seen (see `TimeFieldState`). */
   private seenFocusRequest = 0;
 
-  private readonly handleChange = (next: TimeValue | null) => this.value.set(next);
+  private readonly handleChange = (next: TimeValue | null) => {
+    this.value.set(next);
+    this.onChangeFn(next);
+  };
 
   private readonly options = computed<TimeFieldOptions>(() =>
     ({
@@ -93,6 +109,7 @@ export class CalendrixTimeField implements OnInit {
       minTime: this.minTime(),
       maxTime: this.maxTime(),
       labels: this.labels(),
+      disabled: this.disabled(),
       onChange: this.handleChange,
     }),
   );
@@ -132,6 +149,35 @@ export class CalendrixTimeField implements OnInit {
     this.field = createTimeField(this.options());
     this.unsubscribe = this.field.subscribe(() => this.state.set(this.field.getState()));
     this.state.set(this.field.getState());
+  }
+
+  // ControlValueAccessor: a form writes the time in and hears about changes made by the user.
+  private onChangeFn: (value: TimeValue | null) => void = () => undefined;
+  private onTouchedFn: () => void = () => undefined;
+  private readonly formDisabled = signal(false);
+  /** Disabled by the `disabled` input or by the form. */
+  protected readonly disabled = computed(() => this.disabledInput() || this.formDisabled());
+
+  writeValue(value: unknown): void {
+    // null or undefined from a form (a reset, a new control) means an empty field.
+    this.value.set((value ?? null) as TimeValue | null);
+  }
+
+  registerOnChange(fn: (value: TimeValue | null) => void): void {
+    this.onChangeFn = fn;
+  }
+
+  registerOnTouched(fn: () => void): void {
+    this.onTouchedFn = fn;
+  }
+
+  setDisabledState(isDisabled: boolean): void {
+    this.formDisabled.set(isDisabled);
+  }
+
+  /** The control is touched when the focus leaves the whole field, not between its segments. */
+  protected onFocusOut(event: FocusEvent): void {
+    if (!this.host.nativeElement.contains(event.relatedTarget as Node | null)) this.onTouchedFn();
   }
 
   protected onKeydown(type: TimeSegmentType, event: KeyboardEvent): void {

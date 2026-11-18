@@ -5,6 +5,8 @@ import {
   DestroyRef,
   ElementRef,
   afterEveryRender,
+  booleanAttribute,
+  forwardRef,
   computed,
   effect,
   inject,
@@ -22,6 +24,7 @@ import {
   type SelectionMode,
   type SelectionValue,
 } from '@calendrix/core';
+import { NG_VALUE_ACCESSOR, type ControlValueAccessor } from '@angular/forms';
 import { CalendrixPropsDirective } from './props-directive';
 
 const COLUMNS = 3;
@@ -45,6 +48,9 @@ function chunk<T>(items: readonly T[], size: number): T[][] {
 @Component({
   selector: 'calendrix-calendar',
   imports: [NgTemplateOutlet, CalendrixPropsDirective],
+  providers: [
+    { provide: NG_VALUE_ACCESSOR, useExisting: forwardRef(() => CalendrixCalendar), multi: true },
+  ],
   changeDetection: ChangeDetectionStrategy.OnPush,
   template: `
     <div
@@ -54,6 +60,7 @@ function chunk<T>(items: readonly T[], size: number): T[][] {
       [attr.data-view]="view().state.view"
       [attr.data-months]="view().multi ? view().state.visibleMonths : null"
       (keydown)="onRootKeydown($event)"
+      (focusout)="onFocusOut($event)"
     >
       @if (view().multi) {
         <div class="calendrix-panels" (pointerleave)="onPointerLeave()">
@@ -252,7 +259,9 @@ function chunk<T>(items: readonly T[], size: number): T[][] {
     </ng-template>
   `,
 })
-export class CalendrixCalendar<M extends SelectionMode = 'single'> implements OnInit {
+export class CalendrixCalendar<M extends SelectionMode = 'single'>
+  implements OnInit, ControlValueAccessor
+{
   /** One day (default), a range with a start and an end, or any number of separate days. */
   readonly selection = input<M>('single' as M);
   /** The selection. Use `[(value)]`. The type follows `selection`. */
@@ -280,6 +289,8 @@ export class CalendrixCalendar<M extends SelectionMode = 'single'> implements On
   readonly labels = input<CalendarOptions<M>['labels']>();
   readonly timeZone = input<string>();
   readonly now = input<() => Date>();
+  /** The user cannot change anything (ADR 0022). A form can also disable the calendar. */
+  readonly disabledInput = input(false, { alias: 'disabled', transform: booleanAttribute });
 
   /**
    * Created again in `ngOnInit`, when the inputs are known: the core reads some options (`now`,
@@ -294,7 +305,10 @@ export class CalendrixCalendar<M extends SelectionMode = 'single'> implements On
   /** The last `focusRequest` of the core that this component has seen (see `CalendarState`). */
   private seenFocusRequest = 0;
 
-  private readonly handleChange = (next: SelectionValue<M>) => this.value.set(next);
+  private readonly handleChange = (next: SelectionValue<M>) => {
+    this.value.set(next);
+    this.onChangeFn(next);
+  };
   private readonly handleFocusedDate = (date: CalendarDate) => this.focusedDateChange.emit(date);
 
   private readonly options = computed<Partial<CalendarOptions<M>>>(() =>
@@ -317,6 +331,7 @@ export class CalendrixCalendar<M extends SelectionMode = 'single'> implements On
       labels: this.labels(),
       timeZone: this.timeZone(),
       now: this.now(),
+      disabled: this.disabled(),
       onChange: this.handleChange,
       onFocusedDateChange: this.handleFocusedDate,
     }),
@@ -385,6 +400,35 @@ export class CalendrixCalendar<M extends SelectionMode = 'single'> implements On
     this.calendar = createCalendar<M>(this.options());
     this.unsubscribe = this.calendar.subscribe(() => this.state.set(this.calendar.getState()));
     this.state.set(this.calendar.getState());
+  }
+
+  // ControlValueAccessor: a form writes the value in and hears about changes made by the user.
+  private onChangeFn: (value: SelectionValue<M>) => void = () => undefined;
+  private onTouchedFn: () => void = () => undefined;
+  private readonly formDisabled = signal(false);
+  /** Disabled by the `disabled` input or by the form. */
+  protected readonly disabled = computed(() => this.disabledInput() || this.formDisabled());
+
+  writeValue(value: unknown): void {
+    // null or undefined from a form (a reset, a new control) means empty.
+    this.value.set((value ?? (this.selection() === 'multiple' ? [] : null)) as SelectionValue<M>);
+  }
+
+  registerOnChange(fn: (value: SelectionValue<M>) => void): void {
+    this.onChangeFn = fn;
+  }
+
+  registerOnTouched(fn: () => void): void {
+    this.onTouchedFn = fn;
+  }
+
+  setDisabledState(isDisabled: boolean): void {
+    this.formDisabled.set(isDisabled);
+  }
+
+  /** The control is touched when the focus leaves the whole calendar, not between its cells. */
+  protected onFocusOut(event: FocusEvent): void {
+    if (!this.host.nativeElement.contains(event.relatedTarget as Node | null)) this.onTouchedFn();
   }
 
   private focusFocusedCell(): void {
