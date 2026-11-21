@@ -21,7 +21,9 @@ import {
   formatDate,
   formatDateRange,
   formatSelection,
+  isDateSelectable,
   isEmptySelection,
+  isRangeSelectable,
   parseDate,
   parseDateRange,
   pickerLabelsFor,
@@ -333,7 +335,23 @@ export class CalendrixDatePicker<M extends SelectionMode = 'single'>
   private parse(text: string): Selection {
     this.registerPlugins();
     const options = { locale: this.locale(), system: this.system() };
-    return this.selection() === 'range' ? parseDateRange(text, options) : parseDate(text, options);
+    const parsed =
+      this.selection() === 'range' ? parseDateRange(text, options) : parseDate(text, options);
+    if (parsed === null) return null;
+
+    // A date the user could not pick in the calendar is not a value either (ADR 0025).
+    const limits = {
+      minDate: this.minDate(),
+      maxDate: this.maxDate(),
+      isDateUnavailable: this.isDateUnavailable(),
+      plugins: this.plugins(),
+      locale: options.locale,
+      system: options.system,
+      allowUnavailableInRange: this.allowUnavailableInRange(),
+    };
+    if (Array.isArray(parsed)) return parsed;
+    if ('start' in parsed) return isRangeSelectable(parsed, limits) ? parsed : null;
+    return isDateSelectable(parsed, limits) ? parsed : null;
   }
 
   private commit(next: Selection): void {

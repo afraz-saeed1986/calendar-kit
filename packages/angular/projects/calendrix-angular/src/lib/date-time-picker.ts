@@ -20,6 +20,9 @@ import {
   convertDate,
   formatDateTime,
   formatDateTimeRange,
+  isDateSelectable,
+  isRangeSelectable,
+  isTimeSelectable,
   parseDateTime,
   parseDateTimeRange,
   pickerLabelsFor,
@@ -438,7 +441,33 @@ export class CalendrixDateTimePicker<M extends DateTimeMode = 'single'>
   private parse(text: string): Value {
     this.registerPlugins();
     const options = { locale: this.locale(), system: this.system() };
-    return this.isRangeMode() ? parseDateTimeRange(text, options) : parseDateTime(text, options);
+    const parsed = this.isRangeMode()
+      ? parseDateTimeRange(text, options)
+      : parseDateTime(text, options);
+    if (parsed === null) return null;
+
+    // A date or a time that the user could not pick is not a value either (ADR 0025).
+    const limits = {
+      minDate: this.minDate(),
+      maxDate: this.maxDate(),
+      isDateUnavailable: this.isDateUnavailable(),
+      plugins: this.plugins(),
+      locale: options.locale,
+      system: options.system,
+      minTime: this.minTime(),
+      maxTime: this.maxTime(),
+    };
+    if (isRange(parsed)) {
+      const dates = { start: parsed.start.date, end: parsed.end.date };
+      return isRangeSelectable(dates, limits) &&
+        isTimeSelectable(parsed.start.time, limits) &&
+        isTimeSelectable(parsed.end.time, limits)
+        ? parsed
+        : null;
+    }
+    return isDateSelectable(parsed.date, limits) && isTimeSelectable(parsed.time, limits)
+      ? parsed
+      : null;
   }
 
   private commit(next: Value): void {
