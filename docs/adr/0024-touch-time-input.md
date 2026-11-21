@@ -62,3 +62,17 @@ a physical keyboard. The roadmap lists "Touch time input" (M4).
 1. Core: `handleBeforeInput`, the new attributes, tests.
 2. React, Vue, Angular, one by one, with tests.
 3. `styles.css`, `docs/api.md`, the roadmap, the Result section.
+
+
+## Result
+
+Done in the core and in all three adapters, in this order: core, React, Vue, Angular.
+
+- **Core:** `handleBeforeInput`, `InputEventLike`, the new attributes and the `beforeinput` handler of `getSegmentProps`. 11 new tests.
+- **React:** `toReactProps` spells the new attributes the React way and leaves `beforeinput` out; `TimeField` listens to the native event on its root. 6 new tests.
+- **Vue:** `@beforeinput` and `@input` in `TimeField.vue`. 6 new tests (79 in the package).
+- **Angular:** `(beforeinput)` and `(input)` in `CalendrixTimeField`. 6 new tests (72 in the library).
+- **Styles:** `styles.css` hides the caret and the selection of an editable segment.
+- **By hand:** checked on a real phone. The numeric keyboard opens, a typed digit fills the segment, the focus moves to the next segment and the keyboard stays open, and Backspace clears.
+
+Still open: the screen-reader pass (see "Not decided here"). The answer is added here when it is done.

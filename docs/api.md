@@ -232,6 +232,13 @@ export interface Calendar<M extends SelectionMode = 'single'> {
 }
 
 /** Only the fields the core needs; no dependency on the DOM */
+/** The part of a `beforeinput` event that the core reads (ADR 0024). */
+export interface InputEventLike {
+  inputType: string;
+  data?: string | null;
+  preventDefault(): void;
+}
+
 export interface KeyEventLike {
   key: string;
   shiftKey?: boolean;
@@ -432,6 +439,7 @@ export interface TimeField {
   getRootProps(): ElementProps<Record<string, never>>;
   getSegmentProps(type: TimeSegmentType): ElementProps<{
     keydown: (event: KeyEventLike) => void;
+    beforeinput: (event: InputEventLike) => void;
     focus: () => void;
   }>;
 
@@ -440,6 +448,8 @@ export interface TimeField {
 ```
 
 `TimeFieldState` has `locale`, `direction`, `hourCycle`, `value`, `segments`, `activeSegment` and `focusRequest`. Each segment has `type`, `text` (`"09"`, `"PM"`, or `"--"` when empty), `isPlaceholder`, `numericValue` (for `aria-valuenow`; for the period 0 is AM and 1 is PM), `min`, `max` and `label`. The value is always on a 24-hour clock, also when the field shows 12 hours. Typed digits can be Latin, Persian or Arabic-Indic. A digit that completes a segment makes the next one active and grows `focusRequest` (see section 3). As in `createCalendar`, `defaultValue` is read only when the field is created.
+
+**On-screen keyboard** ([ADR 0024](adr/0024-touch-time-input.md)). A segment is `contenteditable="true"`, with `inputmode="numeric"` (not for the period), `enterkeyhint="next"`, `autocapitalize="off"`, `autocorrect="off"` and `spellcheck="false"`, so that a phone opens its keyboard when the user touches it. `handleBeforeInput(type, event)` takes what the user typed: `insertText` and `insertFromPaste` type each character like a key (a paste of `1430` fills the hour and the minute), `deleteContentBackward` and `deleteContentForward` clear like Backspace. It calls `preventDefault()` for every input except a composition, so the browser never writes into a segment, and returns true when the state changed. The `beforeinput` handler of `getSegmentProps` calls it. A key that `handleKeyDown` handles stops the event before `beforeinput`, so a digit is never typed twice. Adapters must listen to the native `beforeinput` event (React's `onBeforeInput` is a synthetic event, so `toReactProps` leaves the handler out and `TimeField` adds a native listener). A composition cannot be cancelled: the adapters also listen to `input` and write the text of the segment back from the state. `styles.css` hides the caret.
 
 ---
 
