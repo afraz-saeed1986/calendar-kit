@@ -65,6 +65,19 @@ watch(
 function onKeydown(type: TimeSegmentType, event: KeyboardEvent): void {
   field.handleKeyDown(type, event);
 }
+
+// Text from an on-screen keyboard (ADR 0024). `@beforeinput` is the native event.
+function onBeforeInput(type: TimeSegmentType, event: InputEvent): void {
+  field.handleBeforeInput(type, event);
+}
+
+// A composition cannot be cancelled: the browser has written into the segment, so write the
+// text of the state back.
+function onInput(type: TimeSegmentType, event: InputEvent): void {
+  if (!event.isComposing) return;
+  const text = state.value.segments.find((segment) => segment.type === type)?.text;
+  if (text !== undefined) (event.currentTarget as HTMLElement).textContent = text;
+}
 </script>
 
 <template>
@@ -81,6 +94,8 @@ function onKeydown(type: TimeSegmentType, event: KeyboardEvent): void {
         v-bind="toVueProps(field.getSegmentProps(segment.type), false)"
         class="calendrix-segment"
         @keydown="onKeydown(segment.type, $event)"
+        @beforeinput="onBeforeInput(segment.type, $event)"
+        @input="onInput(segment.type, $event)"
         @focus="field.focusSegment(segment.type)"
       >
         {{ segment.text }}
