@@ -3,7 +3,9 @@ import {
   formatDate,
   formatDateRange,
   formatSelection,
+  isDateSelectable,
   isEmptySelection,
+  isRangeSelectable,
   parseDate,
   parseDateRange,
   pickerLabelsFor,
@@ -171,10 +173,24 @@ export function DatePicker<M extends SelectionMode = 'single'>({
   };
 
   /** A typed text: one date, or a range. A list of days is not typed. */
-  const parse = (next: string): Selection =>
-    selection === 'range'
-      ? parseDateRange(next, { locale, system })
-      : parseDate(next, { locale, system });
+  const parse = (next: string): Selection => {
+    // A date the user could not pick in the calendar is not a value either (ADR 0025).
+    const limits = {
+      minDate,
+      maxDate,
+      isDateUnavailable,
+      plugins,
+      locale,
+      system,
+      allowUnavailableInRange,
+    };
+    if (selection === 'range') {
+      const range = parseDateRange(next, { locale, system });
+      return range && isRangeSelectable(range, limits) ? range : null;
+    }
+    const date = parseDate(next, { locale, system });
+    return date && isDateSelectable(date, limits) ? date : null;
+  };
 
   const handleText = (next: string) => {
     setText(next);

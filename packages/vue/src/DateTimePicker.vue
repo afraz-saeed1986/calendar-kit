@@ -3,6 +3,9 @@ import {
   convertDate,
   formatDateTime,
   formatDateTimeRange,
+  isDateSelectable,
+  isRangeSelectable,
+  isTimeSelectable,
   parseDateTime,
   parseDateTimeRange,
   pickerLabelsFor,
@@ -118,10 +121,37 @@ const format = (next: Value): string => {
   const options = { locale: props.locale, hourCycle: props.hourCycle, seconds: props.showSeconds };
   return isRange(next) ? formatDateTimeRange(next, options) : formatDateTime(next, options);
 };
-const parse = (next: string): Value =>
+const parseText = (next: string): Value =>
   isRangeMode.value
     ? parseDateTimeRange(next, { locale: props.locale, system: props.system })
     : parseDateTime(next, { locale: props.locale, system: props.system });
+
+/** A date or a time that the user could not pick is not a value either (ADR 0025). */
+const parse = (next: string): Value => {
+  const parsed = parseText(next);
+  if (parsed === null) return null;
+  const limits = {
+    minDate: props.minDate,
+    maxDate: props.maxDate,
+    isDateUnavailable: props.isDateUnavailable,
+    plugins: props.plugins,
+    locale: props.locale,
+    system: props.system,
+    minTime: props.minTime,
+    maxTime: props.maxTime,
+  };
+  if (isRange(parsed)) {
+    const dates = { start: parsed.start.date, end: parsed.end.date };
+    return isRangeSelectable(dates, limits) &&
+      isTimeSelectable(parsed.start.time, limits) &&
+      isTimeSelectable(parsed.end.time, limits)
+      ? parsed
+      : null;
+  }
+  return isDateSelectable(parsed.date, limits) && isTimeSelectable(parsed.time, limits)
+    ? parsed
+    : null;
+};
 
 /** The value in the calendar system on screen. */
 const inSystem = (point: DateTimeValue): DateTimeValue => ({

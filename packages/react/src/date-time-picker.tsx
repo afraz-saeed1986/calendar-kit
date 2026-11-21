@@ -2,6 +2,9 @@ import {
   convertDate,
   formatDateTime,
   formatDateTimeRange,
+  isDateSelectable,
+  isRangeSelectable,
+  isTimeSelectable,
   parseDateTime,
   parseDateTimeRange,
   pickerLabelsFor,
@@ -164,10 +167,37 @@ export function DateTimePicker<M extends DateTimeMode = 'single'>({
     if (next === null) return '';
     return isRange(next) ? formatDateTimeRange(next, textOptions) : formatDateTime(next, textOptions);
   };
-  const parse = (next: string): Value =>
+  const parseText = (next: string): Value =>
     isRangeMode
       ? parseDateTimeRange(next, { locale, system })
       : parseDateTime(next, { locale, system });
+
+  /** A date or a time that the user could not pick is not a value either (ADR 0025). */
+  const parse = (next: string): Value => {
+    const parsed = parseText(next);
+    if (parsed === null) return null;
+    const limits = {
+      minDate: calendarOptions.minDate,
+      maxDate: calendarOptions.maxDate,
+      isDateUnavailable: calendarOptions.isDateUnavailable,
+      plugins,
+      locale,
+      system,
+      minTime,
+      maxTime,
+    };
+    if (isRange(parsed)) {
+      const dates = { start: parsed.start.date, end: parsed.end.date };
+      return isRangeSelectable(dates, limits) &&
+        isTimeSelectable(parsed.start.time, limits) &&
+        isTimeSelectable(parsed.end.time, limits)
+        ? parsed
+        : null;
+    }
+    return isDateSelectable(parsed.date, limits) && isTimeSelectable(parsed.time, limits)
+      ? parsed
+      : null;
+  };
 
   // The value in the calendar system on screen.
   const inSystem = (point: DateTimeValue): DateTimeValue => ({
