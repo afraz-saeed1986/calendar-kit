@@ -73,7 +73,7 @@ export interface DateTimePickerProps<M extends DateTimeMode = 'single'> {
 
   /**
    * Render the popover in `document.body` (default). Pass `false` to render it next to the
-   * input instead. The `data-theme` of an ancestor does not reach a portaled popover.
+   * input instead. The `data-theme` of the nearest ancestor is copied to a portaled popover (ADR 0026).
    */
   portal?: boolean;
 }

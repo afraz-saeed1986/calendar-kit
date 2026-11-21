@@ -42,3 +42,13 @@ says so in its comment ("does not reach a portaled popover").
 1. React, Vue and Angular, one by one, with tests.
 2. The comments of the `portal` option, `docs/api.md` (if it says it), the roadmap, the Result
    section.
+
+   
+## Result
+
+Done in all three adapters. The CSS did not change.
+
+- **React:** the ref callback of the popover in `usePickerPopover` copies the theme before the first paint. 4 new tests.
+- **Vue:** a post-flush watcher on `popoverRef` in `usePickerPopover`. 4 new tests (95 in the package).
+- **Angular:** `CalendrixPopover` copies the theme before it moves the element. 4 new tests (88 in the library).
+- **The comments** of the `portal` option of the three `DateTimePicker`s say that the theme is copied.

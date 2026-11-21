@@ -43,6 +43,18 @@ export function usePickerPopover(options: { portal: MaybeRefOrGetter<boolean> })
     toValue(options.portal) ? 'fixed' : 'absolute',
   );
 
+  // The theme of an ancestor does not reach a popover in the body (ADR 0026). The popover is a
+  // new element each time it opens, so the watcher runs for each opening.
+  watch(
+    popoverRef,
+    (node) => {
+      if (!node || !toValue(options.portal)) return;
+      const theme = wrapperRef.value?.closest('[data-theme]')?.getAttribute('data-theme');
+      if (theme) node.setAttribute('data-theme', theme);
+    },
+    { flush: 'post' },
+  );
+
   /** Close the popover, and give the focus back to the input when `returnFocus` is true. */
   function close(returnFocus: boolean): void {
     open.value = false;

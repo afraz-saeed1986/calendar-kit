@@ -64,7 +64,12 @@ export class CalendrixPopover implements OnInit {
   ngOnInit(): void {
     const element = this.element;
     const portaled = this.portal();
-    if (portaled) this.document.body.appendChild(element);
+    if (portaled) {
+      // The theme of an ancestor does not reach a popover in the body (ADR 0026).
+      const theme = this.anchor().closest('[data-theme]')?.getAttribute('data-theme');
+      if (theme) element.setAttribute('data-theme', theme);
+      this.document.body.appendChild(element);
+    }
 
     // Fixed positioning, so a scrolling ancestor of the anchor cannot clip or offset the popover.
     element.style.position = 'fixed';

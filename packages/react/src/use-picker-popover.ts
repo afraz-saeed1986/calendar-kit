@@ -92,9 +92,14 @@ export function usePickerPopover({ portal }: { portal: boolean }): PickerPopover
   const setPopover = useCallback(
     (node: HTMLDivElement | null) => {
       popoverRef.current = node;
+      // The theme of an ancestor does not reach a popover in the body (ADR 0026).
+      if (node && portal) {
+        const theme = wrapperRef.current?.closest('[data-theme]')?.getAttribute('data-theme');
+        if (theme) node.setAttribute('data-theme', theme);
+      }
       setFloating(node);
     },
-    [setFloating],
+    [setFloating, portal],
   );
 
   const close = useCallback((returnFocus: boolean) => {

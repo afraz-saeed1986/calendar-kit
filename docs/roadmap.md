@@ -55,7 +55,7 @@ Dates are intentionally omitted; milestones are ordered by dependency, not by ca
 - [ ] RTL and Persian numerals verified in all adapters
 - [x] Typed dates are checked against `minDate`, `maxDate` and unavailable days in the pickers ([ADR 0025](adr/0025-validate-typed-dates.md))
 - [x] An invalid typed text can be cleared with the ✕ button ([ADR 0025](adr/0025-validate-typed-dates.md))
-- [ ] `data-theme` of a parent reaches the popover that is moved to `<body>`
+- [x] `data-theme` of a parent reaches the popover that is moved to `<body>` ([ADR 0026](adr/0026-theme-in-portaled-popover.md))
 - [x] A `disabled` option in the core, so that `Calendar` and `TimeField` can be form controls in Angular ([ADR 0022](adr/0022-disabled-option.md)): done in the core, React, Vue, and Angular (`ControlValueAccessor` on `Calendar` and `TimeField`)
 
 ## M5: Documentation and first release
