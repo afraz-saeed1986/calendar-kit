@@ -427,6 +427,7 @@ export interface TimeField {
   clear(): void;
   /** Keyboard handling for one segment. Returns true, after `preventDefault()`, when the key was handled. */
   handleKeyDown(type: TimeSegmentType, event: KeyEventLike): boolean;
+  handleBeforeInput(type: TimeSegmentType, event: InputEventLike): boolean;
 
   getRootProps(): ElementProps<Record<string, never>>;
   getSegmentProps(type: TimeSegmentType): ElementProps<{
