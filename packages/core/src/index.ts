@@ -12,6 +12,7 @@ export type {
   DayCell,
   Direction,
   ElementProps,
+  InputEventLike,
   KeyEventLike,
   PluginContext,
   Selection,

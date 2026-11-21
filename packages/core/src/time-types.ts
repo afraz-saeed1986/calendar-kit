@@ -1,4 +1,10 @@
-import type { CalendarDate, Direction, ElementProps, KeyEventLike } from './types';
+import type {
+  CalendarDate,
+  Direction,
+  ElementProps,
+  InputEventLike,
+  KeyEventLike,
+} from './types';
 
 /** A time of day on a 24-hour clock. */
 export interface TimeValue {
@@ -105,10 +111,19 @@ export interface TimeField {
   clear(): void;
   /** Keyboard handling for one segment. Returns true, after `preventDefault()`, when the key was handled. */
   handleKeyDown(type: TimeSegmentType, event: KeyEventLike): boolean;
+  /**
+   * Text typed with an on-screen keyboard (ADR 0024). `insertText` and `insertFromPaste` type each
+   * character like a key does (a paste of `1430` fills the hour and the minute); `deleteContent*`
+   * clear like Backspace. `preventDefault()` is called for every input except composition, so the
+   * browser never writes into a segment: the text is always rendered from the state. Returns true
+   * when the state changed.
+   */
+  handleBeforeInput(type: TimeSegmentType, event: InputEventLike): boolean;
 
   getRootProps(): ElementProps<Record<string, never>>;
   getSegmentProps(type: TimeSegmentType): ElementProps<{
     keydown: (event: KeyEventLike) => void;
+    beforeinput: (event: InputEventLike) => void;
     focus: () => void;
   }>;
 

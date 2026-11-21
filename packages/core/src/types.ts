@@ -294,6 +294,16 @@ export interface CalendarLabels {
 }
 
 /** Only the fields the core reads from a keyboard event, so it needs no DOM types. */
+/**
+ * The part of a `beforeinput` event that the core reads (ADR 0024): what the user typed on an
+ * on-screen keyboard, and whether to stop the browser from writing it into the element.
+ */
+export interface InputEventLike {
+  inputType: string;
+  data?: string | null;
+  preventDefault(): void;
+}
+
 export interface KeyEventLike {
   key: string;
   shiftKey?: boolean;

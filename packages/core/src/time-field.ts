@@ -9,7 +9,7 @@ import type {
   TimeSegmentType,
   TimeValue,
 } from './time-types';
-import type { ElementProps, KeyEventLike } from './types';
+import type { ElementProps, InputEventLike, KeyEventLike } from './types';
 
 const DEFAULT_LOCALE = 'en-US';
 const MIDNIGHT: TimeValue = { hour: 0, minute: 0, second: 0 };
@@ -303,6 +303,43 @@ export function createTimeField(initial: TimeFieldOptions = {}): TimeField {
       return handled;
     },
 
+    handleBeforeInput(type: TimeSegmentType, event: InputEventLike): boolean {
+      if (options.disabled === true) return false;
+      // A composition cannot be cancelled; the adapters write the text back from the state.
+      if (event.inputType === 'insertCompositionText') return false;
+      // Whatever the browser would do, the text of a segment comes from the state.
+      event.preventDefault();
+
+      if (activeSegment !== type) setActive(type);
+      let handled = false;
+
+      if (event.inputType === 'deleteContentBackward' || event.inputType === 'deleteContentForward') {
+        field.clear();
+        handled = true;
+      } else if (
+        (event.inputType === 'insertText' || event.inputType === 'insertFromPaste') &&
+        event.data
+      ) {
+        for (const char of event.data) {
+          // A digit that completes a segment moves the active segment on; the next one gets the next digit.
+          const target = activeSegment ?? type;
+          if (target === 'period') {
+            if (/^[ap]$/i.test(char)) {
+              updateSegment('period', char.toLowerCase() === 'p' ? 1 : 0);
+              handled = true;
+            }
+          } else {
+            const digit = normalizeDigit(char);
+            if (digit !== null) {
+              typeDigit(target, digit);
+              handled = true;
+            }
+          }
+        }
+      }
+      return handled;
+    },
+
     getRootProps(): ElementProps<Record<string, never>> {
       return {
         attrs: {
@@ -327,7 +364,14 @@ export function createTimeField(initial: TimeFieldOptions = {}): TimeField {
           role: 'spinbutton',
           tabindex: options.disabled ? -1 : 0,
           'aria-disabled': options.disabled ? true : undefined,
+          // An element the user can edit gets the on-screen keyboard (ADR 0024); `beforeinput`
+          // stops the browser from writing into it.
+          contenteditable: options.disabled ? undefined : 'true',
           inputmode: type === 'period' ? undefined : 'numeric',
+          enterkeyhint: 'next',
+          autocapitalize: 'off',
+          autocorrect: 'off',
+          spellcheck: 'false',
           'aria-label': segment.label,
           'aria-valuenow': segment.numericValue ?? undefined,
           'aria-valuemin': segment.min,
@@ -339,6 +383,9 @@ export function createTimeField(initial: TimeFieldOptions = {}): TimeField {
         handlers: {
           keydown: (event: KeyEventLike) => {
             field.handleKeyDown(type, event);
+          },
+          beforeinput: (event: InputEventLike) => {
+            field.handleBeforeInput(type, event);
           },
           focus: () => field.focusSegment(type),
         },
