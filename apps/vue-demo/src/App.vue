@@ -1,5 +1,5 @@
 <script setup lang="ts">
-import type { DateTimeValue, SelectionValue, TimeValue } from '@calendrix/core';
+import type { DateTimeRange, DateTimeValue, SelectionValue, TimeValue } from '@calendrix/core';
 import { persianPlugin } from '@calendrix/persian';
 import { Calendar, DatePicker, DateTimePicker, TimeField } from '@calendrix/vue';
 import { ref } from 'vue';
@@ -14,6 +14,8 @@ const pickedRange = ref<SelectionValue<'range'>>();
 const pickedDays = ref<SelectionValue<'multiple'>>();
 const dateTime = ref<DateTimeValue | null>();
 const persianDateTime = ref<DateTimeValue | null>();
+const dateTimeRange = ref<DateTimeRange | null>();
+const persianDateTimeRange = ref<DateTimeRange | null>();
 </script>
 
 <template>
@@ -80,6 +82,27 @@ const persianDateTime = ref<DateTimeValue | null>();
             :plugins="plugins"
           />
           <pre dir="ltr">{{ persianDateTime }}</pre>
+        </div>
+      </div>
+    </section>
+
+    <section>
+      <h2>DateTimePicker, range with times</h2>
+      <div class="row">
+        <div>
+          <DateTimePicker v-model="dateTimeRange" selection="range" />
+          <pre>{{ dateTimeRange }}</pre>
+        </div>
+        <div dir="rtl">
+          <DateTimePicker
+            v-model="persianDateTimeRange"
+            selection="range"
+            system="persian"
+            locale="fa-IR"
+            direction="rtl"
+            :plugins="plugins"
+          />
+          <pre dir="ltr">{{ persianDateTimeRange }}</pre>
         </div>
       </div>
     </section>

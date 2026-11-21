@@ -13,7 +13,13 @@ import {
 } from '@calendrix/core';
 import { registerCalendar } from '@calendrix/core';
 import { persian, persianPlugin } from '@calendrix/persian';
-import { Calendar, DatePicker, DateTimePicker, TimeField } from '@calendrix/react';
+import {
+  Calendar,
+  DatePicker,
+  DateTimePicker,
+  TimeField,
+  type DateTimeRange,
+} from '@calendrix/react';
 import '@calendrix/react/styles.css';
 import { useEffect, useState } from 'react';
 import './demo.css';
@@ -55,6 +61,7 @@ export function App() {
   const [time, setTime] = useState<TimeValue | null>(null);
   const [text, setText] = useState('');
   const [picked, setPicked] = useState<DateTimeValue | null>(null);
+  const [dateTimeRange, setDateTimeRange] = useState<DateTimeRange | null>(null);
   const [range, setRange] = useState<DateRange | null>(null);
   const [many, setMany] = useState<DateRange['start'][]>([]);
   const [fieldRange, setFieldRange] = useState<DateRange | null>(null);
@@ -138,6 +145,24 @@ export function App() {
           onChange={setPicked}
         />
         <p>{picked ? `${formatISODate(picked.date)}T${formatISOTime(picked.time)}` : '—'}</p>
+      </section>
+
+      <section className="demo-section">
+        <h2>DateTimePicker, range with times</h2>
+        <DateTimePicker
+          selection="range"
+          system={profile.system}
+          locale={profile.locale}
+          hourCycle={profile.hourCycle}
+          plugins={[persianPlugin]}
+          value={dateTimeRange}
+          onChange={setDateTimeRange}
+        />
+        <p>
+          {dateTimeRange
+            ? `${formatISODate(dateTimeRange.start.date)}T${formatISOTime(dateTimeRange.start.time)} / ${formatISODate(dateTimeRange.end.date)}T${formatISOTime(dateTimeRange.end.time)}`
+            : '-'}
+        </p>
       </section>
 
       <section className="demo-section">

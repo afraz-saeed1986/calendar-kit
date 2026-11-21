@@ -49,7 +49,7 @@ Dates are intentionally omitted; milestones are ordered by dependency, not by ca
 
 - [x] Angular adapter complete (four components, `ControlValueAccessor` on the pickers, shared styles, server rendering)
 - [x] Vue adapter complete (four components, pickers, popover, shared styles, server rendering) ([ADR 0021](adr/0021-vue-adapter.md))
-- [ ] Range in `DateTimePicker` (a start and an end, each with a time)
+- [x] Range in `DateTimePicker` (a start and an end, each with a time) ([ADR 0023](adr/0023-date-time-range.md))
 - [ ] Time field on touch devices (hidden input for the on-screen keyboard)
 - [ ] Screen reader testing and automated a11y checks
 - [ ] RTL and Persian numerals verified in all adapters

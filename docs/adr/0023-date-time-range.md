@@ -76,3 +76,14 @@ two functions, the demos show a range with times, and the roadmap item is checke
 1. Core: types, `formatDateTimeRange`, `parseDateTimeRange`, labels, tests.
 2. React. 3. Vue. 4. Angular (with forms).
 5. `docs/api.md`, the three demos, the roadmap.
+
+
+## Result
+
+Done in all four layers, in this order: core, React, Vue, Angular.
+
+- **Core:** `formatDateTimeRange`, `parseDateTimeRange`, `stickEndToStart`, the types `DateTimeMode`, `DateTimePickerValue` and `DateTimeRange`, and the labels `startTime` and `endTime` (en, fa, de). 11 new tests.
+- **React:** `DateTimePicker` is generic in `selection`. 11 new tests; the tests of `single` did not change.
+- **Vue:** the same logic in `DateTimePicker.vue`. 12 new tests (73 in the package).
+- **Angular:** `CalendrixDateTimePicker<M>` with `selection`, and the `ControlValueAccessor` carries `DateTimeRange | null`. 12 new tests (66 in the library).
+- **Docs and demos:** `docs/api.md`, the roadmap, and a range with times in the React and Vue demos.

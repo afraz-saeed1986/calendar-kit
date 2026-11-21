@@ -374,6 +374,19 @@ export interface DateTimeValue {
   readonly time: TimeValue;
 }
 
+/** A start and an end, each with a date and a time (ADR 0023). */
+export interface DateTimeRange {
+  readonly start: DateTimeValue;
+  readonly end: DateTimeValue;
+}
+
+/** What `DateTimePicker` has in `selection`: one date and time, or a range. */
+export type DateTimeMode = 'single' | 'range';
+/** The value of a `DateTimePicker`: `DateTimeValue | null` for `single`, `DateTimeRange | null` for `range`. */
+export type DateTimePickerValue<M extends DateTimeMode> = M extends 'range'
+  ? DateTimeRange | null
+  : DateTimeValue | null;
+
 export type HourCycle = 12 | 24;
 export type TimeSegmentType = 'hour' | 'minute' | 'second' | 'period';
 
@@ -444,6 +457,9 @@ Pure functions, with no state. They are what the pickers use to write and read t
 | `parseTime(text)` | `TimeValue \| null` | Reads a typed time. |
 | `formatDateTime(value, options?)` | `string` | A date and a time in one text. `options` is `TextTimeOptions`. |
 | `parseDateTime(text, options?)` | `DateTimeValue \| null` | Reads a typed date and time. `options` is `{ locale?, system? }`. |
+| `formatDateTimeRange(range, options?)` | `string` | A range of two dates and times in one text, joined by an en dash. `options` is `TextTimeOptions`. |
+| `parseDateTimeRange(text, options?)` | `DateTimeRange \| null` | Reads a typed range. Both ends are needed; if the end is earlier than the start, the two are swapped. `options` is `{ locale?, system? }`. |
+| `stickEndToStart(range)` | `DateTimeRange` | If the start is later than the end, returns a range whose end equals the start; otherwise returns the same object. The pickers use it when a time is edited. |
 | `toInstant(value, timeZone?)` | `Date` | The real instant of a wall-clock value in a time zone. Default: the runtime's time zone. |
 | `fromInstant(instant, timeZone?, system?)` | `DateTimeValue` | The wall-clock value of an instant, in a time zone and a calendar system. |
 | `formatISODate(date)` / `parseISODate(text, system?)` | `string` / `CalendarDate \| null` | The ISO form (`2026-11-18`). |
@@ -456,7 +472,7 @@ Date arithmetic and conversion: `convertDate(date, system)`, `addDays`, `addMont
 
 ## 10. Helpers for the pickers
 
-The pickers (`DatePicker`, `DateTimePicker`) belong to the adapters, but their texts are shared, so every adapter says the same thing.
+The pickers (`DatePicker`, `DateTimePicker`) belong to the adapters, but their texts are shared, so every adapter says the same thing. `PickerLabels` also has `startTime` and `endTime`, the names of the two time fields of a `DateTimePicker` with `selection="range"` (built in for en, fa and de).
 
 ```ts
 /** Texts the pickers put on their own buttons. */
