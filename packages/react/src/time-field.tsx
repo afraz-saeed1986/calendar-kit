@@ -27,6 +27,38 @@ export function TimeField({ className, ...options }: TimeFieldProps) {
     rootRef.current?.querySelector<HTMLElement>(`[data-segment="${type}"]`)?.focus();
   });
 
+  // Text from an on-screen keyboard (ADR 0024). The native `beforeinput` event bubbles, so one
+  // listener on the root serves every segment.
+  useEffect(() => {
+    const root = rootRef.current;
+    if (!root) return;
+    const segmentOf = (event: Event): { element: HTMLElement; type: TimeSegmentType } | null => {
+      const target = event.target;
+      const element = target instanceof Element ? target.closest<HTMLElement>('[data-segment]') : null;
+      return element ? { element, type: element.dataset.segment as TimeSegmentType } : null;
+    };
+    const onBeforeInput = (event: InputEvent) => {
+      const found = segmentOf(event);
+      if (found) field.handleBeforeInput(found.type, event);
+    };
+    // A composition cannot be cancelled. The browser has written into the text of the segment, so
+    // write the text from the state back into the same text node (React keeps that node).
+    const onInput = (event: Event) => {
+      if (!(event as InputEvent).isComposing) return;
+      const found = segmentOf(event);
+      if (!found) return;
+      const text = field.getState().segments.find((s) => s.type === found.type)?.text;
+      const node = found.element.firstChild;
+      if (text !== undefined && node?.nodeType === Node.TEXT_NODE) (node as Text).data = text;
+    };
+    root.addEventListener('beforeinput', onBeforeInput as EventListener);
+    root.addEventListener('input', onInput);
+    return () => {
+      root.removeEventListener('beforeinput', onBeforeInput as EventListener);
+      root.removeEventListener('input', onInput);
+    };
+  }, [field]);
+
   const handleKeyDown = (type: TimeSegmentType, event: KeyboardEvent<HTMLElement>) => {
     // Typing that completes a segment gives a new `focusRequest`; the effect above moves the focus.
     field.handleKeyDown(type, event);
@@ -48,6 +80,7 @@ export function TimeField({ className, ...options }: TimeFieldProps) {
           <span
             {...toReactProps(field.getSegmentProps(segment.type))}
             onKeyDown={(event) => handleKeyDown(segment.type, event)}
+            suppressContentEditableWarning
             className="calendrix-segment"
           >
             {segment.text}

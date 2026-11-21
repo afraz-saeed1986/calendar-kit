@@ -11,6 +11,11 @@ const ATTRIBUTE_NAMES: Record<string, string> = {
   rowspan: 'rowSpan',
   readonly: 'readOnly',
   maxlength: 'maxLength',
+  contenteditable: 'contentEditable',
+  enterkeyhint: 'enterKeyHint',
+  autocapitalize: 'autoCapitalize',
+  autocorrect: 'autoCorrect',
+  spellcheck: 'spellCheck',
 };
 
 /** DOM event names (as the core uses them) and their React props. */
@@ -37,6 +42,9 @@ export function toReactProps(props: ElementProps<object>): HTMLAttributes<HTMLEl
     if (value !== undefined) result[ATTRIBUTE_NAMES[name] ?? name] = value;
   }
   for (const [name, handler] of Object.entries(props.handlers)) {
+    // `onBeforeInput` in React is a synthetic event that does not fire for deletions or for
+    // every Android keyboard (ADR 0024): `TimeField` listens to the native event instead.
+    if (name === 'beforeinput') continue;
     result[HANDLER_NAMES[name] ?? `on${name.charAt(0).toUpperCase()}${name.slice(1)}`] = handler;
   }
   return result as HTMLAttributes<HTMLElement>;

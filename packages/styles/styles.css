@@ -519,3 +519,15 @@
 .calendrix-time-label {
   font-size: 0.875em;
 }
+
+
+/* A segment is editable so that a phone opens its keyboard (ADR 0024). It shows no caret. */
+.calendrix-segment[contenteditable='true'] {
+  caret-color: transparent;
+  -webkit-user-select: text;
+  user-select: text;
+}
+
+.calendrix-segment::selection {
+  background: transparent;
+}
