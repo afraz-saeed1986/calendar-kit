@@ -5,6 +5,8 @@ import {
   formatDateRange,
   formatSelection,
   isEmptySelection,
+  isDateSelectable,
+  isRangeSelectable,
   parseDate,
   parseDateRange,
   pickerLabelsFor,
@@ -116,10 +118,29 @@ function commit(next: Selection): void {
 }
 
 /** A typed text: one date, or a range. A list of days is not typed. */
-function parse(next: string): Selection {
+function parseText(next: string): Selection {
   return selection.value === 'range'
     ? parseDateRange(next, { locale: props.locale, system: props.system })
     : parseDate(next, { locale: props.locale, system: props.system });
+}
+
+/** A date the user could not pick in the calendar is not a value either (ADR 0025). */
+function parse(next: string): Selection {
+  const parsed = parseText(next);
+  if (parsed === null) return null;
+  const limits = {
+    minDate: props.minDate,
+    maxDate: props.maxDate,
+    isDateUnavailable: props.isDateUnavailable,
+    plugins: props.plugins,
+    locale: props.locale,
+    system: props.system,
+    allowUnavailableInRange: props.allowUnavailableInRange,
+  };
+  // A list of days is not typed.
+  if (Array.isArray(parsed)) return parsed;
+  if ('start' in parsed) return isRangeSelectable(parsed, limits) ? parsed : null;
+  return isDateSelectable(parsed, limits) ? parsed : null;
 }
 
 function typed(next: string): void {
