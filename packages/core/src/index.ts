@@ -70,3 +70,6 @@ export {
 
 export { datesSelectedText, formatSelection, isEmptySelection, toSystem } from './picker-text';
 export { pickerLabelsFor, type PickerKind, type PickerLabels } from './picker-labels';
+
+export { isDateSelectable, isRangeSelectable, isTimeSelectable } from './selectable';
+export type { SelectableOptions } from './selectable';
