@@ -53,8 +53,8 @@ Dates are intentionally omitted; milestones are ordered by dependency, not by ca
 - [x] Time field on touch devices (editable segments for the on-screen keyboard) ([ADR 0024](adr/0024-touch-time-input.md))
 - [ ] Screen reader testing and automated a11y checks
 - [ ] RTL and Persian numerals verified in all adapters
-- [ ] Typed dates are checked against `minDate`, `maxDate` and unavailable days in the pickers
-- [ ] An invalid typed text can be cleared with the ✕ button
+- [x] Typed dates are checked against `minDate`, `maxDate` and unavailable days in the pickers ([ADR 0025](adr/0025-validate-typed-dates.md))
+- [x] An invalid typed text can be cleared with the ✕ button ([ADR 0025](adr/0025-validate-typed-dates.md))
 - [ ] `data-theme` of a parent reaches the popover that is moved to `<body>`
 - [x] A `disabled` option in the core, so that `Calendar` and `TimeField` can be form controls in Angular ([ADR 0022](adr/0022-disabled-option.md)): done in the core, React, Vue, and Angular (`ControlValueAccessor` on `Calendar` and `TimeField`)
 

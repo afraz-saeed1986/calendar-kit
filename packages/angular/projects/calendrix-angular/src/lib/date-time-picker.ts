@@ -92,7 +92,7 @@ let nextDialogId = 0;
           (blur)="handleBlur()"
           (keydown)="onInputKeydown($event)"
         />
-        @if (!disabled() && hasValue()) {
+        @if (!disabled() && (hasValue() || text().trim() !== '')) {
           <button
             type="button"
             class="calendrix-toggle calendrix-clear"
@@ -582,6 +582,7 @@ export class CalendrixDateTimePicker<M extends DateTimeMode = 'single'>
     this.draftStart.set(null);
     this.draftEnd.set(null);
     this.commit(null);
+    this.text.set('');
   }
 
   protected clearAndFocus(): void {

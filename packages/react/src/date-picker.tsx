@@ -261,13 +261,14 @@ export function DatePicker<M extends SelectionMode = 'single'>({
             }
           }}
         />
-        {!disabled && !isEmptySelection(value as Selection) && (
+        {!disabled && (!isEmptySelection(value as Selection) || text.trim() !== '') && (
           <button
             type="button"
             className="calendrix-toggle calendrix-clear"
             aria-label={text_.clear}
             onClick={() => {
               commit(empty as Selection);
+              setText('');
               inputRef.current?.focus();
             }}
           >

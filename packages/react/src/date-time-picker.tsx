@@ -300,6 +300,7 @@ export function DateTimePicker<M extends DateTimeMode = 'single'>({
     setDraftStart(null);
     setDraftEnd(null);
     commit(null);
+    setText('');
   };
 
   const sampleStart: DateTimeValue = {
@@ -339,7 +340,7 @@ export function DateTimePicker<M extends DateTimeMode = 'single'>({
             }
           }}
         />
-        {!disabled && value !== null && (
+        {!disabled && (value !== null || text.trim() !== '') && (
           <button
             type="button"
             className="calendrix-toggle calendrix-clear"

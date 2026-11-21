@@ -282,6 +282,7 @@ function clear(): void {
   draftStart.value = null;
   draftEnd.value = null;
   commit(null);
+  text.value = '';
 }
 
 function clearAndFocus(): void {
@@ -321,7 +322,7 @@ const samplePlaceholder = computed(() => {
         @keydown="onInputKeydown"
       />
       <button
-        v-if="!disabled && value !== null"
+        v-if="!disabled && (value !== null || text.trim() !== '')"
         type="button"
         class="calendrix-toggle calendrix-clear"
         :aria-label="texts.clear"

@@ -200,6 +200,7 @@ function onCalendarChange(next: SelectionValue<M>): void {
 
 function clear(): void {
   commit(empty.value);
+  text.value = '';
   inputRef.value?.focus();
 }
 
@@ -231,7 +232,7 @@ const samplePlaceholder = computed(() => {
         @keydown="onInputKeydown"
       />
       <button
-        v-if="!disabled && !isEmptySelection(value)"
+        v-if="!disabled && (!isEmptySelection(value) || text.trim() !== '')"
         type="button"
         class="calendrix-toggle calendrix-clear"
         :aria-label="text_.clear"

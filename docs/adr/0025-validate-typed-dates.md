@@ -61,4 +61,5 @@ Done in the core and in all three adapters, in this order: core, React, Vue, Ang
 - **React:** the `parse` of `DatePicker` and of `DateTimePicker` checks the parsed value. 9 new tests. In `DateTimePicker` the limits of the days come from `calendarOptions`, the rest of the props.
 - **Vue:** the same in `DatePicker.vue` and `DateTimePicker.vue`. 9 new tests (88 in the package).
 - **Angular:** the same in `CalendrixDatePicker` and `CalendrixDateTimePicker`. 9 new tests (81 in the library).
-- **Not done:** a visible "x" or a message for a text that is not valid, and the reason (outside the bounds, unavailable, time outside the limits). They are on the roadmap.
+- **The clear button:** it shows while the input holds a value or any text, so a text that is not a value can be cleared; it clears the value and the text, and gives the focus to the input. 3 new tests in each adapter.
+- **Not done:** a message for a text that is not valid, and the reason (outside the bounds, unavailable, time outside the limits).
