@@ -53,6 +53,8 @@ import { CalendrixPropsDirective } from './props-directive';
           [calendrixProps]="item.props"
           [calendrixHandlers]="false"
           (keydown)="onKeydown(item.segment.type, $event)"
+          (beforeinput)="onBeforeInput(item.segment.type, $event)"
+          (input)="onInput(item.segment.type, $event)"
           (focus)="field.focusSegment(item.segment.type)"
           >{{ item.segment.text }}</span
         >
@@ -183,5 +185,21 @@ export class CalendrixTimeField implements OnInit, ControlValueAccessor {
   protected onKeydown(type: TimeSegmentType, event: KeyboardEvent): void {
     // Typing that completes a segment gives a new `focusRequest`; the hook above moves the focus.
     this.field.handleKeyDown(type, event);
+  }
+
+  /** Text from an on-screen keyboard (ADR 0024). */
+  protected onBeforeInput(type: TimeSegmentType, event: Event): void {
+    this.field.handleBeforeInput(type, event as InputEvent);
+  }
+
+  /**
+   * A composition cannot be cancelled: the browser has written into the segment. Write the text of
+   * the state back into the same text node (Angular keeps that node).
+   */
+  protected onInput(type: TimeSegmentType, event: Event): void {
+    if (!(event as InputEvent).isComposing) return;
+    const text = this.state().segments.find((segment) => segment.type === type)?.text;
+    const node = (event.currentTarget as HTMLElement).firstChild;
+    if (text !== undefined && node?.nodeType === Node.TEXT_NODE) (node as Text).data = text;
   }
 }
