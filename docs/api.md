@@ -476,6 +476,11 @@ Pure functions, with no state. They are what the pickers use to write and read t
 | `formatISODate(date)` / `parseISODate(text, system?)` | `string` / `CalendarDate \| null` | The ISO form (`2026-11-18`). |
 | `formatISOTime(time, { seconds? })` / `parseISOTime(text)` | `string` / `TimeValue \| null` | The ISO form of a time. |
 | `normalizeDigits(text)` | `string` | Persian and Arabic-Indic digits to Latin digits. |
+| `isDateSelectable(date, options?)` | `boolean` | True when the user could pick this day in a calendar: inside `minDate`..`maxDate` and not marked by `isDateUnavailable` or a plugin. `options` is `SelectableOptions`. |
+| `isRangeSelectable(range, options?)` | `boolean` | True when both ends are selectable. The days between may be unavailable, unless `options.allowUnavailableInRange` is `false`. |
+| `isTimeSelectable(time, options?)` | `boolean` | True when the time is inside `options.minTime`..`options.maxTime`, both included. |
+
+**Typed dates** ([ADR 0025](adr/0025-validate-typed-dates.md)). `SelectableOptions` has `minDate`, `maxDate`, `isDateUnavailable`, `plugins`, `locale` and `system` (the context that plugins get; default: the system of the date and `en-US`), `allowUnavailableInRange`, `minTime` and `maxTime`. `DatePicker` and `DateTimePicker` use these functions on a typed text: a date or a time that the user could not pick in the calendar is not a value, as a text that cannot be parsed is not. `onChange` is not called, the previous value stays, and after the blur the input has `aria-invalid`. Values that the application gives (`value`, `defaultValue`, a form) are not checked.
 
 Date arithmetic and conversion: `convertDate(date, system)`, `addDays`, `addMonths` and `addYears` (`date`, `amount`), `compareDates(a, b)` (negative, zero or positive), `isSameDay(a, b)`, `createDate` and `dayOfWeek` (see `date.ts`). Calendar systems are registered with `registerCalendar(implementation)` and read with `getCalendar(system)`; `gregory` is exported, and the Persian calendar comes from the `@calendrix/persian` plugin.
 

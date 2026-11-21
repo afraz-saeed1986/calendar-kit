@@ -51,3 +51,14 @@ enter a value disagree, and the application can receive a value that it forbade.
 1. Core: `selectable.ts`, the exports, tests.
 2. React, Vue, Angular, one by one, with tests.
 3. `docs/api.md`, the roadmap, the Result section.
+
+
+## Result
+
+Done in the core and in all three adapters, in this order: core, React, Vue, Angular.
+
+- **Core:** `isDateSelectable`, `isRangeSelectable`, `isTimeSelectable` and the type `SelectableOptions` in `selectable.ts`, with tests.
+- **React:** the `parse` of `DatePicker` and of `DateTimePicker` checks the parsed value. 9 new tests. In `DateTimePicker` the limits of the days come from `calendarOptions`, the rest of the props.
+- **Vue:** the same in `DatePicker.vue` and `DateTimePicker.vue`. 9 new tests (88 in the package).
+- **Angular:** the same in `CalendrixDatePicker` and `CalendrixDateTimePicker`. 9 new tests (81 in the library).
+- **Not done:** a visible "x" or a message for a text that is not valid, and the reason (outside the bounds, unavailable, time outside the limits). They are on the roadmap.
