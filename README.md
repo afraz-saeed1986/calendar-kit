@@ -34,6 +34,33 @@ Most date pickers ship UI tied to one framework and treat Persian as an aftertho
 | `@calendrix/vue`                         | Vue adapter (composable)                              | Planned     |
 | `@calendrix/finance`                     | Market calendars and holidays                         | Planned     |
 
+## Size
+
+Sizes of the built code, minified with esbuild, then compressed. `pnpm size` measures them again.
+
+| Package (entry file) | minified | gzip | brotli |
+| --- | ---: | ---: | ---: |
+| `@calendrix/core` | 32.1 kB | 11.2 kB | 10.3 kB |
+| `@calendrix/react` | 18.1 kB | 6.0 kB | 5.4 kB |
+| `@calendrix/vue` | 25.1 kB | 7.2 kB | 6.3 kB |
+| `@calendrix/angular` | 81.4 kB | 10.4 kB | 8.6 kB |
+| `styles.css` | 9.0 kB | 2.0 kB | 1.7 kB |
+
+What an application adds when it imports only some exports (the framework itself is not counted; `@calendrix/core` and Floating UI are):
+
+| Import | minified | gzip | brotli |
+| --- | ---: | ---: | ---: |
+| `createTimeField` | 6.4 kB | 3.0 kB | 2.7 kB |
+| `createCalendar` | 17.8 kB | 6.4 kB | 5.9 kB |
+| React `Calendar` | 23.3 kB | 8.3 kB | 7.7 kB |
+| React `DatePicker` | 52.6 kB | 19.2 kB | 17.3 kB |
+| React `DateTimePicker` | 61.5 kB | 22.2 kB | 19.9 kB |
+| Vue `DatePicker` | 53.3 kB | 19.0 kB | 17.3 kB |
+| Vue `DateTimePicker` | 64.0 kB | 22.2 kB | 20.0 kB |
+| `@calendrix/persian` | 1.2 kB | 0.7 kB | 0.6 kB |
+
+The Angular row is the library file alone: Angular, `@calendrix/core` and Floating UI are not in it, and the Angular build tools remove what an application does not use.
+
 ## Repository layout
 
 ```
