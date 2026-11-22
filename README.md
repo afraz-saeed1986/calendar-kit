@@ -61,6 +61,24 @@ What an application adds when it imports only some exports (the framework itself
 
 The Angular row is the library file alone: Angular, `@calendrix/core` and Floating UI are not in it, and the Angular build tools remove what an application does not use.
 
+## Performance
+
+Measured with `pnpm bench` on an Intel Core i5-8400 (2.8 GHz) with Node 24. It measures the core, which does the work behind every adapter: no DOM and no framework. A `getState()` builds everything an adapter renders from: the days, and the months and years views.
+
+| Operation | per second | time |
+| --- | ---: | ---: |
+| `createCalendar` + `getState`, Gregorian, 1 month | 7,800 | 128 µs |
+| `createCalendar` + `getState`, Persian, 1 month | 8,000 | 125 µs |
+| `createCalendar` + `getState`, Persian, 3 months | 5,200 | 193 µs |
+| `nextMonth` + `getState`, Persian | 9,900 | 101 µs |
+| Select a day + `getState`, Gregorian | 10,000 | 100 µs |
+| `formatDate`, en-US / fa-IR | 115,000 | 8.7 µs |
+| `parseDate`, en-US / fa-IR | 0.8 to 1.2 million | 0.8 to 1.2 µs |
+| `convertDate`, Gregorian to Persian | 13 million | 0.08 µs |
+| `createTimeField` + typing `1430` | 16,600 | 60 µs |
+
+A state takes about a tenth of a millisecond, so the core is far below the time of one frame (16 ms). The Persian calendar costs the same as the Gregorian one: Intl is asked once for the first day of a year, and the rest is arithmetic, checked against Intl for every day from 1200 to 1500 AP. The time a framework needs to render the result is not part of these numbers.
+
 ## Repository layout
 
 ```
