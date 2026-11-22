@@ -24,3 +24,14 @@ The formatter is created once at module level, because constructing it is much m
 - (−) **Leap years follow the ICU implementation of the runtime**, which can differ from the official Iranian calendar in rare years. Test expectations cover the years that matter today (1395 to 1408). Revisit before supporting dates far in the past or future.
 - (−) Requires full ICU data. Node 13+ and modern browsers include it. A runtime without it throws a clear error.
 - (−) `toEpochDay` costs a few `Intl` calls. Fine for rendering a month; if it shows up in profiles, cache per year.
+
+
+## Update: Intl for the Nowruz days, arithmetic for the rest
+
+`pnpm bench` showed that a Persian month was about seven times slower to build than a Gregorian
+one, because each day of the grid asked Intl (`formatToParts`, about 4 µs), and `toEpochDay` and
+`isLeapYear` asked it several times. Intl is still the source of truth, but it is now asked only
+for 1 Farvardin of a year, once, and the result is kept. The month and the day follow from the
+distance to that day (six months of 31 days, five of 30, and Esfand of 29 or 30), and a leap year
+is a year of 366 days between two Nowruz days. `persian-equivalence.test.ts` compares every day
+from about 1200 AP to 1500 AP with Intl itself, in both directions, and the leap years too.
