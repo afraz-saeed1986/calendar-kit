@@ -1,6 +1,7 @@
 import { normalizeDigits } from './digits';
 import { formatDate, parseDate, type TextDateOptions } from './text-date';
 import type { DateTimeValue, HourCycle, TimeValue } from './time-types';
+import { dateTimeFormat } from './intl-cache';
 
 export interface TextTimeOptions {
   /** BCP 47 locale for numerals and AM/PM text. Default: 'en-US'. */
@@ -17,7 +18,7 @@ export interface TextTimeOptions {
  */
 export function formatTime(time: TimeValue, options: TextTimeOptions = {}): string {
   const { locale = 'en-US', hourCycle, seconds = false } = options;
-  const formatter = new Intl.DateTimeFormat(locale, {
+  const formatter = dateTimeFormat(locale, {
     hour: '2-digit',
     minute: '2-digit',
     second: seconds ? '2-digit' : undefined,

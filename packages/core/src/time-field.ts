@@ -10,6 +10,7 @@ import type {
   TimeValue,
 } from './time-types';
 import type { ElementProps, InputEventLike, KeyEventLike } from './types';
+import { dateTimeFormat, numberFormat } from './intl-cache';
 
 const DEFAULT_LOCALE = 'en-US';
 const MIDNIGHT: TimeValue = { hour: 0, minute: 0, second: 0 };
@@ -31,13 +32,13 @@ function normalizeDigit(key: string): string | null {
 }
 
 function defaultHourCycle(locale: string): HourCycle {
-  const cycle = new Intl.DateTimeFormat(locale, { hour: 'numeric' }).resolvedOptions().hourCycle;
+  const cycle = dateTimeFormat(locale, { hour: 'numeric' }).resolvedOptions().hourCycle;
   return cycle === 'h11' || cycle === 'h12' ? 12 : 24;
 }
 
 /** The locale's text for AM and PM. */
 function periodTexts(locale: string): [string, string] {
-  const formatter = new Intl.DateTimeFormat(locale, {
+  const formatter = dateTimeFormat(locale, {
     hour: 'numeric',
     hourCycle: 'h12',
     timeZone: 'UTC',
@@ -110,7 +111,7 @@ export function createTimeField(initial: TimeFieldOptions = {}): TimeField {
     const hourCycle = cycle();
     const value = currentValue();
     const labels = timeLabelsFor(loc, options.labels);
-    const numbers = new Intl.NumberFormat(loc, { minimumIntegerDigits: 2, useGrouping: false });
+    const numbers = numberFormat(loc, { minimumIntegerDigits: 2, useGrouping: false });
     const [am, pm] = periodTexts(loc);
 
     const segments: TimeSegment[] = segmentTypes().map((type) => {

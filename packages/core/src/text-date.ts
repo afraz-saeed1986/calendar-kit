@@ -2,6 +2,7 @@ import { getCalendar } from './calendars/registry';
 import { createDate } from './date';
 import { normalizeDigits } from './digits';
 import type { CalendarDate, CalendarSystem } from './types';
+import { dateTimeFormat, cachedLocale } from './intl-cache';
 
 const MS_PER_DAY = 86_400_000;
 const DEFAULT_LOCALE = 'en-US';
@@ -33,8 +34,8 @@ export function datePatternOf(
   const cached = patterns.get(key);
   if (cached) return cached;
 
-  const latin = new Intl.Locale(locale, { calendar: system, numberingSystem: 'latn' });
-  const parts = new Intl.DateTimeFormat(latin.toString(), {
+  const latin = cachedLocale(locale, { calendar: system, numberingSystem: 'latn' });
+  const parts = dateTimeFormat(latin.toString(), {
     year: 'numeric',
     month: '2-digit',
     day: '2-digit',
@@ -62,8 +63,8 @@ export function datePatternOf(
 export function formatDate(date: CalendarDate, locale: string = DEFAULT_LOCALE): string {
   const pattern = datePatternOf(locale, date.system);
   const epochDay = getCalendar(date.system).toEpochDay(date);
-  const parts = new Intl.DateTimeFormat(
-    new Intl.Locale(locale, { calendar: date.system }).toString(),
+  const parts = dateTimeFormat(
+    cachedLocale(locale, { calendar: date.system }).toString(),
     {
       year: 'numeric',
       month: '2-digit',

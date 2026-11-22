@@ -1,4 +1,5 @@
 import type { ViewLabels } from './view-types';
+import { cachedLocale } from './intl-cache';
 
 const EN: ViewLabels = {
   previousYear: 'Previous year',
@@ -31,6 +32,6 @@ const MESSAGES: Record<string, ViewLabels> = {
 
 /** Texts for a locale's language, with English as the fallback and `overrides` on top. */
 export function viewLabelsFor(locale: string, overrides?: Partial<ViewLabels>): ViewLabels {
-  const language = new Intl.Locale(locale).language;
+  const language = cachedLocale(locale).language;
   return { ...(MESSAGES[language] ?? EN), ...overrides };
 }

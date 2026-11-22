@@ -2,6 +2,7 @@ import { compareDates, convertDate } from './date';
 import { formatDate } from './text-date';
 import { formatDateRange } from './text-range';
 import type { CalendarSystem, Selection } from './types';
+import { numberFormat } from './intl-cache';
 
 /** With more days than this, the input shows a count instead of the dates. */
 const MAX_LISTED = 3;
@@ -24,7 +25,7 @@ export function datesSelectedText(
   if (custom) return custom(count);
   const language = locale.split('-')[0]?.toLowerCase() ?? 'en';
   const text = DATES_SELECTED[language] ?? english;
-  return text(new Intl.NumberFormat(locale).format(count));
+  return text(numberFormat(locale).format(count));
 }
 
 /** True for `null` and for an empty list: nothing is selected. */

@@ -33,6 +33,7 @@ import type {
 import { viewLabelsFor } from './view-messages';
 import type { CalendarView, MonthCell, YearCell } from './view-types';
 import { GRID_COLUMNS, YEARS_PER_DECADE, decadeStart, withMonth, yearPageOf } from './views';
+import { dateTimeFormat, cachedLocale, numberFormat } from './intl-cache';
 
 const MS_PER_DAY = 86_400_000;
 const WEEKS_SHOWN = 6;
@@ -60,7 +61,7 @@ type WeekInfoLocale = Intl.Locale & {
  * we use 0 (Sunday) to 6 (Saturday). Older runtimes without week data fall back by system.
  */
 function defaultWeekStart(locale: string, system: CalendarSystem): WeekStart {
-  const intlLocale = new Intl.Locale(locale) as WeekInfoLocale;
+  const intlLocale = cachedLocale(locale) as WeekInfoLocale;
   const info = intlLocale.getWeekInfo?.() ?? intlLocale.weekInfo;
   if (info) return (info.firstDay % 7) as WeekStart;
   return system === 'persian' ? 6 : 0;
@@ -68,7 +69,7 @@ function defaultWeekStart(locale: string, system: CalendarSystem): WeekStart {
 
 /** Epoch day of "today" in the given time zone. */
 function todayEpochDay(now: () => Date, timeZone: string | undefined): number {
-  const parts = new Intl.DateTimeFormat('en-US-u-ca-gregory-nu-latn', {
+  const parts = dateTimeFormat('en-US-u-ca-gregory-nu-latn', {
     timeZone,
     year: 'numeric',
     month: 'numeric',
@@ -429,7 +430,7 @@ export function createCalendar<M extends SelectionMode = 'single'>(
       span: { start: first.start, length: last.start + last.length - first.start },
       min: minDate ? getCalendar(minDate.system).toEpochDay(minDate) : null,
       max: maxDate ? getCalendar(maxDate.system).toEpochDay(maxDate) : null,
-      numbers: new Intl.NumberFormat(locale),
+      numbers: numberFormat(locale),
       plugins: options.plugins ?? [],
       context: { system, locale },
     };
@@ -496,10 +497,10 @@ export function createCalendar<M extends SelectionMode = 'single'>(
   function buildState(): CalendarState<SelectionMode> {
     const v = getView();
 
-    const intlLocale = new Intl.Locale(v.locale, {
+    const intlLocale = cachedLocale(v.locale, {
       calendar: INTL_CALENDARS[v.system] ?? v.system,
     });
-    const monthYear = new Intl.DateTimeFormat(intlLocale, {
+    const monthYear = dateTimeFormat(intlLocale, {
       month: 'long',
       year: 'numeric',
       timeZone: 'UTC',
@@ -521,8 +522,8 @@ export function createCalendar<M extends SelectionMode = 'single'>(
     if (!primary) throw new Error('A calendar shows at least one month');
     const lastGrid = grids[grids.length - 1] ?? primary;
 
-    const shortNames = new Intl.DateTimeFormat(v.locale, { weekday: 'short', timeZone: 'UTC' });
-    const longNames = new Intl.DateTimeFormat(v.locale, { weekday: 'long', timeZone: 'UTC' });
+    const shortNames = dateTimeFormat(v.locale, { weekday: 'short', timeZone: 'UTC' });
+    const longNames = dateTimeFormat(v.locale, { weekday: 'long', timeZone: 'UTC' });
     const weekdayLabels: WeekdayLabel[] = [];
     for (let i = 0; i < DAYS_PER_WEEK; i++) {
       const weekday = utcDate(SUNDAY + ((v.weekStart + i) % DAYS_PER_WEEK));
@@ -530,11 +531,11 @@ export function createCalendar<M extends SelectionMode = 'single'>(
     }
 
     // Months and years: the name of a month alone, and years without a thousands separator.
-    const monthNames = new Intl.DateTimeFormat(intlLocale, { month: 'long', timeZone: 'UTC' });
+    const monthNames = dateTimeFormat(intlLocale, { month: 'long', timeZone: 'UTC' });
     const monthName = (epochDay: number) =>
       monthNames.formatToParts(utcDate(epochDay)).find((part) => part.type === 'month')?.value ??
       '';
-    const yearNumbers = new Intl.NumberFormat(v.locale, { useGrouping: false });
+    const yearNumbers = numberFormat(v.locale, { useGrouping: false });
     const todayDate = v.cal.fromEpochDay(v.today);
 
     const months: MonthCell[] = [];
@@ -599,12 +600,12 @@ export function createCalendar<M extends SelectionMode = 'single'>(
   function formatDay(v: View, epochDay: number): string {
     const key = `${v.system}|${v.locale}`;
     if (dayFormatter?.key !== key) {
-      const intlLocale = new Intl.Locale(v.locale, {
+      const intlLocale = cachedLocale(v.locale, {
         calendar: INTL_CALENDARS[v.system] ?? v.system,
       });
       dayFormatter = {
         key,
-        format: new Intl.DateTimeFormat(intlLocale, {
+        format: dateTimeFormat(intlLocale, {
           weekday: 'long',
           day: 'numeric',
           month: 'long',

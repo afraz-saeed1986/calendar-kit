@@ -1,3 +1,4 @@
+import { cachedLocale } from './intl-cache';
 
 /** Texts the pickers put on their own buttons. */
 export interface PickerLabels {
@@ -61,7 +62,7 @@ export function pickerLabelsFor(
   overrides?: Partial<PickerLabels>,
   kind: PickerKind = 'dateTime',
 ): PickerLabels {
-  const language = new Intl.Locale(locale).language;
+  const language = cachedLocale(locale).language;
   const base = MESSAGES[language] ?? EN;
   const dateOnly = kind === 'date' ? (DATE_ONLY[language] ?? DATE_ONLY['en']) : undefined;
   return { ...base, ...dateOnly, ...overrides };

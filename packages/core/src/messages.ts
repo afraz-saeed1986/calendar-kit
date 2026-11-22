@@ -1,4 +1,5 @@
 import type { CalendarLabels } from './types';
+import { cachedLocale } from './intl-cache';
 
 const EN: CalendarLabels = {
   previousMonth: 'Previous month',
@@ -13,6 +14,6 @@ const MESSAGES: Record<string, CalendarLabels> = {
 };
 
 export function labelsFor(locale: string, overrides?: Partial<CalendarLabels>): CalendarLabels {
-  const language = new Intl.Locale(locale).language;
+  const language = cachedLocale(locale).language;
   return { ...(MESSAGES[language] ?? EN), ...overrides };
 }

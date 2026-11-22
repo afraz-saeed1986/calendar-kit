@@ -1,4 +1,5 @@
 import type { TimeFieldLabels } from './time-types';
+import { cachedLocale } from './intl-cache';
 
 const EN: TimeFieldLabels = {
   time: 'Time',
@@ -34,6 +35,6 @@ export function timeLabelsFor(
   locale: string,
   overrides?: Partial<TimeFieldLabels>,
 ): TimeFieldLabels {
-  const language = new Intl.Locale(locale).language;
+  const language = cachedLocale(locale).language;
   return { ...(MESSAGES[language] ?? EN), ...overrides };
 }
