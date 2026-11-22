@@ -11,6 +11,9 @@ importers:
       '@eslint/js':
         specifier: ^9.12.0
         version: 9.39.5
+      esbuild:
+        specifier: ^0.28.2
+        version: 0.28.2
       eslint:
         specifier: ^9.12.0
         version: 9.39.5
@@ -8729,7 +8732,7 @@ snapshots:
 
   vite@7.3.7(@types/node@24.19.2)(less@4.9.1)(sass@1.97.3):
     dependencies:
-      esbuild: 0.28.1
+      esbuild: 0.28.2
       fdir: 6.5.0(picomatch@4.0.7)
       picomatch: 4.0.7
       postcss: 8.5.30
