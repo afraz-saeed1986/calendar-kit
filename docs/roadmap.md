@@ -51,8 +51,9 @@ Dates are intentionally omitted; milestones are ordered by dependency, not by ca
 - [x] Vue adapter complete (four components, pickers, popover, shared styles, server rendering) ([ADR 0021](adr/0021-vue-adapter.md))
 - [x] Range in `DateTimePicker` (a start and an end, each with a time) ([ADR 0023](adr/0023-date-time-range.md))
 - [x] Time field on touch devices (editable segments for the on-screen keyboard) ([ADR 0024](adr/0024-touch-time-input.md))
-- [ ] Screen reader testing and automated a11y checks
-- [ ] RTL and Persian numerals verified in all adapters
+- [x] Automated a11y checks with axe-core (WCAG 2.x A and AA, all adapters)
+- [ ] Screen reader testing (NVDA, VoiceOver) and colour contrast checked by hand
+- [x] RTL and Persian numerals verified in all adapters (in fresh projects installed from the packed tarballs)
 - [x] Typed dates are checked against `minDate`, `maxDate` and unavailable days in the pickers ([ADR 0025](adr/0025-validate-typed-dates.md))
 - [x] An invalid typed text can be cleared with the ✕ button ([ADR 0025](adr/0025-validate-typed-dates.md))
 - [x] `data-theme` of a parent reaches the popover that is moved to `<body>` ([ADR 0026](adr/0026-theme-in-portaled-popover.md))
