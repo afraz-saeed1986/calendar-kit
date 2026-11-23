@@ -152,6 +152,9 @@ importers:
       '@types/node':
         specifier: ^24.19.2
         version: 24.19.2
+      axe-core:
+        specifier: ^4.14.1
+        version: 4.14.1
       jsdom:
         specifier: ^28.0.0
         version: 28.1.0
@@ -216,6 +219,9 @@ importers:
       '@types/react-dom':
         specifier: ^18.3.1
         version: 18.3.7(@types/react@18.3.31)
+      axe-core:
+        specifier: ^4.14.1
+        version: 4.14.1
       jsdom:
         specifier: ^25.0.1
         version: 25.0.1
@@ -254,6 +260,9 @@ importers:
       '@vue/test-utils':
         specifier: ^2.4.6
         version: 2.6.0(@vue/compiler-dom@3.5.45)(@vue/server-renderer@3.5.45)(vue@3.5.45(typescript@5.9.3))
+      axe-core:
+        specifier: ^4.14.1
+        version: 4.14.1
       jsdom:
         specifier: ^25.0.1
         version: 25.0.1
@@ -2542,6 +2551,10 @@ packages:
 
   asynckit@0.4.0:
     resolution: {integrity: sha512-Oei9OH4tRh0YqU3GxhX79dM/mwVgvbZJaSNaRk+bshkj0S5cfHcgYakreBjrHwatXKbz+IoIdYLxrKim2MjW0Q==}
+
+  axe-core@4.14.1:
+    resolution: {integrity: sha512-FHfa+lmNjQZfJz1q8wKqIDwC6DExcHt/pkjNQb09a3NPjCKg2rhu5qb2S4r76ASyFNNtuFooJpZe37OgudVGtQ==}
+    engines: {node: '>=4'}
 
   balanced-match@1.0.2:
     resolution: {integrity: sha512-3oSeUO0TMV67hN1AmbXsK4yaqU7tjiHlbxRDZOpH0KW9+CeX4bRAaX0Anxt0tx2MrpRpWwQaPwIlISEJhYU5Pw==}
@@ -6657,6 +6670,8 @@ snapshots:
   assertion-error@2.0.1: {}
 
   asynckit@0.4.0: {}
+
+  axe-core@4.14.1: {}
 
   balanced-match@1.0.2: {}
 

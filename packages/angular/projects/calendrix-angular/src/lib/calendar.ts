@@ -238,7 +238,11 @@ function chunk<T>(items: readonly T[], size: number): T[][] {
           }
         </div>
         @for (week of g.weeks; track $index) {
-          <div role="row" class="calendrix-week">
+          <div
+            role="row"
+            class="calendrix-week"
+            [attr.aria-hidden]="isEmptyWeek(week) ? 'true' : null"
+          >
             @for (day of week; track day.key) {
               @if (day.props) {
                 <div
@@ -456,6 +460,11 @@ export class CalendrixCalendar<M extends SelectionMode = 'single'>
 
   protected onPointerLeave(): void {
     this.calendar.previewTo(null);
+  }
+
+  /** With several months a week of only other months' days has no cell: it is hidden from assistive technology. */
+  protected isEmptyWeek(week: readonly { readonly props?: unknown }[]): boolean {
+    return week.every((day) => !day.props);
   }
 
   protected onGridPointerLeave(): void {

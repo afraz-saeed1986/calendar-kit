@@ -31,7 +31,13 @@ defineProps<{
         {{ label.short }}
       </div>
     </div>
-    <div v-for="(week, weekIndex) in grid.weeks" :key="weekIndex" role="row" class="calendrix-week">
+    <div
+      v-for="(week, weekIndex) in grid.weeks"
+      :key="weekIndex"
+      role="row"
+      class="calendrix-week"
+      :aria-hidden="multi && week.every((cell) => cell.isOutsideMonth) ? 'true' : undefined"
+    >
       <template v-for="cell in week" :key="`${cell.date.year}-${cell.date.month}-${cell.date.day}`">
         <div v-if="multi && cell.isOutsideMonth" role="presentation" class="calendrix-day-empty" />
         <div

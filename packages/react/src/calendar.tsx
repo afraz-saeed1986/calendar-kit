@@ -172,7 +172,13 @@ export function Calendar<M extends SelectionMode = 'single'>({
         ))}
       </div>
       {grid.weeks.map((week, weekIndex) => (
-        <div key={weekIndex} role="row" className="calendrix-week">
+        <div
+          key={weekIndex}
+          role="row"
+          className="calendrix-week"
+          // A week with only other months' days has no cell: keep it out of the accessibility tree.
+          aria-hidden={multi && week.every((cell) => cell.isOutsideMonth) ? true : undefined}
+        >
           {week.map((cell) =>
             // With several months every day shows once: the days of the other months stay empty.
             multi && cell.isOutsideMonth ? (
