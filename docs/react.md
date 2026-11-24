@@ -74,7 +74,7 @@ import { Calendar, TimeField } from '@calendrix/react';
 
 A range takes two clicks. The first click sets the start (nothing is reported yet), the pointer or the arrow keys preview the range, and the second click completes it and calls `onChange` once. If the second day is before the first, the two swap. A click after a complete range starts a new one, and the old value stays until the new range is complete. `Escape` cancels a start that is waiting for its end. With the keyboard, `Enter` or `Space` does what a click does. A multiple selection toggles a day on each click, and `onChange` gets the days from the oldest to the newest; an empty list means that nothing is selected.
 
-Days carry `data-range-start`, `data-range-end`, `data-in-range` (between the ends) and `data-in-preview` (the range that a click would complete). In the hooks, `calendar.previewTo(date)` draws the preview and `calendar.previewTo(null)` removes it. `<DateTimePicker />` supports a single date for now. See [ADR 0011](adr/0011-range-and-multiple-selection.md).
+Days carry `data-range-start`, `data-range-end`, `data-in-range` (between the ends) and `data-in-preview` (the range that a click would complete). In the hooks, `calendar.previewTo(date)` draws the preview and `calendar.previewTo(null)` removes it. `<DateTimePicker />` takes `selection="range"` as well, with a time at each end, but not `multiple` (see [ADR 0023](adr/0023-date-time-range.md)). See [ADR 0011](adr/0011-range-and-multiple-selection.md).
 
 ## Several months
 
@@ -137,6 +137,8 @@ Variables: `--calendrix-font`, `-bg`, `-fg`, `-muted`, `-border`, `-hover`, `-ac
 | `disabled`, `id`, `className` |                                          |              | As usual.                                                                    |
 | `portal`                      | `boolean`                                | `true`       | Render the popover in `document.body`. `false` renders it next to the input. |
 
+With `selection="range"` (`'single'` is the default), `value`, `defaultValue` and `onChange` use `DateTimeRange` (`{ start, end }`, each a `DateTimeValue`) instead of `DateTimeValue`, and the picker shows a time field for each end.
+
 `DateTimePicker` also accepts these options of the calendar and the time field:
 
 - `weekStart` (`0..6`, 0 is Sunday), `direction` (`'ltr' | 'rtl'`) and `visibleMonths` (`1..3`), described under `<Calendar/>` below.
@@ -176,6 +178,8 @@ The text in the input:
 In all modes, a ✕ button in the field clears the selection when there is one.
 
 Like `Calendar`, the value is in the calendar system on screen. Use `convertDate` to store it in another one.
+
+Typed text that is a date but cannot be selected is not a value: a day outside `minDate` and `maxDate`, a day that `isDateUnavailable` or a plugin rejects, an unavailable end of a range, or a time outside `minTime` and `maxTime`. `onChange` is not called, the previous value stays, and after the input loses the focus it is marked `aria-invalid`. The ✕ button clears both the value and the text. A value that your application passes in is not checked. See [ADR 0025](adr/0025-validate-typed-dates.md).
 
 ### `<Calendar/>`
 
@@ -228,12 +232,8 @@ Accepts every option of `createTimeField` (`TimeFieldOptions`) and `className`.
 - It is rendered in `document.body`, so a parent with `overflow: hidden` does not clip it. Pass `portal={false}` to render it next to the input instead.
 - Tab and Shift+Tab stay inside the popover. Escape and Done close it and return the focus to the input.
 - Set `--calendrix-z-popover` to change its `z-index` (default `1000`).
-- A `data-theme` attribute on an ancestor does not reach a portaled popover. Put it on `<html>` or `<body>`, or use `portal={false}`.
+- When it opens, the popover gets the `data-theme` of the nearest ancestor of the input, so a themed section gives a themed popover ([ADR 0026](adr/0026-theme-in-portaled-popover.md)). CSS variables that you set with a class on another ancestor do not reach a portaled popover: set them on `<html>` or `<body>`, or use `portal={false}`.
 
 ## Next.js and Server Components
 
 The files of `@calendrix/react` start with `"use client"`, so the components can be imported from a Server Component. Props that are functions (`onChange`, `isDateUnavailable`, a plugin such as `persianPlugin`) cannot be passed from a Server Component to a Client Component, so use the pickers inside your own Client Component (a file that starts with `"use client"`). The functions of `@calendrix/core` are plain functions and work in Server Components.
-
-## Known limitations
-
-Tapping a time segment on a phone does not open the on-screen keyboard yet.
