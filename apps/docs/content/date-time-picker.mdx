@@ -1,0 +1,36 @@
+import { Example } from '../components/example';
+
+# DateTimePicker
+
+A text input with a popover that has a calendar and a time field. The user can type a date and a time, or pick them.
+
+<Example name="date-time-picker" />
+
+The value is `{ date, time }`: a `CalendarDate` in any calendar system and a time of day. It has **no time zone**. That is on purpose: a wall-clock value is not a moment until you say where it was read. Use `toInstant` from `@calendrix/core` when you need a moment, and `formatISODate` for a Gregorian `YYYY-MM-DD` to send to a server:
+
+```ts
+import { formatISODate, toInstant } from '@calendrix/core';
+
+const moment = toInstant(value, 'Asia/Tehran'); // a Date, with daylight saving handled
+const day = formatISODate(value.date); // "2026-11-09"
+```
+
+## Range
+
+Set `selection="range"` (in Angular, `[selection]="'range'"`). The value becomes `{ start, end }`, and each end is a `{ date, time }`. The picker shows a time field for each end. A range has no `multiple` mode here.
+
+<Example name="date-time-picker-range" />
+
+## Props
+
+It takes the options of [DatePicker](/date-picker) that apply to one day or a range (`selection` here is `'single'` or `'range'`), and these:
+
+| Prop                                   | Type                    | Default         | Description                                                                                               |
+| -------------------------------------- | ----------------------- | --------------- | --------------------------------------------------------------------------------------------------------- |
+| `hourCycle`                            | `12 \| 24`              | locale habit    | The clock style.                                                                                          |
+| `showSeconds`                          | `boolean`               | `false`         | Show a seconds segment.                                                                                   |
+| `hourStep`, `minuteStep`, `secondStep` | `number`                | `1`             | The step of the up and down arrows.                                                                       |
+| `minTime`, `maxTime`                   | `TimeValue`             |                 | Times outside this range are rejected. A date picked before any time starts at `minTime`, or at midnight. |
+| `labels`                               | `Partial<PickerLabels>` | from the locale | Texts of the picker, for translation. In a range, `startTime` and `endTime` name the two fields.          |
+
+As in DatePicker, typed text that cannot be selected (a day outside the limits, or a time outside `minTime` and `maxTime`) is not a value.

@@ -1,0 +1,28 @@
+import { Example } from '../components/example';
+
+# TimeField
+
+A time of day, without a date. It is the field inside the DateTimePicker, available on its own.
+
+<Example name="time-field" />
+
+The value is a `TimeValue`: an hour, a minute and optionally a second. It is `null` when the field is empty.
+
+## Typing and keys
+
+Each part (hour, minute, second, AM/PM) is a segment that you can click or tab to. Type digits to fill it, and use the up and down arrows to step it. Pasting a time such as `1430` fills the hour and the minute. On a phone, tapping a segment opens a numeric keyboard.
+
+Each segment is a spinbutton for assistive technology, and the texts that a screen reader speaks come from `labels`.
+
+## Props
+
+| Prop                                   | Type                       | Default      | Description                                             |
+| -------------------------------------- | -------------------------- | ------------ | ------------------------------------------------------- |
+| `value`, `defaultValue`                | `TimeValue \| null`        |              | The value. `defaultValue` starts an uncontrolled field. |
+| `locale`                               | `string`                   | `'en-US'`    | Numerals and the AM/PM text.                            |
+| `hourCycle`                            | `12 \| 24`                 | locale habit | The clock style.                                        |
+| `showSeconds`                          | `boolean`                  | `false`      | Show a seconds segment.                                 |
+| `hourStep`, `minuteStep`, `secondStep` | `number`                   | `1`          | The step of the up and down arrows.                     |
+| `minTime`, `maxTime`                   | `TimeValue`                |              | Values outside this range are rejected.                 |
+| `labels`                               | `Partial<TimeFieldLabels>` | English      | Texts spoken by screen readers.                         |
+| `disabled`                             | `boolean`                  | `false`      | Disable the field.                                      |

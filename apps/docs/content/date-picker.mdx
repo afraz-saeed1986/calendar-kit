@@ -1,0 +1,103 @@
+import { Tabs } from 'nextra/components';
+import { Example } from '../components/example';
+
+# DatePicker
+
+A text input with a popover calendar. The user can type a date or pick it. It selects one day, a range of days, or many days, without a time. Use [DateTimePicker](/date-time-picker) when you need a time too.
+
+<Example name="date-picker" />
+
+The value is a `CalendarDate`: a year, a month and a day, and the calendar system they belong to. It is in the calendar system on screen, so a Persian picker gives a Persian date. Use `convertDate` from `@calendrix/core` to store it in another system.
+
+## How to bind the value
+
+| Framework | Value in, value out                                                              |
+| --------- | -------------------------------------------------------------------------------- |
+| React     | `value` and `onChange`, or `defaultValue` for an uncontrolled picker             |
+| Vue       | `v-model`                                                                        |
+| Angular   | `[(value)]`; the picker also works with Angular forms (`ngModel`, `formControl`) |
+
+## Range
+
+Set `selection="range"` (in Angular, `[selection]="'range'"`). The value becomes `{ start, end }`, and the calendar shows two months so a range can cross a month boundary.
+
+<Example name="date-picker-range" />
+
+A range takes two clicks. The first sets the start, the pointer or the arrow keys preview the range, and the second completes it. If the second day is before the first, the two swap. You can also type a range, for example `11/18/2026 – 11/25/2026`: the separator can be an en dash or an em dash, a hyphen with spaces around it, or the word `to`.
+
+`selection="multiple"` selects many days: the value is a list of dates. Its input is read-only: it lists the dates when there are at most three and shows a count otherwise.
+
+## Days that cannot be picked
+
+`minDate` and `maxDate` limit the range of days, and `isDateUnavailable` marks any other day. A plugin can mark days too.
+
+<Tabs items={['React', 'Vue', 'Angular']}>
+  <Tabs.Tab>
+
+```tsx
+<DatePicker
+  value={date}
+  onChange={setDate}
+  minDate={{ system: 'gregory', year: 2026, month: 11, day: 1 }}
+  maxDate={{ system: 'gregory', year: 2026, month: 12, day: 31 }}
+  isDateUnavailable={(day) => day.day === 13}
+/>
+```
+
+  </Tabs.Tab>
+  <Tabs.Tab>
+
+```vue
+<DatePicker
+  v-model="date"
+  :min-date="{ system: 'gregory', year: 2026, month: 11, day: 1 }"
+  :max-date="{ system: 'gregory', year: 2026, month: 12, day: 31 }"
+  :is-date-unavailable="(day) => day.day === 13"
+/>
+```
+
+  </Tabs.Tab>
+  <Tabs.Tab>
+
+```html
+<calendrix-date-picker
+  [(value)]="date"
+  [minDate]="min"
+  [maxDate]="max"
+  [isDateUnavailable]="unavailable"
+/>
+```
+
+  </Tabs.Tab>
+</Tabs>
+
+## Typed text
+
+Text that is a date but cannot be selected is not a value. That is a day outside `minDate` and `maxDate`, a day that `isDateUnavailable` or a plugin rejects, or an unavailable end of a range. The change event is not fired, the previous value stays, and after the input loses the focus it is marked `aria-invalid`. The ✕ button clears both the value and the text.
+
+A value that your application passes in is not checked.
+
+## Props
+
+Props are written in camelCase. In a Vue template you can also use kebab-case (`:min-date`).
+
+| Prop                      | Type                                | Default                        | Description                                                                  |
+| ------------------------- | ----------------------------------- | ------------------------------ | ---------------------------------------------------------------------------- |
+| `selection`               | `'single' \| 'range' \| 'multiple'` | `'single'`                     | One day, a range, or many days. The type of the value follows it.            |
+| `value`, `defaultValue`   | follows `selection`                 |                                | The value. `defaultValue` starts an uncontrolled picker.                     |
+| `system`                  | `CalendarSystem`                    | `'gregory'`                    | The calendar system shown, and understood when typing.                       |
+| `locale`                  | `string`                            | `'en-US'`                      | BCP 47 locale for names, numerals and the order of a typed date.             |
+| `plugins`                 | `CalendarPlugin[]`                  |                                | For example `persianPlugin`. Define the array once, outside the component.   |
+| `minDate`, `maxDate`      | `CalendarDate`                      |                                | Days outside this range cannot be picked.                                    |
+| `isDateUnavailable`       | `(date) => boolean`                 |                                | Mark days as not selectable.                                                 |
+| `allowUnavailableInRange` | `boolean`                           | `true`                         | Range: allow a range that contains unavailable days.                         |
+| `maxSelected`             | `number`                            | no limit                       | Multiple: the most days that can be selected.                                |
+| `visibleMonths`           | `number`                            | `2` for a range, else `1`      | How many months the calendar shows (1 to 3).                                 |
+| `closeOnSelect`           | `boolean`                           | `true`, `false` for `multiple` | Close the popover when the selection is complete.                            |
+| `weekStart`               | `0` to `6`                          | from the locale                | The first day of the week. 0 is Sunday.                                      |
+| `direction`               | `'ltr' \| 'rtl'`                    | from the locale                | Text direction.                                                              |
+| `timeZone`, `now`         | `string`, `() => Date`              | runtime                        | Decide what "today" is. Inject `now` in tests.                               |
+| `labels`                  | `Partial<PickerLabels>`             | from the locale                | Texts of the picker, for translation.                                        |
+| `placeholder`             | `string`                            | a sample                       | Placeholder of the input.                                                    |
+| `disabled`                | `boolean`                           | `false`                        | Disable the picker.                                                          |
+| `portal`                  | `boolean`                           | `true`                         | Render the popover in `document.body`. `false` renders it next to the input. |
