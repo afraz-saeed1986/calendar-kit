@@ -3,9 +3,11 @@ import '@calendrix/vue/styles.css';
 import './demo.css';
 import App from './App.vue';
 import { examples } from './examples';
+import { followDocsTheme } from './examples/docs-theme';
 
 // The documentation site shows one example in an iframe, chosen by the hash: #date-picker
 const Example = examples[window.location.hash.slice(1)];
+if (Example) followDocsTheme();
 window.addEventListener('hashchange', () => window.location.reload());
 
 const Root = Example

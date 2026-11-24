@@ -1,6 +1,7 @@
 import { NgComponentOutlet } from '@angular/common';
 import { Component } from '@angular/core';
 import { examples } from './examples';
+import { followDocsTheme } from './examples/docs-theme';
 
 // The documentation site shows one example in an iframe, chosen by the hash: #date-picker
 @Component({
@@ -28,6 +29,7 @@ export class App {
   protected readonly example = examples[window.location.hash.slice(1)];
 
   constructor() {
+    if (this.example) followDocsTheme();
     window.addEventListener('hashchange', () => window.location.reload());
   }
 }
