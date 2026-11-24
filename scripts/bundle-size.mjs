@@ -23,7 +23,10 @@ function measure(bytes) {
 }
 
 const row = (name, size) => `| ${name} | ${kb(size.min)} | ${kb(size.gzip)} | ${kb(size.brotli)} |`;
-const table = (first) => [`| ${first} | minified | gzip | brotli |`, '| --- | ---: | ---: | ---: |'];
+const table = (first) => [
+  `| ${first} | minified | gzip | brotli |`,
+  '| --- | ---: | ---: | ---: |',
+];
 
 // 1. Each published entry file as a whole, nothing removed by tree shaking.
 const whole = [

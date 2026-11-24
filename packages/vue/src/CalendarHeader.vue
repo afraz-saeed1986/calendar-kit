@@ -25,8 +25,22 @@ const isLast = computed(
       v-bind="toVueProps(calendar.getPrevButtonProps())"
       class="calendrix-nav calendrix-prev"
     >
-      <svg class="calendrix-chevron" aria-hidden="true" focusable="false" width="16" height="16" viewBox="0 0 16 16">
-        <path d="M10 3 5 8l5 5" fill="none" stroke="currentColor" stroke-width="1.5" stroke-linecap="round" stroke-linejoin="round" />
+      <svg
+        class="calendrix-chevron"
+        aria-hidden="true"
+        focusable="false"
+        width="16"
+        height="16"
+        viewBox="0 0 16 16"
+      >
+        <path
+          d="M10 3 5 8l5 5"
+          fill="none"
+          stroke="currentColor"
+          stroke-width="1.5"
+          stroke-linecap="round"
+          stroke-linejoin="round"
+        />
       </svg>
     </button>
     <span v-else class="calendrix-nav-spacer" aria-hidden="true" />
@@ -59,8 +73,22 @@ const isLast = computed(
       v-bind="toVueProps(calendar.getNextButtonProps())"
       class="calendrix-nav calendrix-next"
     >
-      <svg class="calendrix-chevron" aria-hidden="true" focusable="false" width="16" height="16" viewBox="0 0 16 16">
-        <path d="M6 3l5 5-5 5" fill="none" stroke="currentColor" stroke-width="1.5" stroke-linecap="round" stroke-linejoin="round" />
+      <svg
+        class="calendrix-chevron"
+        aria-hidden="true"
+        focusable="false"
+        width="16"
+        height="16"
+        viewBox="0 0 16 16"
+      >
+        <path
+          d="M6 3l5 5-5 5"
+          fill="none"
+          stroke="currentColor"
+          stroke-width="1.5"
+          stroke-linecap="round"
+          stroke-linejoin="round"
+        />
       </svg>
     </button>
     <span v-else class="calendrix-nav-spacer" aria-hidden="true" />

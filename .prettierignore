@@ -3,3 +3,7 @@ dist
 .turbo
 coverage
 pnpm-lock.yaml
+.angular
+.next
+apps/docs/out
+apps/docs/public/demos

@@ -2,7 +2,12 @@ import { describe, expect, it } from 'vitest';
 import { datesSelectedText, formatSelection, isEmptySelection, toSystem } from '../src/picker-text';
 import type { CalendarDate } from '../src/types';
 
-const day = (value: number): CalendarDate => ({ system: 'gregory', year: 2026, month: 10, day: value });
+const day = (value: number): CalendarDate => ({
+  system: 'gregory',
+  year: 2026,
+  month: 10,
+  day: value,
+});
 
 describe('isEmptySelection', () => {
   it('is true for null and an empty list only', () => {

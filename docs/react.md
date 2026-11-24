@@ -120,22 +120,22 @@ Variables: `--calendrix-font`, `-bg`, `-fg`, `-muted`, `-border`, `-hover`, `-ac
 
 ### `<DateTimePicker/>`
 
-| Prop                                    | Type                                     | Default           | Description                                                                                     |
-| --------------------------------------- | ---------------------------------------- | ----------------- | ----------------------------------------------------------------------------------------------- |
-| `value`, `defaultValue`                 | `DateTimeValue \| null`                  |                   | Passing `value` (even `null`) makes the picker controlled.                                      |
-| `onChange`                              | `(value: DateTimeValue \| null) => void` |                   | Called when the user types or picks a valid date, or clears it.                                 |
-| `system`                                | `CalendarSystem`                         | `'gregory'`       | Calendar system shown and understood when typing.                                               |
-| `locale`                                | `string`                                 | `'en-US'`         | BCP 47 locale for names, numerals and the order of a typed date.                                |
-| `hourCycle`                             | `12 \| 24`                               | locale habit      | Clock style.                                                                                    |
-| `showSeconds`                           | `boolean`                                | `false`           | Show a seconds segment.                                                                         |
-| `minDate`, `maxDate`                    | `CalendarDate`                           |                   | Dates outside this range cannot be picked.                                                      |
-| `isDateUnavailable`                     | `(date) => boolean`                      |                   | Mark days as not selectable.                                                                    |
-| `plugins`                               | `CalendarPlugin[]`                       |                   | For example `persianPlugin`.                                                                    |
-| `timeZone`, `now`                       | `string`, `() => Date`                   | runtime           | Decide what "today" is. Inject `now` in tests.                                                  |
-| `labels`                                | `Partial<PickerLabels>`                  | locale            | Texts of the picker.                                                                            |
-| `placeholder`                           | `string`                                 | a sample          | Placeholder of the input.                                                                       |
-| `disabled`, `id`, `className`           |                                          |                   | As usual.                                                                                       |
-| `portal`                                | `boolean`                                | `true`            | Render the popover in `document.body`. `false` renders it next to the input.                    |
+| Prop                          | Type                                     | Default      | Description                                                                  |
+| ----------------------------- | ---------------------------------------- | ------------ | ---------------------------------------------------------------------------- |
+| `value`, `defaultValue`       | `DateTimeValue \| null`                  |              | Passing `value` (even `null`) makes the picker controlled.                   |
+| `onChange`                    | `(value: DateTimeValue \| null) => void` |              | Called when the user types or picks a valid date, or clears it.              |
+| `system`                      | `CalendarSystem`                         | `'gregory'`  | Calendar system shown and understood when typing.                            |
+| `locale`                      | `string`                                 | `'en-US'`    | BCP 47 locale for names, numerals and the order of a typed date.             |
+| `hourCycle`                   | `12 \| 24`                               | locale habit | Clock style.                                                                 |
+| `showSeconds`                 | `boolean`                                | `false`      | Show a seconds segment.                                                      |
+| `minDate`, `maxDate`          | `CalendarDate`                           |              | Dates outside this range cannot be picked.                                   |
+| `isDateUnavailable`           | `(date) => boolean`                      |              | Mark days as not selectable.                                                 |
+| `plugins`                     | `CalendarPlugin[]`                       |              | For example `persianPlugin`.                                                 |
+| `timeZone`, `now`             | `string`, `() => Date`                   | runtime      | Decide what "today" is. Inject `now` in tests.                               |
+| `labels`                      | `Partial<PickerLabels>`                  | locale       | Texts of the picker.                                                         |
+| `placeholder`                 | `string`                                 | a sample     | Placeholder of the input.                                                    |
+| `disabled`, `id`, `className` |                                          |              | As usual.                                                                    |
+| `portal`                      | `boolean`                                | `true`       | Render the popover in `document.body`. `false` renders it next to the input. |
 
 `DateTimePicker` also accepts these options of the calendar and the time field:
 
@@ -147,19 +147,25 @@ Variables: `--calendrix-font`, `-bg`, `-fg`, `-muted`, `-border`, `-hover`, `-ac
 A text input and a popover with a calendar, for one day, a range or many days, without a time (see [ADR 0014](adr/0014-date-picker.md)). Use `DateTimePicker` when a time is needed.
 
 ```tsx
-<DatePicker selection="range" system="persian" locale="fa-IR" plugins={[persianPlugin]} onChange={console.log} />
+<DatePicker
+  selection="range"
+  system="persian"
+  locale="fa-IR"
+  plugins={[persianPlugin]}
+  onChange={console.log}
+/>
 ```
 
-| Prop                                                                                                        | Type                                | Default                  | Description                                                                              |
-| ----------------------------------------------------------------------------------------------------------- | ----------------------------------- | ------------------------ | ---------------------------------------------------------------------------------------- |
-| `selection`                                                                                                 | `'single' \| 'range' \| 'multiple'` | `'single'`               | One day, a range, or many days. The type of `value` and `onChange` follows it.           |
-| `value`, `defaultValue`, `onChange`                                                                         | follows `selection`                 |                          | Passing `value` (even `null`, or `[]` for `multiple`) makes the picker controlled.       |
-| `closeOnSelect`                                                                                             | `boolean`                           | `true`, `false` for `multiple` | Close when the selection is complete: a picked day, or the second day of a range.  |
-| `visibleMonths`                                                                                             | `number`                            | `2` for `range`, else `1` | How many months the calendar shows.                                                     |
-| `allowUnavailableInRange`, `maxSelected`                                                                    |                                     |                          | As in `<Calendar/>`.                                                                     |
-| `system`, `locale`, `plugins`, `minDate`, `maxDate`, `isDateUnavailable`, `weekStart`, `direction`, `timeZone`, `now` |                           |                          | As in `<DateTimePicker/>` and `<Calendar/>`.                                             |
-| `labels`                                                                                                    | `Partial<PickerLabels> & { datesSelected?: (count: number) => string }` | locale | Texts of the picker. `datesSelected` is the text of a long list of days.       |
-| `placeholder`, `disabled`, `id`, `className`, `portal`                                                      |                                     |                          | As in `<DateTimePicker/>`.                                                               |
+| Prop                                                                                                                  | Type                                                                    | Default                        | Description                                                                        |
+| --------------------------------------------------------------------------------------------------------------------- | ----------------------------------------------------------------------- | ------------------------------ | ---------------------------------------------------------------------------------- |
+| `selection`                                                                                                           | `'single' \| 'range' \| 'multiple'`                                     | `'single'`                     | One day, a range, or many days. The type of `value` and `onChange` follows it.     |
+| `value`, `defaultValue`, `onChange`                                                                                   | follows `selection`                                                     |                                | Passing `value` (even `null`, or `[]` for `multiple`) makes the picker controlled. |
+| `closeOnSelect`                                                                                                       | `boolean`                                                               | `true`, `false` for `multiple` | Close when the selection is complete: a picked day, or the second day of a range.  |
+| `visibleMonths`                                                                                                       | `number`                                                                | `2` for `range`, else `1`      | How many months the calendar shows.                                                |
+| `allowUnavailableInRange`, `maxSelected`                                                                              |                                                                         |                                | As in `<Calendar/>`.                                                               |
+| `system`, `locale`, `plugins`, `minDate`, `maxDate`, `isDateUnavailable`, `weekStart`, `direction`, `timeZone`, `now` |                                                                         |                                | As in `<DateTimePicker/>` and `<Calendar/>`.                                       |
+| `labels`                                                                                                              | `Partial<PickerLabels> & { datesSelected?: (count: number) => string }` | locale                         | Texts of the picker. `datesSelected` is the text of a long list of days.           |
+| `placeholder`, `disabled`, `id`, `className`, `portal`                                                                |                                                                         |                                | As in `<DateTimePicker/>`.                                                         |
 
 The text in the input:
 
@@ -175,39 +181,39 @@ Like `Calendar`, the value is in the calendar system on screen. Use `convertDate
 
 Accepts every option of `createCalendar` (`CalendarOptions<M>`) and `className`. The type of `value`, `defaultValue` and `onChange` follows `selection`.
 
-| Prop                                    | Type                        | Default                | Description                                                                          |
-| --------------------------------------- | --------------------------- | ---------------------- | ------------------------------------------------------------------------------------ |
-| `selection`                             | `'single' \| 'range' \| 'multiple'` | `'single'`     | One day (`CalendarDate`), a range (`DateRange`) or many days (`CalendarDate[]`).     |
-| `value`, `defaultValue`, `onChange`     | follows `selection`         |                        | `null` means controlled with nothing selected; an empty array for `multiple`.        |
-| `visibleMonths`                         | `number`                    | `1`                    | 1, 2 or 3 months side by side.                                                       |
-| `allowUnavailableInRange`               | `boolean`                   | `true`                 | Range: allow a range that contains unavailable days.                                 |
-| `maxSelected`                           | `number`                    | no limit               | Multiple: the most days that can be selected.                                        |
-| `system`, `locale`                      | `CalendarSystem`, `string`  | `'gregory'`, `'en-US'` | Calendar system and locale.                                                          |
-| `direction`                             | `'ltr' \| 'rtl'`            | from the locale        |                                                                                      |
-| `weekStart`                             | `0..6`                      | from the locale        | 0 is Sunday.                                                                         |
-| `focusedDate`, `onFocusedDateChange`    | `CalendarDate`              | today                  | The date that decides the visible month.                                             |
-| `minDate`, `maxDate`                    | `CalendarDate`              |                        | Dates outside this range are disabled.                                               |
-| `isDateUnavailable`                     | `(date) => boolean`         |                        | Mark days as not selectable.                                                         |
-| `labels`                                | `Partial<CalendarLabels & ViewLabels>` | locale      | Texts of the buttons.                                                                |
-| `timeZone`, `now`                       | `string`, `() => Date`      | runtime                | Decide what "today" is.                                                              |
-| `plugins`                               | `CalendarPlugin[]`          |                        | Register calendar systems and decorate days.                                         |
-| `className`                             | `string`                    |                        | Added to the root element.                                                           |
+| Prop                                 | Type                                   | Default                | Description                                                                      |
+| ------------------------------------ | -------------------------------------- | ---------------------- | -------------------------------------------------------------------------------- |
+| `selection`                          | `'single' \| 'range' \| 'multiple'`    | `'single'`             | One day (`CalendarDate`), a range (`DateRange`) or many days (`CalendarDate[]`). |
+| `value`, `defaultValue`, `onChange`  | follows `selection`                    |                        | `null` means controlled with nothing selected; an empty array for `multiple`.    |
+| `visibleMonths`                      | `number`                               | `1`                    | 1, 2 or 3 months side by side.                                                   |
+| `allowUnavailableInRange`            | `boolean`                              | `true`                 | Range: allow a range that contains unavailable days.                             |
+| `maxSelected`                        | `number`                               | no limit               | Multiple: the most days that can be selected.                                    |
+| `system`, `locale`                   | `CalendarSystem`, `string`             | `'gregory'`, `'en-US'` | Calendar system and locale.                                                      |
+| `direction`                          | `'ltr' \| 'rtl'`                       | from the locale        |                                                                                  |
+| `weekStart`                          | `0..6`                                 | from the locale        | 0 is Sunday.                                                                     |
+| `focusedDate`, `onFocusedDateChange` | `CalendarDate`                         | today                  | The date that decides the visible month.                                         |
+| `minDate`, `maxDate`                 | `CalendarDate`                         |                        | Dates outside this range are disabled.                                           |
+| `isDateUnavailable`                  | `(date) => boolean`                    |                        | Mark days as not selectable.                                                     |
+| `labels`                             | `Partial<CalendarLabels & ViewLabels>` | locale                 | Texts of the buttons.                                                            |
+| `timeZone`, `now`                    | `string`, `() => Date`                 | runtime                | Decide what "today" is.                                                          |
+| `plugins`                            | `CalendarPlugin[]`                     |                        | Register calendar systems and decorate days.                                     |
+| `className`                          | `string`                               |                        | Added to the root element.                                                       |
 
 ### `<TimeField/>`
 
 Accepts every option of `createTimeField` (`TimeFieldOptions`) and `className`.
 
-| Prop                                          | Type                              | Default      | Description                                      |
-| --------------------------------------------- | --------------------------------- | ------------ | ------------------------------------------------ |
-| `value`, `defaultValue`                       | `TimeValue \| null`               |              | Passing `value` (even `null`) makes it controlled. |
-| `onChange`                                    | `(value: TimeValue \| null) => void` |           | Called when the time changes or is emptied.      |
-| `locale`                                      | `string`                          | `'en-US'`    | Numerals and the AM/PM text.                     |
-| `hourCycle`                                   | `12 \| 24`                        | locale habit | Clock style.                                     |
-| `showSeconds`                                 | `boolean`                         | `false`      | Show a seconds segment.                          |
-| `hourStep`, `minuteStep`, `secondStep`        | `number`                          | `1`          | Step of the up and down arrows.                  |
-| `minTime`, `maxTime`                          | `TimeValue`                       |              | Values outside this range are rejected.          |
-| `labels`                                      | `Partial<TimeFieldLabels>`        | English      | Texts spoken by screen readers.                  |
-| `className`                                   | `string`                          |              | Added to the root element.                       |
+| Prop                                   | Type                                 | Default      | Description                                        |
+| -------------------------------------- | ------------------------------------ | ------------ | -------------------------------------------------- |
+| `value`, `defaultValue`                | `TimeValue \| null`                  |              | Passing `value` (even `null`) makes it controlled. |
+| `onChange`                             | `(value: TimeValue \| null) => void` |              | Called when the time changes or is emptied.        |
+| `locale`                               | `string`                             | `'en-US'`    | Numerals and the AM/PM text.                       |
+| `hourCycle`                            | `12 \| 24`                           | locale habit | Clock style.                                       |
+| `showSeconds`                          | `boolean`                            | `false`      | Show a seconds segment.                            |
+| `hourStep`, `minuteStep`, `secondStep` | `number`                             | `1`          | Step of the up and down arrows.                    |
+| `minTime`, `maxTime`                   | `TimeValue`                          |              | Values outside this range are rejected.            |
+| `labels`                               | `Partial<TimeFieldLabels>`           | English      | Texts spoken by screen readers.                    |
+| `className`                            | `string`                             |              | Added to the root element.                         |
 
 ### Hooks and helpers
 

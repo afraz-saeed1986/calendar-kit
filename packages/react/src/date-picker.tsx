@@ -213,8 +213,7 @@ export function DatePicker<M extends SelectionMode = 'single'>({
     if (selection !== 'multiple' && text.trim() !== '' && parse(text)) setText(valueKey);
   };
 
-  const invalid =
-    selection !== 'multiple' && touched && text.trim() !== '' && parse(text) === null;
+  const invalid = selection !== 'multiple' && touched && text.trim() !== '' && parse(text) === null;
 
   const handleCalendarChange = (next: SelectionValue<M>) => {
     commit(next as Selection);

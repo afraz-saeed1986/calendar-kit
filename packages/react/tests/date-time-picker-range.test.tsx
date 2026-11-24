@@ -19,7 +19,8 @@ const week: DateTimeRange = { start: at(14, 9, 30), end: at(21, 17, 0) };
 const sameDay: DateTimeRange = { start: at(14, 9, 30), end: at(14, 17, 0) };
 
 const input = () => screen.getByRole('textbox') as HTMLInputElement;
-const openPopover = () => fireEvent.click(screen.getByRole('button', { name: 'Choose date and time' }));
+const openPopover = () =>
+  fireEvent.click(screen.getByRole('button', { name: 'Choose date and time' }));
 const day = (name: RegExp) => screen.getByRole('gridcell', { name });
 const hourOf = (group: string) =>
   within(screen.getByRole('group', { name: group })).getAllByRole('spinbutton')[0] as HTMLElement;

@@ -97,7 +97,8 @@ const { open, close, inputRef, wrapperRef, popoverRef, dialogId, popoverStyle, t
   usePickerPopover({ portal: () => props.portal });
 const text_ = computed(() => pickerLabelsFor(props.locale, props.labels, 'date'));
 
-const format = (next: Selection) => formatSelection(next, props.locale, props.labels?.datesSelected);
+const format = (next: Selection) =>
+  formatSelection(next, props.locale, props.labels?.datesSelected);
 const valueKey = computed(() => format(shown.value));
 
 const text = ref(valueKey.value);
@@ -178,7 +179,10 @@ function onInputKeydown(event: KeyboardEvent): void {
   if (event.key === 'ArrowDown') {
     event.preventDefault();
     open.value = true;
-  } else if (selection.value === 'multiple' && (event.key === 'Delete' || event.key === 'Backspace')) {
+  } else if (
+    selection.value === 'multiple' &&
+    (event.key === 'Delete' || event.key === 'Backspace')
+  ) {
     event.preventDefault();
     commit(empty.value);
   }
@@ -206,8 +210,12 @@ function clear(): void {
 
 const samplePlaceholder = computed(() => {
   const sample = convertDate({ system: 'gregory', year: 2026, month: 10, day: 14 }, props.system);
-  const sampleEnd = convertDate({ system: 'gregory', year: 2026, month: 10, day: 21 }, props.system);
-  if (selection.value === 'range') return formatDateRange({ start: sample, end: sampleEnd }, props.locale);
+  const sampleEnd = convertDate(
+    { system: 'gregory', year: 2026, month: 10, day: 21 },
+    props.system,
+  );
+  if (selection.value === 'range')
+    return formatDateRange({ start: sample, end: sampleEnd }, props.locale);
   return selection.value === 'multiple' ? '' : formatDate(sample, props.locale);
 });
 </script>
@@ -239,7 +247,13 @@ const samplePlaceholder = computed(() => {
         @click="clear"
       >
         <svg aria-hidden="true" focusable="false" width="14" height="14" viewBox="0 0 14 14">
-          <path d="M3 3l8 8M11 3l-8 8" fill="none" stroke="currentColor" stroke-width="1.5" stroke-linecap="round" />
+          <path
+            d="M3 3l8 8M11 3l-8 8"
+            fill="none"
+            stroke="currentColor"
+            stroke-width="1.5"
+            stroke-linecap="round"
+          />
         </svg>
       </button>
       <button
@@ -253,8 +267,23 @@ const samplePlaceholder = computed(() => {
         @click="open = !open"
       >
         <svg aria-hidden="true" focusable="false" width="18" height="18" viewBox="0 0 18 18">
-          <rect x="2.5" y="3.5" width="13" height="12" rx="2" fill="none" stroke="currentColor" stroke-width="1.5" />
-          <path d="M2.5 7.5h13M6 2v3M12 2v3" fill="none" stroke="currentColor" stroke-width="1.5" stroke-linecap="round" />
+          <rect
+            x="2.5"
+            y="3.5"
+            width="13"
+            height="12"
+            rx="2"
+            fill="none"
+            stroke="currentColor"
+            stroke-width="1.5"
+          />
+          <path
+            d="M2.5 7.5h13M6 2v3M12 2v3"
+            fill="none"
+            stroke="currentColor"
+            stroke-width="1.5"
+            stroke-linecap="round"
+          />
         </svg>
       </button>
     </div>
@@ -294,7 +323,11 @@ const samplePlaceholder = computed(() => {
             <button type="button" class="calendrix-action" @click="commit(empty)">
               {{ text_.clear }}
             </button>
-            <button type="button" class="calendrix-action calendrix-action-primary" @click="close(true)">
+            <button
+              type="button"
+              class="calendrix-action calendrix-action-primary"
+              @click="close(true)"
+            >
               {{ text_.done }}
             </button>
           </div>

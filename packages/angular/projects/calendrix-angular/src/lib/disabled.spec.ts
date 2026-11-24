@@ -118,7 +118,11 @@ describe('forms: CalendrixCalendar', () => {
     const fixture = await setup(CalendarFormHost);
     dayCell(fixture, '20')?.click();
     await settle(fixture);
-    expect(fixture.componentInstance.control.value).toMatchObject({ year: 2026, month: 10, day: 20 });
+    expect(fixture.componentInstance.control.value).toMatchObject({
+      year: 2026,
+      month: 10,
+      day: 20,
+    });
     expect(fixture.componentInstance.control.dirty).toBe(true);
   });
 
@@ -155,9 +159,9 @@ describe('forms: CalendrixCalendar', () => {
 describe('CalendrixTimeField: disabled', () => {
   it('marks the field, takes the segments out of the tab order and ignores keys', async () => {
     const fixture = await setup(TimeInputHost);
-    expect(query<HTMLElement>(fixture, '.calendrix-time-field')?.getAttribute('aria-disabled')).toBe(
-      'true',
-    );
+    expect(
+      query<HTMLElement>(fixture, '.calendrix-time-field')?.getAttribute('aria-disabled'),
+    ).toBe('true');
     for (const segment of segments(fixture)) {
       expect(segment.getAttribute('tabindex')).toBe('-1');
       expect(segment.getAttribute('aria-disabled')).toBe('true');

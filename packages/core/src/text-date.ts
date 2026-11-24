@@ -63,15 +63,12 @@ export function datePatternOf(
 export function formatDate(date: CalendarDate, locale: string = DEFAULT_LOCALE): string {
   const pattern = datePatternOf(locale, date.system);
   const epochDay = getCalendar(date.system).toEpochDay(date);
-  const parts = dateTimeFormat(
-    cachedLocale(locale, { calendar: date.system }).toString(),
-    {
-      year: 'numeric',
-      month: '2-digit',
-      day: '2-digit',
-      timeZone: 'UTC',
-    },
-  ).formatToParts(new Date(epochDay * MS_PER_DAY));
+  const parts = dateTimeFormat(cachedLocale(locale, { calendar: date.system }).toString(), {
+    year: 'numeric',
+    month: '2-digit',
+    day: '2-digit',
+    timeZone: 'UTC',
+  }).formatToParts(new Date(epochDay * MS_PER_DAY));
 
   const read = (type: DateField) => parts.find((part) => part.type === type)?.value ?? '';
   return pattern.order.map(read).join(pattern.separator);

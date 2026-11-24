@@ -1,7 +1,7 @@
+import type { ElementRef } from '@angular/core';
 import {
   ChangeDetectionStrategy,
   Component,
-  ElementRef,
   Injector,
   forwardRef,
   afterNextRender,
@@ -241,7 +241,9 @@ export class CalendrixDatePicker<M extends SelectionMode = 'single'>
   /** The value as the parent gave it, or the default (and the empty value) until a first change. */
   private readonly current = computed(() => {
     const value = this.value();
-    return (value !== undefined ? value : (this.defaultValue() ?? this.empty())) as SelectionValue<M>;
+    return (
+      value !== undefined ? value : (this.defaultValue() ?? this.empty())
+    ) as SelectionValue<M>;
   });
 
   /** The selection in the calendar system on screen. */

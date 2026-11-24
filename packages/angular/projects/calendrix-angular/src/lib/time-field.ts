@@ -98,23 +98,21 @@ export class CalendrixTimeField implements OnInit, ControlValueAccessor {
     this.onChangeFn(next);
   };
 
-  private readonly options = computed<TimeFieldOptions>(() =>
-    ({
-      value: this.value(),
-      defaultValue: this.defaultValue(),
-      locale: this.locale(),
-      hourCycle: this.hourCycle(),
-      showSeconds: this.showSeconds(),
-      hourStep: this.hourStep(),
-      minuteStep: this.minuteStep(),
-      secondStep: this.secondStep(),
-      minTime: this.minTime(),
-      maxTime: this.maxTime(),
-      labels: this.labels(),
-      disabled: this.disabled(),
-      onChange: this.handleChange,
-    }),
-  );
+  private readonly options = computed<TimeFieldOptions>(() => ({
+    value: this.value(),
+    defaultValue: this.defaultValue(),
+    locale: this.locale(),
+    hourCycle: this.hourCycle(),
+    showSeconds: this.showSeconds(),
+    hourStep: this.hourStep(),
+    minuteStep: this.minuteStep(),
+    secondStep: this.secondStep(),
+    minTime: this.minTime(),
+    maxTime: this.maxTime(),
+    labels: this.labels(),
+    disabled: this.disabled(),
+    onChange: this.handleChange,
+  }));
 
   protected readonly view = computed(() => {
     const state = this.state();

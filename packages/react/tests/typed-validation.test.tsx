@@ -30,7 +30,14 @@ describe('DatePicker: a typed date must be one the user could pick (ADR 0025)', 
   const setup = (props: Record<string, unknown> = {}) => {
     const onChange = vi.fn();
     const { container } = render(
-      <DatePicker locale="en-US" now={now} timeZone="UTC" {...limits} {...props} onChange={onChange} />,
+      <DatePicker
+        locale="en-US"
+        now={now}
+        timeZone="UTC"
+        {...limits}
+        {...props}
+        onChange={onChange}
+      />,
     );
     return { container, onChange };
   };

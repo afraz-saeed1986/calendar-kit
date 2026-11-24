@@ -37,8 +37,6 @@ function chunk<T>(items: readonly T[], size: number): T[][] {
   return rows;
 }
 
-
-
 /**
  * A month calendar with the ARIA grid pattern. The month and the year in the header are buttons:
  * they open a grid of months and a page of years. `visibleMonths` shows up to three months side
@@ -137,11 +135,7 @@ function chunk<T>(items: readonly T[], size: number): T[][] {
     <ng-template #header let-g>
       <div class="calendrix-header">
         @if (g.index === 0) {
-          <button
-            type="button"
-            class="calendrix-nav calendrix-prev"
-            [calendrixProps]="view().prev"
-          >
+          <button type="button" class="calendrix-nav calendrix-prev" [calendrixProps]="view().prev">
             <svg
               class="calendrix-chevron"
               aria-hidden="true"
@@ -192,11 +186,7 @@ function chunk<T>(items: readonly T[], size: number): T[][] {
         }
 
         @if (g.isLast) {
-          <button
-            type="button"
-            class="calendrix-nav calendrix-next"
-            [calendrixProps]="view().next"
-          >
+          <button type="button" class="calendrix-nav calendrix-next" [calendrixProps]="view().next">
             <svg
               class="calendrix-chevron"
               aria-hidden="true"
@@ -315,31 +305,29 @@ export class CalendrixCalendar<M extends SelectionMode = 'single'>
   };
   private readonly handleFocusedDate = (date: CalendarDate) => this.focusedDateChange.emit(date);
 
-  private readonly options = computed<Partial<CalendarOptions<M>>>(() =>
-    ({
-      selection: this.selection(),
-      value: this.value(),
-      defaultValue: this.defaultValue(),
-      system: this.system(),
-      locale: this.locale(),
-      direction: this.direction(),
-      weekStart: this.weekStart(),
-      plugins: this.plugins(),
-      focusedDate: this.focusedDate(),
-      visibleMonths: this.visibleMonths(),
-      allowUnavailableInRange: this.allowUnavailableInRange(),
-      maxSelected: this.maxSelected(),
-      minDate: this.minDate(),
-      maxDate: this.maxDate(),
-      isDateUnavailable: this.isDateUnavailable(),
-      labels: this.labels(),
-      timeZone: this.timeZone(),
-      now: this.now(),
-      disabled: this.disabled(),
-      onChange: this.handleChange,
-      onFocusedDateChange: this.handleFocusedDate,
-    }),
-  );
+  private readonly options = computed<Partial<CalendarOptions<M>>>(() => ({
+    selection: this.selection(),
+    value: this.value(),
+    defaultValue: this.defaultValue(),
+    system: this.system(),
+    locale: this.locale(),
+    direction: this.direction(),
+    weekStart: this.weekStart(),
+    plugins: this.plugins(),
+    focusedDate: this.focusedDate(),
+    visibleMonths: this.visibleMonths(),
+    allowUnavailableInRange: this.allowUnavailableInRange(),
+    maxSelected: this.maxSelected(),
+    minDate: this.minDate(),
+    maxDate: this.maxDate(),
+    isDateUnavailable: this.isDateUnavailable(),
+    labels: this.labels(),
+    timeZone: this.timeZone(),
+    now: this.now(),
+    disabled: this.disabled(),
+    onChange: this.handleChange,
+    onFocusedDateChange: this.handleFocusedDate,
+  }));
 
   /** Everything the template needs, computed once for each state. */
   protected readonly view = computed(() => {
@@ -446,7 +434,11 @@ export class CalendrixCalendar<M extends SelectionMode = 'single'>
 
   /** Escape leaves the months or the years from anywhere in the calendar, also from a button. */
   protected onRootKeydown(event: KeyboardEvent): void {
-    if (event.key !== 'Escape' || event.defaultPrevented || this.calendar.getState().view === 'days') {
+    if (
+      event.key !== 'Escape' ||
+      event.defaultPrevented ||
+      this.calendar.getState().view === 'days'
+    ) {
       return;
     }
     event.preventDefault();

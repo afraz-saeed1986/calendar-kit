@@ -314,7 +314,10 @@ export function createTimeField(initial: TimeFieldOptions = {}): TimeField {
       if (activeSegment !== type) setActive(type);
       let handled = false;
 
-      if (event.inputType === 'deleteContentBackward' || event.inputType === 'deleteContentForward') {
+      if (
+        event.inputType === 'deleteContentBackward' ||
+        event.inputType === 'deleteContentForward'
+      ) {
         field.clear();
         handled = true;
       } else if (

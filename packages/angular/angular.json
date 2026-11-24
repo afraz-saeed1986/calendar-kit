@@ -76,10 +76,7 @@
                 "input": "projects/demo/public"
               }
             ],
-            "styles": [
-              "projects/demo/src/styles.css",
-              "dist/calendrix-angular/styles.css"
-            ]
+            "styles": ["projects/demo/src/styles.css", "dist/calendrix-angular/styles.css"]
           },
           "configurations": {
             "production": {
@@ -162,10 +159,7 @@
                 "input": "projects/demo-ssr/public"
               }
             ],
-            "styles": [
-              "projects/demo-ssr/src/styles.css",
-              "dist/calendrix-angular/styles.css"
-            ],
+            "styles": ["projects/demo-ssr/src/styles.css", "dist/calendrix-angular/styles.css"],
             "server": "projects/demo-ssr/src/main.server.ts",
             "outputMode": "server",
             "security": {

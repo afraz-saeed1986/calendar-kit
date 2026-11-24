@@ -1,10 +1,5 @@
 <script setup lang="ts" generic="M extends SelectionMode = 'single'">
-import type {
-  CalendarDate,
-  CalendarOptions,
-  SelectionMode,
-  SelectionValue,
-} from '@calendrix/core';
+import type { CalendarDate, CalendarOptions, SelectionMode, SelectionValue } from '@calendrix/core';
 import { computed, useTemplateRef, watch } from 'vue';
 import CalendarDays from './CalendarDays.vue';
 import CalendarHeader from './CalendarHeader.vue';
@@ -113,7 +108,11 @@ function onRootKeydown(event: KeyboardEvent): void {
     @keydown="onRootKeydown"
   >
     <div v-if="multi" class="calendrix-panels" @pointerleave="calendar.previewTo(null)">
-      <div v-for="(grid, index) in state.grids" :key="`${grid.year}-${grid.month}`" class="calendrix-panel">
+      <div
+        v-for="(grid, index) in state.grids"
+        :key="`${grid.year}-${grid.month}`"
+        class="calendrix-panel"
+      >
         <CalendarHeader :calendar="calendar" :state="state" :index="index" />
         <CalendarDays :calendar="calendar" :state="state" :grid="grid" :index="index" multi />
       </div>
@@ -139,7 +138,12 @@ function onRootKeydown(event: KeyboardEvent): void {
         @keydown="calendar.handleKeyDown($event)"
       >
         <template v-if="state.view === 'months'">
-          <div v-for="(row, rowIndex) in chunk(state.months, COLUMNS)" :key="rowIndex" role="row" class="calendrix-row">
+          <div
+            v-for="(row, rowIndex) in chunk(state.months, COLUMNS)"
+            :key="rowIndex"
+            role="row"
+            class="calendrix-row"
+          >
             <div
               v-for="cell in row"
               :key="cell.month"
@@ -151,7 +155,12 @@ function onRootKeydown(event: KeyboardEvent): void {
           </div>
         </template>
         <template v-else>
-          <div v-for="(row, rowIndex) in chunk(state.years, COLUMNS)" :key="rowIndex" role="row" class="calendrix-row">
+          <div
+            v-for="(row, rowIndex) in chunk(state.years, COLUMNS)"
+            :key="rowIndex"
+            role="row"
+            class="calendrix-row"
+          >
             <div
               v-for="cell in row"
               :key="cell.year"

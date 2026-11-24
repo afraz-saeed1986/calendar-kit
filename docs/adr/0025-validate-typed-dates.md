@@ -26,10 +26,11 @@ enter a value disagree, and the application can receive a value that it forbade.
    `options` is `SelectableOptions`: `minDate`, `maxDate`, `isDateUnavailable`, `plugins`,
    `locale` and `system` (the context of the plugins; default: the system of the date and
    `en-US`), `allowUnavailableInRange`, `minTime` and `maxTime`.
+
 3. **The rule for a day is the rule of the calendar.** A day is selectable when it is inside
    `minDate`..`maxDate` (compared as epoch days, so a date in another calendar system compares
    right) and neither `isDateUnavailable` nor a plugin (`isDateUnavailable(date, { system,
-   locale })`) marks it. A plugin does not need a visible month: its context holds only the system
+locale })`) marks it. A plugin does not need a visible month: its context holds only the system
    and the locale.
 4. **A range** needs both ends to be selectable. The days between them may be unavailable, unless
    `allowUnavailableInRange` is `false`, as in `selectDay` of the calendar.
@@ -51,7 +52,6 @@ enter a value disagree, and the application can receive a value that it forbade.
 1. Core: `selectable.ts`, the exports, tests.
 2. React, Vue, Angular, one by one, with tests.
 3. `docs/api.md`, the roadmap, the Result section.
-
 
 ## Result
 

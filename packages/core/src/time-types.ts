@@ -1,10 +1,4 @@
-import type {
-  CalendarDate,
-  Direction,
-  ElementProps,
-  InputEventLike,
-  KeyEventLike,
-} from './types';
+import type { CalendarDate, Direction, ElementProps, InputEventLike, KeyEventLike } from './types';
 
 /** A time of day on a 24-hour clock. */
 export interface TimeValue {

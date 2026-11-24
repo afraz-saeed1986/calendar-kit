@@ -12,7 +12,9 @@ const value = {
 describe('<DateTimePicker /> clear button', () => {
   it('clears the value and gives the focus to the input', () => {
     const onChange = vi.fn();
-    render(<DateTimePicker locale="en-US" hourCycle={24} defaultValue={value} onChange={onChange} />);
+    render(
+      <DateTimePicker locale="en-US" hourCycle={24} defaultValue={value} onChange={onChange} />,
+    );
     const input = screen.getByRole('textbox') as HTMLInputElement;
     expect(input.value).not.toBe('');
 

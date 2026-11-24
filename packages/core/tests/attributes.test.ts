@@ -24,7 +24,11 @@ describe('normalizeAttributes', () => {
 
   it('leaves undefined off, also in aria-* and data-*', () => {
     expect(
-      normalizeAttributes({ 'aria-current': undefined, 'data-focused': undefined, role: undefined }),
+      normalizeAttributes({
+        'aria-current': undefined,
+        'data-focused': undefined,
+        role: undefined,
+      }),
     ).toEqual({});
   });
 

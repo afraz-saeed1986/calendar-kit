@@ -1,6 +1,6 @@
 import { cleanup, fireEvent, render, screen } from '@testing-library/react';
 import { afterEach, describe, expect, it } from 'vitest';
-  import { DateTimePicker } from '../src/date-time-picker';
+import { DateTimePicker } from '../src/date-time-picker';
 
 function openPopover(props: Parameters<typeof DateTimePicker>[0] = {}) {
   render(<DateTimePicker labels={{ done: 'Done' }} {...props} />);

@@ -20,6 +20,7 @@
 **Outside click.** The pointerdown check treats the wrapper and the popover as one region, because the popover is no longer a DOM descendant of the wrapper. React synthetic events still bubble through portals, but the native document listener does not, so it checks both refs.
 
 **Focus.**
+
 - On open, focus moves to the focused day (unchanged).
 - A focus trap keeps Tab and Shift+Tab inside the popover: from the last tabbable element Tab goes to the first, and the reverse for Shift+Tab. Tabbable elements are found at keydown time, so view switches do not break it.
 - Escape closes the popover and returns focus to the input (unchanged, ADR 0010 and 0011 rules about inner Escape still apply first).

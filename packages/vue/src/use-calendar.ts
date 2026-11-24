@@ -5,7 +5,14 @@ import {
   type CalendarState,
   type SelectionMode,
 } from '@calendrix/core';
-import { onScopeDispose, shallowRef, toValue, watch, type MaybeRefOrGetter, type ShallowRef } from 'vue';
+import {
+  onScopeDispose,
+  shallowRef,
+  toValue,
+  watch,
+  type MaybeRefOrGetter,
+  type ShallowRef,
+} from 'vue';
 
 export interface UseCalendarResult<M extends SelectionMode = 'single'> {
   /** The store: navigation methods, `select`, `handleKeyDown` and the prop getters. */

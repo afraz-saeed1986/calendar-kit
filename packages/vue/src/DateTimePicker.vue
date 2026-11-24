@@ -165,8 +165,12 @@ const shown = computed<Value>(() => {
     ? { start: inSystem(current.start), end: inSystem(current.end) }
     : inSystem(current);
 });
-const shownPoint = computed(() => (shown.value !== null && !isRange(shown.value) ? shown.value : null));
-const shownRange = computed(() => (shown.value !== null && isRange(shown.value) ? shown.value : null));
+const shownPoint = computed(() =>
+  shown.value !== null && !isRange(shown.value) ? shown.value : null,
+);
+const shownRange = computed(() =>
+  shown.value !== null && isRange(shown.value) ? shown.value : null,
+);
 /** The dates of a complete range, for the calendar. */
 const calendarRange = computed<DateRange | null>(() =>
   shownRange.value ? { start: shownRange.value.start.date, end: shownRange.value.end.date } : null,
@@ -329,7 +333,13 @@ const samplePlaceholder = computed(() => {
         @click="clearAndFocus"
       >
         <svg aria-hidden="true" focusable="false" width="14" height="14" viewBox="0 0 14 14">
-          <path d="M3 3l8 8M11 3l-8 8" fill="none" stroke="currentColor" stroke-width="1.5" stroke-linecap="round" />
+          <path
+            d="M3 3l8 8M11 3l-8 8"
+            fill="none"
+            stroke="currentColor"
+            stroke-width="1.5"
+            stroke-linecap="round"
+          />
         </svg>
       </button>
       <button
@@ -343,8 +353,23 @@ const samplePlaceholder = computed(() => {
         @click="open = !open"
       >
         <svg aria-hidden="true" focusable="false" width="18" height="18" viewBox="0 0 18 18">
-          <rect x="2.5" y="3.5" width="13" height="12" rx="2" fill="none" stroke="currentColor" stroke-width="1.5" />
-          <path d="M2.5 7.5h13M6 2v3M12 2v3" fill="none" stroke="currentColor" stroke-width="1.5" stroke-linecap="round" />
+          <rect
+            x="2.5"
+            y="3.5"
+            width="13"
+            height="12"
+            rx="2"
+            fill="none"
+            stroke="currentColor"
+            stroke-width="1.5"
+          />
+          <path
+            d="M2.5 7.5h13M6 2v3M12 2v3"
+            fill="none"
+            stroke="currentColor"
+            stroke-width="1.5"
+            stroke-linecap="round"
+          />
         </svg>
       </button>
     </div>
@@ -444,7 +469,11 @@ const samplePlaceholder = computed(() => {
           />
           <div class="calendrix-actions">
             <button type="button" class="calendrix-action" @click="clear">{{ texts.clear }}</button>
-            <button type="button" class="calendrix-action calendrix-action-primary" @click="close(true)">
+            <button
+              type="button"
+              class="calendrix-action calendrix-action-primary"
+              @click="close(true)"
+            >
               {{ texts.done }}
             </button>
           </div>

@@ -25,7 +25,6 @@ The formatter is created once at module level, because constructing it is much m
 - (−) Requires full ICU data. Node 13+ and modern browsers include it. A runtime without it throws a clear error.
 - (−) `toEpochDay` costs a few `Intl` calls. Fine for rendering a month; if it shows up in profiles, cache per year.
 
-
 ## Update: Intl for the Nowruz days, arithmetic for the rest
 
 `pnpm bench` showed that a Persian month was about seven times slower to build than a Gregorian

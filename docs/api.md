@@ -457,28 +457,28 @@ export interface TimeField {
 
 Pure functions, with no state. They are what the pickers use to write and read the text in their inputs.
 
-| Function | Result | What it does |
-| --- | --- | --- |
-| `formatDate(date, locale?)` | `string` | A numeric date the way the locale writes it, with its own numerals. |
-| `parseDate(text, options?)` | `CalendarDate \| null` | Reads a typed date. `options` is `{ locale?, system? }`. `null` when the text is not a valid date. |
-| `datePatternOf(locale?, system?)` | `DatePattern` | The order of the fields (`['day', 'month', 'year']` for de-DE) and the separator of a locale, read from `Intl`. |
-| `formatDateRange(range, locale?)` | `string` | `start – end`. |
-| `parseDateRange(text, options?)` | `DateRange \| null` | Reads a typed range; the ends are put in order. |
-| `formatTime(time, options?)` | `string` | `"09:05"` (de-DE), `"09:05 AM"` (en-US, 12 hours), `"۰۹:۰۵"` (fa-IR). `options` is `{ locale?, hourCycle?, seconds? }`. |
-| `parseTime(text)` | `TimeValue \| null` | Reads a typed time. |
-| `formatDateTime(value, options?)` | `string` | A date and a time in one text. `options` is `TextTimeOptions`. |
-| `parseDateTime(text, options?)` | `DateTimeValue \| null` | Reads a typed date and time. `options` is `{ locale?, system? }`. |
-| `formatDateTimeRange(range, options?)` | `string` | A range of two dates and times in one text, joined by an en dash. `options` is `TextTimeOptions`. |
-| `parseDateTimeRange(text, options?)` | `DateTimeRange \| null` | Reads a typed range. Both ends are needed; if the end is earlier than the start, the two are swapped. `options` is `{ locale?, system? }`. |
-| `stickEndToStart(range)` | `DateTimeRange` | If the start is later than the end, returns a range whose end equals the start; otherwise returns the same object. The pickers use it when a time is edited. |
-| `toInstant(value, timeZone?)` | `Date` | The real instant of a wall-clock value in a time zone. Default: the runtime's time zone. |
-| `fromInstant(instant, timeZone?, system?)` | `DateTimeValue` | The wall-clock value of an instant, in a time zone and a calendar system. |
-| `formatISODate(date)` / `parseISODate(text, system?)` | `string` / `CalendarDate \| null` | The ISO form (`2026-11-18`). |
-| `formatISOTime(time, { seconds? })` / `parseISOTime(text)` | `string` / `TimeValue \| null` | The ISO form of a time. |
-| `normalizeDigits(text)` | `string` | Persian and Arabic-Indic digits to Latin digits. |
-| `isDateSelectable(date, options?)` | `boolean` | True when the user could pick this day in a calendar: inside `minDate`..`maxDate` and not marked by `isDateUnavailable` or a plugin. `options` is `SelectableOptions`. |
-| `isRangeSelectable(range, options?)` | `boolean` | True when both ends are selectable. The days between may be unavailable, unless `options.allowUnavailableInRange` is `false`. |
-| `isTimeSelectable(time, options?)` | `boolean` | True when the time is inside `options.minTime`..`options.maxTime`, both included. |
+| Function                                                   | Result                            | What it does                                                                                                                                                           |
+| ---------------------------------------------------------- | --------------------------------- | ---------------------------------------------------------------------------------------------------------------------------------------------------------------------- |
+| `formatDate(date, locale?)`                                | `string`                          | A numeric date the way the locale writes it, with its own numerals.                                                                                                    |
+| `parseDate(text, options?)`                                | `CalendarDate \| null`            | Reads a typed date. `options` is `{ locale?, system? }`. `null` when the text is not a valid date.                                                                     |
+| `datePatternOf(locale?, system?)`                          | `DatePattern`                     | The order of the fields (`['day', 'month', 'year']` for de-DE) and the separator of a locale, read from `Intl`.                                                        |
+| `formatDateRange(range, locale?)`                          | `string`                          | `start – end`.                                                                                                                                                         |
+| `parseDateRange(text, options?)`                           | `DateRange \| null`               | Reads a typed range; the ends are put in order.                                                                                                                        |
+| `formatTime(time, options?)`                               | `string`                          | `"09:05"` (de-DE), `"09:05 AM"` (en-US, 12 hours), `"۰۹:۰۵"` (fa-IR). `options` is `{ locale?, hourCycle?, seconds? }`.                                                |
+| `parseTime(text)`                                          | `TimeValue \| null`               | Reads a typed time.                                                                                                                                                    |
+| `formatDateTime(value, options?)`                          | `string`                          | A date and a time in one text. `options` is `TextTimeOptions`.                                                                                                         |
+| `parseDateTime(text, options?)`                            | `DateTimeValue \| null`           | Reads a typed date and time. `options` is `{ locale?, system? }`.                                                                                                      |
+| `formatDateTimeRange(range, options?)`                     | `string`                          | A range of two dates and times in one text, joined by an en dash. `options` is `TextTimeOptions`.                                                                      |
+| `parseDateTimeRange(text, options?)`                       | `DateTimeRange \| null`           | Reads a typed range. Both ends are needed; if the end is earlier than the start, the two are swapped. `options` is `{ locale?, system? }`.                             |
+| `stickEndToStart(range)`                                   | `DateTimeRange`                   | If the start is later than the end, returns a range whose end equals the start; otherwise returns the same object. The pickers use it when a time is edited.           |
+| `toInstant(value, timeZone?)`                              | `Date`                            | The real instant of a wall-clock value in a time zone. Default: the runtime's time zone.                                                                               |
+| `fromInstant(instant, timeZone?, system?)`                 | `DateTimeValue`                   | The wall-clock value of an instant, in a time zone and a calendar system.                                                                                              |
+| `formatISODate(date)` / `parseISODate(text, system?)`      | `string` / `CalendarDate \| null` | The ISO form (`2026-11-18`).                                                                                                                                           |
+| `formatISOTime(time, { seconds? })` / `parseISOTime(text)` | `string` / `TimeValue \| null`    | The ISO form of a time.                                                                                                                                                |
+| `normalizeDigits(text)`                                    | `string`                          | Persian and Arabic-Indic digits to Latin digits.                                                                                                                       |
+| `isDateSelectable(date, options?)`                         | `boolean`                         | True when the user could pick this day in a calendar: inside `minDate`..`maxDate` and not marked by `isDateUnavailable` or a plugin. `options` is `SelectableOptions`. |
+| `isRangeSelectable(range, options?)`                       | `boolean`                         | True when both ends are selectable. The days between may be unavailable, unless `options.allowUnavailableInRange` is `false`.                                          |
+| `isTimeSelectable(time, options?)`                         | `boolean`                         | True when the time is inside `options.minTime`..`options.maxTime`, both included.                                                                                      |
 
 **Typed dates** ([ADR 0025](adr/0025-validate-typed-dates.md)). `SelectableOptions` has `minDate`, `maxDate`, `isDateUnavailable`, `plugins`, `locale` and `system` (the context that plugins get; default: the system of the date and `en-US`), `allowUnavailableInRange`, `minTime` and `maxTime`. `DatePicker` and `DateTimePicker` use these functions on a typed text: a date or a time that the user could not pick in the calendar is not a value, as a text that cannot be parsed is not. `onChange` is not called, the previous value stays, and after the blur the input has `aria-invalid`. Values that the application gives (`value`, `defaultValue`, a form) are not checked.
 

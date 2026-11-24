@@ -165,7 +165,9 @@ export function DateTimePicker<M extends DateTimeMode = 'single'>({
   const textOptions = { locale, hourCycle, seconds: showSeconds };
   const format = (next: Value): string => {
     if (next === null) return '';
-    return isRange(next) ? formatDateTimeRange(next, textOptions) : formatDateTime(next, textOptions);
+    return isRange(next)
+      ? formatDateTimeRange(next, textOptions)
+      : formatDateTime(next, textOptions);
   };
   const parseText = (next: string): Value =>
     isRangeMode
@@ -315,7 +317,16 @@ export function DateTimePicker<M extends DateTimeMode = 'single'>({
     ? format({ start: sampleStart, end: sampleEnd })
     : format(sampleStart);
 
-  const timeProps = { locale, hourCycle, showSeconds, hourStep, minuteStep, secondStep, minTime, maxTime };
+  const timeProps = {
+    locale,
+    hourCycle,
+    showSeconds,
+    hourStep,
+    minuteStep,
+    secondStep,
+    minTime,
+    maxTime,
+  };
 
   return (
     <div ref={setWrapper} className={['calendrix-picker', className].filter(Boolean).join(' ')}>
@@ -384,7 +395,9 @@ export function DateTimePicker<M extends DateTimeMode = 'single'>({
                 system={system}
                 locale={locale}
                 plugins={plugins}
-                value={shownRange ? { start: shownRange.start.date, end: shownRange.end.date } : null}
+                value={
+                  shownRange ? { start: shownRange.start.date, end: shownRange.end.date } : null
+                }
                 onChange={pickRange}
                 visibleMonths={visibleMonths ?? 2}
                 {...calendarOptions}

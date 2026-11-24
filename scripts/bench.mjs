@@ -10,6 +10,8 @@ core.registerCalendar(persian);
 const now = () => new Date('2026-10-14T10:00:00Z');
 const key = (value) => ({ key: value, preventDefault() {} });
 
+// Only written: it keeps the result of the call alive, so the engine cannot remove the call.
+// eslint-disable-next-line @typescript-eslint/no-unused-vars
 let sink;
 
 function bench(name, fn, { samples = 9, batchMs = 150 } = {}) {
@@ -86,7 +88,9 @@ if (core.parseDate(persianText, { locale: 'fa-IR', system: 'persian' }) === null
 }
 results.push(
   bench('formatDate (en-US)', () => core.formatDate(day, 'en-US')),
-  bench('parseDate (en-US)', () => core.parseDate('10/14/2026', { locale: 'en-US', system: 'gregory' })),
+  bench('parseDate (en-US)', () =>
+    core.parseDate('10/14/2026', { locale: 'en-US', system: 'gregory' }),
+  ),
   bench('formatDate (Persian, fa-IR)', () => core.formatDate(persianDay, 'fa-IR')),
   bench('parseDate (Persian, fa-IR)', () =>
     core.parseDate(persianText, { locale: 'fa-IR', system: 'persian' }),
@@ -98,7 +102,8 @@ results.push(
 results.push(
   bench('createTimeField + type "1430"', () => {
     const field = core.createTimeField({ locale: 'en-US', hourCycle: 24 });
-    for (const digit of '1430') field.handleKeyDown(field.getState().activeSegment ?? 'hour', key(digit));
+    for (const digit of '1430')
+      field.handleKeyDown(field.getState().activeSegment ?? 'hour', key(digit));
     const state = field.getState();
     field.destroy();
     return state;

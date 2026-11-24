@@ -34,5 +34,7 @@ export function parseDateRange(text: string, options: TextDateOptions = {}): Dat
 
   const [first, second] = parts.map((part) => parseDate(part, options));
   if (!first || !second) return null;
-  return compareDates(first, second) <= 0 ? { start: first, end: second } : { start: second, end: first };
+  return compareDates(first, second) <= 0
+    ? { start: first, end: second }
+    : { start: second, end: first };
 }

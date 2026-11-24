@@ -4,7 +4,14 @@ import {
   type TimeFieldOptions,
   type TimeFieldState,
 } from '@calendrix/core';
-import { onScopeDispose, shallowRef, toValue, watch, type MaybeRefOrGetter, type ShallowRef } from 'vue';
+import {
+  onScopeDispose,
+  shallowRef,
+  toValue,
+  watch,
+  type MaybeRefOrGetter,
+  type ShallowRef,
+} from 'vue';
 
 export interface UseTimeFieldResult {
   /** The store: `increment`, `clear`, `handleKeyDown` and the prop getters. */

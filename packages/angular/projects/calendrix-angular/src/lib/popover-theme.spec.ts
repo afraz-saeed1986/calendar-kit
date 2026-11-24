@@ -15,9 +15,9 @@ class HostDark {
 
 @Component({
   imports: [CalendrixDatePicker],
-  template: `<div data-theme="dark"
-    ><section data-theme="light"><calendrix-date-picker locale="en-US" [now]="now" /></section
-  ></div>`,
+  template: `<div data-theme="dark">
+    <section data-theme="light"><calendrix-date-picker locale="en-US" [now]="now" /></section>
+  </div>`,
 })
 class HostNested {
   now = now;
@@ -33,9 +33,9 @@ class HostNone {
 
 @Component({
   imports: [CalendrixDatePicker],
-  template: `<div data-theme="dark"
-    ><calendrix-date-picker locale="en-US" [now]="now" [portal]="false"
-  /></div>`,
+  template: `<div data-theme="dark">
+    <calendrix-date-picker locale="en-US" [now]="now" [portal]="false" />
+  </div>`,
 })
 class HostNoPortal {
   now = now;

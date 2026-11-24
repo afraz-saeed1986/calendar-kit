@@ -25,7 +25,10 @@ async function violations(): Promise<string[]> {
 }
 
 async function render(component: Component, props: Record<string, unknown>, open: boolean) {
-  const wrapper = mount(component, { props: { now, portal: false, ...props }, attachTo: document.body });
+  const wrapper = mount(component, {
+    props: { now, portal: false, ...props },
+    attachTo: document.body,
+  });
   mounted.push(wrapper);
   if (open) {
     await wrapper.get('input').trigger('keydown', { key: 'ArrowDown' });

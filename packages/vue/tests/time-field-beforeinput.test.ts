@@ -70,6 +70,8 @@ describe('TimeField: on-screen keyboard (ADR 0024)', () => {
   });
 
   it('is not editable when disabled', () => {
-    expect(segment(render({ disabled: true }), 'hour').attributes('contenteditable')).toBeUndefined();
+    expect(
+      segment(render({ disabled: true }), 'hour').attributes('contenteditable'),
+    ).toBeUndefined();
   });
 });

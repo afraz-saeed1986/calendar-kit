@@ -72,7 +72,7 @@ export function Calendar<M extends SelectionMode = 'single'>({
     focusFocusedCell();
   });
 
-   // A handled key gives a new `focusRequest`; the effect above moves the focus.
+  // A handled key gives a new `focusRequest`; the effect above moves the focus.
   const handleKeyDown = (event: KeyboardEvent<HTMLDivElement>) => {
     calendar.handleKeyDown(event);
   };

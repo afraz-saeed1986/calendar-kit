@@ -43,7 +43,6 @@ says so in its comment ("does not reach a portaled popover").
 2. The comments of the `portal` option, `docs/api.md` (if it says it), the roadmap, the Result
    section.
 
-   
 ## Result
 
 Done in all three adapters. The CSS did not change.

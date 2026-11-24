@@ -14,11 +14,7 @@ class Host {
 
 @Component({
   imports: [CalendrixTimeField],
-  template: `<calendrix-time-field
-    locale="en-US"
-    [hourCycle]="24"
-    [defaultValue]="time"
-  />`,
+  template: `<calendrix-time-field locale="en-US" [hourCycle]="24" [defaultValue]="time" />`,
 })
 class HostDefault {
   time = { hour: 9, minute: 30, second: 0 };

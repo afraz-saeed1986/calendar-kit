@@ -43,11 +43,7 @@ describe('TimeField: on-screen keyboard (ADR 0024)', () => {
 
   it('clears on a deletion', () => {
     const { container } = render(
-      <TimeField
-        locale="en-US"
-        hourCycle={24}
-        defaultValue={{ hour: 9, minute: 30, second: 0 }}
-      />,
+      <TimeField locale="en-US" hourCycle={24} defaultValue={{ hour: 9, minute: 30, second: 0 }} />,
     );
     type(segment(container, 'hour'), '', 'deleteContentBackward');
     expect(segment(container, 'hour').textContent).toBe('--');

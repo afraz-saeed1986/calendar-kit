@@ -19,7 +19,7 @@ The roadmap lists "Range in `DateTimePicker`" (M4).
    `selection` (`DateTimeValue | null` for `'single'`, `DateTimeRange | null` for `'range'`). Each
    end is a complete `DateTimeValue`, so `toInstant` works on each end as before.
 3. **Text.** The core gets `formatDateTimeRange(range, options)` and `parseDateTimeRange(text,
-   options)`: two `formatDateTime` texts joined by the separator that `formatDateRange` uses, and
+options)`: two `formatDateTime` texts joined by the separator that `formatDateRange` uses, and
    the reverse. Both are additions (ADR 0020). A text that cannot be parsed is not a value.
 4. **The popover.** The calendar in range mode (`visibleMonths` default 2), and under it two time
    fields with the labels "Start time" and "End time". The labels are new keys of `PickerLabels`
@@ -75,8 +75,7 @@ two functions, the demos show a range with times, and the roadmap item is checke
 
 1. Core: types, `formatDateTimeRange`, `parseDateTimeRange`, labels, tests.
 2. React. 3. Vue. 4. Angular (with forms).
-5. `docs/api.md`, the three demos, the roadmap.
-
+3. `docs/api.md`, the three demos, the roadmap.
 
 ## Result
 

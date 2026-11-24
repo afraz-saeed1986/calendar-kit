@@ -79,7 +79,11 @@ describe('forms: CalendrixDatePicker', () => {
     typeText(fixture, '10/20/2026');
     await settle(fixture);
 
-    expect(fixture.componentInstance.control.value).toMatchObject({ year: 2026, month: 10, day: 20 });
+    expect(fixture.componentInstance.control.value).toMatchObject({
+      year: 2026,
+      month: 10,
+      day: 20,
+    });
     expect(fixture.componentInstance.control.dirty).toBe(true);
   });
 

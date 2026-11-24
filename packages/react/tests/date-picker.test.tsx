@@ -84,21 +84,13 @@ describe('DatePicker', () => {
   });
 
   it('shows a count for a long list', () => {
-    render(
-      <DatePicker
-        selection="multiple"
-        now={now}
-        value={[nov(1), nov(2), nov(3), nov(4)]}
-      />,
-    );
+    render(<DatePicker selection="multiple" now={now} value={[nov(1), nov(2), nov(3), nov(4)]} />);
     expect((screen.getByRole('textbox') as HTMLInputElement).value).toBe('4 dates');
   });
 
   it('has a read-only input in multiple mode that Delete clears', () => {
     const onChange = vi.fn();
-    render(
-      <DatePicker selection="multiple" now={now} value={[nov(5)]} onChange={onChange} />,
-    );
+    render(<DatePicker selection="multiple" now={now} value={[nov(5)]} onChange={onChange} />);
     const input = screen.getByRole('textbox') as HTMLInputElement;
     expect(input.readOnly).toBe(true);
     fireEvent.keyDown(input, { key: 'Delete' });
@@ -129,7 +121,9 @@ describe('DatePicker', () => {
         onChange={onChange}
       />,
     );
-    type('\u06f1\u06f4\u06f0\u06f5/\u06f0\u06f9/\u06f0\u06f1 \u062a\u0627 \u06f1\u06f4\u06f0\u06f5/\u06f1\u06f0/\u06f0\u06f5');
+    type(
+      '\u06f1\u06f4\u06f0\u06f5/\u06f0\u06f9/\u06f0\u06f1 \u062a\u0627 \u06f1\u06f4\u06f0\u06f5/\u06f1\u06f0/\u06f0\u06f5',
+    );
     expect(onChange).toHaveBeenCalledWith({
       start: { system: 'persian', year: 1405, month: 9, day: 1 },
       end: { system: 'persian', year: 1405, month: 10, day: 5 },

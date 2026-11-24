@@ -34,7 +34,8 @@ export function TimeField({ className, ...options }: TimeFieldProps) {
     if (!root) return;
     const segmentOf = (event: Event): { element: HTMLElement; type: TimeSegmentType } | null => {
       const target = event.target;
-      const element = target instanceof Element ? target.closest<HTMLElement>('[data-segment]') : null;
+      const element =
+        target instanceof Element ? target.closest<HTMLElement>('[data-segment]') : null;
       return element ? { element, type: element.dataset.segment as TimeSegmentType } : null;
     };
     const onBeforeInput = (event: InputEvent) => {

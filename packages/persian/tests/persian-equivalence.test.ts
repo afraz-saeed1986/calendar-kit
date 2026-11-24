@@ -29,14 +29,21 @@ describe('persian: the arithmetic agrees with Intl', () => {
 
   it('knows the leap years like Intl: the last day of the year is 30 Esfand', () => {
     for (let year = 1200; year <= 1500; year++) {
-      const lastDay = fromIntl(persian.toEpochDay({ system: 'persian', year: year + 1, month: 1, day: 1 }) - 1);
+      const lastDay = fromIntl(
+        persian.toEpochDay({ system: 'persian', year: year + 1, month: 1, day: 1 }) - 1,
+      );
       expect(persian.isLeapYear(year)).toBe(lastDay.day === 30);
       expect(persian.daysInMonth(year, 12)).toBe(persian.isLeapYear(year) ? 30 : 29);
     }
   });
 
   it('refuses dates that do not exist', () => {
-    const date = (year: number, month: number, day: number) => ({ system: 'persian', year, month, day });
+    const date = (year: number, month: number, day: number) => ({
+      system: 'persian',
+      year,
+      month,
+      day,
+    });
     expect(() => persian.toEpochDay(date(1405, 7, 31))).toThrow(RangeError);
     expect(() => persian.toEpochDay(date(1405, 13, 1))).toThrow(RangeError);
     expect(() => persian.toEpochDay(date(1405, 1, 0))).toThrow(RangeError);

@@ -8,6 +8,7 @@
 `styles.css` (the optional base look: variables, dark mode, RTL, forced colors) lives in `packages/react/src`. The Angular adapter has no stylesheet of its own: its demo reads the React file through a relative path. The Vue adapter will need the same file. The class names and `data-*` attributes come from the core, so the CSS is the same for every adapter (ADR 0015, question 8).
 
 ## Decision
+
 In the Angular adapter, `ng-packagr` refuses `assets` from outside the library and empties `dist` on each build, so a small script (`scripts/copy-styles.mjs`) copies the file after `ng build`. The React adapter does the same in its `tsup` `onSuccess` step.
 
 The only copy is `packages/styles/styles.css`, in a private workspace package (`@calendrix/styles`, never published). Each adapter copies it into its own build output, so a user gets the file from the adapter package they already install:

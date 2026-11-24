@@ -25,7 +25,10 @@ describe('toVueProps', () => {
   });
 
   it('leaves the handlers off when asked to', () => {
-    const result = toVueProps({ attrs: { role: 'grid' }, handlers: { keydown: () => undefined } }, false);
+    const result = toVueProps(
+      { attrs: { role: 'grid' }, handlers: { keydown: () => undefined } },
+      false,
+    );
     expect(result).toEqual({ role: 'grid' });
   });
 

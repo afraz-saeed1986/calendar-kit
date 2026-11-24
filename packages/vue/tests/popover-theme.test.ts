@@ -18,7 +18,10 @@ function render(themes: Array<string | null>, props: Record<string, unknown> = {
     created.push(element);
     parent = element;
   }
-  const wrapper = mount(DatePicker, { props: { locale: 'en-US', now, ...props }, attachTo: parent });
+  const wrapper = mount(DatePicker, {
+    props: { locale: 'en-US', now, ...props },
+    attachTo: parent,
+  });
   cleanups.push(() => {
     wrapper.unmount();
     created[0]?.remove();

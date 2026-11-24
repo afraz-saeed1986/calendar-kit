@@ -127,7 +127,6 @@ export class CalendrixPopover implements OnInit {
   }
 
   protected onKeydown(event: KeyboardEvent): void {
-
     if (event.key !== 'Tab') return;
 
     const items = Array.from(this.element.querySelectorAll<HTMLElement>(TABBABLE));

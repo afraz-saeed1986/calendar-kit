@@ -19,7 +19,15 @@ const sameDay: DateTimeRange = { start: at(14, 9, 30), end: at(14, 17, 0) };
 const mounted: Array<{ unmount: () => void }> = [];
 function render(props: Record<string, unknown> = {}) {
   const wrapper = mount(DateTimePicker, {
-    props: { selection: 'range', locale: 'en-US', hourCycle: 24, timeZone: 'UTC', now, portal: false, ...props },
+    props: {
+      selection: 'range',
+      locale: 'en-US',
+      hourCycle: 24,
+      timeZone: 'UTC',
+      now,
+      portal: false,
+      ...props,
+    },
     attachTo: document.body,
   });
   mounted.push(wrapper);

@@ -23,7 +23,7 @@ a physical keyboard. The roadmap lists "Touch time input" (M4).
    `<input type="time">` on touch devices, which loses the Persian digits and the segments.
 2. **The browser never changes the text.** The core gets `handleBeforeInput(type, event)` and a
    handler `beforeinput` in `getSegmentProps`. `event` is `InputEventLike`: `{ inputType, data?,
-   preventDefault() }`. For `insertText` and `insertFromPaste` each character of `data` goes
+preventDefault() }`. For `insertText` and `insertFromPaste` each character of `data` goes
    through the same path as a key (digits in Latin, Persian or Arabic-Indic form, and `a`/`p` for
    the period); `deleteContentBackward` and `deleteContentForward` act like Backspace and Delete.
    It calls `preventDefault()` when it handles the input and returns `true`; the segment text is
@@ -62,7 +62,6 @@ a physical keyboard. The roadmap lists "Touch time input" (M4).
 1. Core: `handleBeforeInput`, the new attributes, tests.
 2. React, Vue, Angular, one by one, with tests.
 3. `styles.css`, `docs/api.md`, the roadmap, the Result section.
-
 
 ## Result
 

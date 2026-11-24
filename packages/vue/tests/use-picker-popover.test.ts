@@ -13,7 +13,9 @@ function harness(portal = false) {
       popover = usePickerPopover({ portal });
       return () =>
         h('div', [
-          h('div', { ref: popover.wrapperRef, id: 'wrapper' }, [h('input', { ref: popover.inputRef })]),
+          h('div', { ref: popover.wrapperRef, id: 'wrapper' }, [
+            h('input', { ref: popover.inputRef }),
+          ]),
           popover.open.value
             ? h(
                 'div',

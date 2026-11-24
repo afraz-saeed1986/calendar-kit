@@ -1,7 +1,7 @@
+import type { ElementRef } from '@angular/core';
 import {
   ChangeDetectionStrategy,
   Component,
-  ElementRef,
   Injector,
   forwardRef,
   afterNextRender,
