@@ -8,5 +8,5 @@ const range = ref<DateTimeRange | null>();
 
 <template>
   <DateTimePicker v-model="range" selection="range" />
-  <pre>{{ range }}</pre>
+  <pre v-if="range">{{ range }}</pre>
 </template>

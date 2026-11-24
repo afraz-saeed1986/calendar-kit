@@ -7,7 +7,7 @@ export default function DateTimePickerRangeExample() {
   return (
     <>
       <DateTimePicker selection="range" value={range} onChange={setRange} />
-      <pre>{JSON.stringify(range, null, 2)}</pre>
+      {range && <pre>{JSON.stringify(range, null, 2)}</pre>}
     </>
   );
 }

@@ -10,5 +10,5 @@ const date = ref<SelectionValue<'single'>>();
 
 <template>
   <DatePicker v-model="date" system="persian" locale="fa-IR" direction="rtl" :plugins="plugins" />
-  <pre>{{ date }}</pre>
+  <pre v-if="date">{{ date }}</pre>
 </template>

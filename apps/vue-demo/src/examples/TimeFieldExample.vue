@@ -8,5 +8,5 @@ const time = ref<TimeValue | null>();
 
 <template>
   <TimeField v-model="time" />
-  <pre>{{ time }}</pre>
+  <pre v-if="time">{{ time }}</pre>
 </template>

@@ -8,7 +8,7 @@ export default function DatePickerExample() {
   return (
     <>
       <DatePicker value={date} onChange={setDate} />
-      <pre>{JSON.stringify(date, null, 2)}</pre>
+      {date && <pre>{JSON.stringify(date, null, 2)}</pre>}
     </>
   );
 }

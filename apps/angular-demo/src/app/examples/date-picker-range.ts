@@ -8,7 +8,9 @@ import type { SelectionValue } from '@calendrix/core';
   imports: [JsonPipe, CalendrixDatePicker],
   template: `
     <calendrix-date-picker [selection]="'range'" [(value)]="range" />
-    <pre>{{ range() | json }}</pre>
+    @if (range()) {
+      <pre>{{ range() | json }}</pre>
+    }
   `,
 })
 export class DatePickerRangeExample {

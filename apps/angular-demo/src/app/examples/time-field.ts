@@ -8,7 +8,9 @@ import type { TimeValue } from '@calendrix/core';
   imports: [JsonPipe, CalendrixTimeField],
   template: `
     <calendrix-time-field [(value)]="time" />
-    <pre>{{ time() | json }}</pre>
+    @if (time()) {
+      <pre>{{ time() | json }}</pre>
+    }
   `,
 })
 export class TimeFieldExample {

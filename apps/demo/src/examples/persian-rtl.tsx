@@ -18,7 +18,7 @@ export default function PersianRtlExample() {
         direction="rtl"
         plugins={plugins}
       />
-      <pre>{JSON.stringify(date, null, 2)}</pre>
+      {date && <pre>{JSON.stringify(date, null, 2)}</pre>}
     </>
   );
 }

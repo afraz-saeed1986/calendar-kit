@@ -8,7 +8,7 @@ export default function TimeFieldExample() {
   return (
     <>
       <TimeField value={time} onChange={setTime} />
-      <pre>{JSON.stringify(time, null, 2)}</pre>
+      {time && <pre>{JSON.stringify(time, null, 2)}</pre>}
     </>
   );
 }

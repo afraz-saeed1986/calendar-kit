@@ -8,5 +8,5 @@ const date = ref<SelectionValue<'single'>>();
 
 <template>
   <DatePicker v-model="date" />
-  <pre>{{ date }}</pre>
+  <pre v-if="date">{{ date }}</pre>
 </template>

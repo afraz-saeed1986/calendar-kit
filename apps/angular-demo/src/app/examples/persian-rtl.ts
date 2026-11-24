@@ -15,7 +15,9 @@ import { persianPlugin } from '@calendrix/persian';
       direction="rtl"
       [plugins]="plugins"
     />
-    <pre>{{ date() | json }}</pre>
+    @if (date()) {
+      <pre>{{ date() | json }}</pre>
+    }
   `,
 })
 export class PersianRtlExample {

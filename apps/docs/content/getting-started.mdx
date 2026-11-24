@@ -1,0 +1,163 @@
+import { Tabs } from 'nextra/components'
+import { Example } from '../components/example'
+
+# Getting started
+
+calendrix has a core that does the work (dates, calendars, selection, keyboard, time input) and a thin adapter for each framework. You install the core, the adapter for your framework, and the Persian plugin if you need the Persian calendar.
+
+## Install
+
+<Tabs items={['React', 'Vue', 'Angular']}>
+  <Tabs.Tab>
+
+```bash
+npm install @calendrix/core @calendrix/react @calendrix/persian
+```
+
+  </Tabs.Tab>
+  <Tabs.Tab>
+
+```bash
+npm install @calendrix/core @calendrix/vue @calendrix/persian
+```
+
+  </Tabs.Tab>
+  <Tabs.Tab>
+
+```bash
+npm install @calendrix/core @calendrix/angular @calendrix/persian
+```
+
+  </Tabs.Tab>
+</Tabs>
+
+pnpm and yarn work the same way. `@calendrix/persian` is optional: leave it out if you only use the Gregorian calendar.
+
+## Your first date picker
+
+<Tabs items={['React', 'Vue', 'Angular']}>
+  <Tabs.Tab>
+
+```tsx
+import type { CalendarDate } from '@calendrix/core';
+import { DatePicker } from '@calendrix/react';
+import '@calendrix/react/styles.css';
+import { useState } from 'react';
+
+export function Example() {
+  const [date, setDate] = useState<CalendarDate | null>(null);
+  return <DatePicker value={date} onChange={setDate} />;
+}
+```
+
+  </Tabs.Tab>
+  <Tabs.Tab>
+
+```vue
+<script setup lang="ts">
+import { DatePicker } from '@calendrix/vue';
+import '@calendrix/vue/styles.css';
+import { ref } from 'vue';
+
+const date = ref();
+</script>
+
+<template>
+  <DatePicker v-model="date" />
+</template>
+```
+
+  </Tabs.Tab>
+  <Tabs.Tab>
+
+```ts
+import { Component, signal } from '@angular/core';
+import { CalendrixDatePicker } from '@calendrix/angular';
+import type { CalendarDate } from '@calendrix/core';
+
+@Component({
+  selector: 'app-root',
+  imports: [CalendrixDatePicker],
+  template: `<calendrix-date-picker [(value)]="date" />`,
+})
+export class App {
+  protected readonly date = signal<CalendarDate | null | undefined>(undefined);
+}
+```
+
+Add the styles once, in your global `styles.css`:
+
+```css
+@import '@calendrix/angular/styles.css';
+```
+
+  </Tabs.Tab>
+</Tabs>
+
+It looks like this, in each framework:
+
+<Example name="date-picker" />
+
+The value is a plain object, shown under the input: a year, a month and a day, and the calendar they belong to.
+
+## The Persian calendar
+
+Add the plugin and set the calendar system, the locale and the direction. The picker then shows Persian month names and numerals, starts the week on Saturday, and reads typed dates such as `۱۴۰۵/۹/۱۰`.
+
+<Tabs items={['React', 'Vue', 'Angular']}>
+  <Tabs.Tab>
+
+```tsx
+import { persianPlugin } from '@calendrix/persian';
+
+const plugins = [persianPlugin];
+
+<DatePicker
+  value={date}
+  onChange={setDate}
+  system="persian"
+  locale="fa-IR"
+  direction="rtl"
+  plugins={plugins}
+/>;
+```
+
+  </Tabs.Tab>
+  <Tabs.Tab>
+
+```vue
+<script setup lang="ts">
+import { persianPlugin } from '@calendrix/persian';
+
+const plugins = [persianPlugin];
+</script>
+
+<template>
+  <DatePicker v-model="date" system="persian" locale="fa-IR" direction="rtl" :plugins="plugins" />
+</template>
+```
+
+  </Tabs.Tab>
+  <Tabs.Tab>
+
+```ts
+import { persianPlugin } from '@calendrix/persian';
+
+// in the component class
+protected readonly plugins = [persianPlugin];
+```
+
+```html
+<calendrix-date-picker
+  [(value)]="date"
+  system="persian"
+  locale="fa-IR"
+  direction="rtl"
+  [plugins]="plugins"
+/>
+```
+
+  </Tabs.Tab>
+</Tabs>
+
+<Example name="persian-rtl" />
