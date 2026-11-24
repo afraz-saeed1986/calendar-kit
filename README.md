@@ -1,8 +1,8 @@
 # calendrix
 
-> Accessible date and time picker with first-class **Persian (Jalali)** and Gregorian support. A headless, framework-agnostic core with ready-made components, starting with React.
+> Accessible date and time picker with first-class **Persian (Jalali)** and Gregorian support. A headless, framework-agnostic core with ready-made components for React, Vue and Angular.
 
-**Status: pre-alpha.** The core (calendar, selection, keyboard, time field, time zones, text input) and the React adapter are implemented and tested. Angular and Vue adapters and the finance plugin are on the [roadmap](docs/roadmap.md).
+**Status: pre-alpha.** The core (calendar, selection, keyboard, time field, time zones, text input), the Persian calendar and the React, Vue and Angular adapters are implemented and tested. The finance plugin is on the [roadmap](docs/roadmap.md).
 
 ```tsx
 import { DateTimePicker } from '@calendrix/react';
@@ -30,8 +30,8 @@ Most date pickers ship UI tied to one framework and treat Persian as an aftertho
 | [`@calendrix/core`](packages/core)       | Dates, calendars, selection, time field, text parsing | Implemented |
 | [`@calendrix/persian`](packages/persian) | Persian (Jalali) calendar                             | Implemented |
 | [`@calendrix/react`](packages/react)     | `DateTimePicker`, `Calendar`, `TimeField`, hooks      | Implemented |
-| `@calendrix/angular`                     | Angular adapter (signals)                             | Planned     |
-| `@calendrix/vue`                         | Vue adapter (composable)                              | Planned     |
+| `@calendrix/angular`                     | Angular adapter (signals)                             | Implemented |
+| `@calendrix/vue`                         | Vue adapter (composable)                              | Implemented |
 | `@calendrix/finance`                     | Market calendars and holidays                         | Planned     |
 
 ## Size
@@ -84,6 +84,9 @@ A state takes about a tenth of a millisecond, so the core is far below the time 
 ```
 packages/        Publishable packages
 apps/demo/       Vite demo app (React)
+apps/vue-demo/   Vite demo app (Vue)
+apps/angular-demo/  Angular demo app
+apps/docs/       Documentation site (Nextra)
 docs/            Architecture, API design, ADRs, roadmap
 ```
 
