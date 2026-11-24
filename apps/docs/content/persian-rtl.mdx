@@ -1,0 +1,86 @@
+import { Tabs } from 'nextra/components';
+import { Example } from '../components/example';
+
+# Persian and RTL
+
+The pickers show the Persian (Jalali) calendar, Persian month names and numerals, and a right-to-left layout. For this you set three props and add one plugin from `@calendrix/persian`.
+
+<Example name="persian-rtl" />
+
+The value is a `CalendarDate` in the Persian system, for example `{ system: 'persian', year: 1405, month: 9, day: 3 }`. Use `convertDate` from `@calendrix/core` to store it as a Gregorian date.
+
+<Tabs items={['React', 'Vue', 'Angular']}>
+  <Tabs.Tab>
+
+```tsx
+import { persianPlugin } from '@calendrix/persian';
+import { DatePicker } from '@calendrix/react';
+
+const plugins = [persianPlugin];
+
+<DatePicker
+  value={date}
+  onChange={setDate}
+  system="persian"
+  locale="fa-IR"
+  direction="rtl"
+  plugins={plugins}
+/>;
+```
+
+  </Tabs.Tab>
+  <Tabs.Tab>
+
+```vue
+<script setup lang="ts">
+import { persianPlugin } from '@calendrix/persian';
+import { DatePicker } from '@calendrix/vue';
+
+const plugins = [persianPlugin];
+</script>
+
+<template>
+  <DatePicker v-model="date" system="persian" locale="fa-IR" direction="rtl" :plugins="plugins" />
+</template>
+```
+
+  </Tabs.Tab>
+  <Tabs.Tab>
+
+```ts
+import { CalendrixDatePicker } from '@calendrix/angular';
+import { persianPlugin } from '@calendrix/persian';
+
+@Component({
+  imports: [CalendrixDatePicker],
+  template: `
+    <calendrix-date-picker
+      [(value)]="date"
+      system="persian"
+      locale="fa-IR"
+      direction="rtl"
+      [plugins]="plugins"
+    />
+  `,
+})
+export class Example {
+  protected readonly plugins = [persianPlugin];
+  protected readonly date = signal<SelectionValue<'single'> | undefined>(undefined);
+}
+```
+
+  </Tabs.Tab>
+</Tabs>
+
+## What each prop does
+
+| Prop        | Value             | Effect                                                                   |
+| ----------- | ----------------- | ------------------------------------------------------------------------ |
+| `system`    | `'persian'`       | The calendar and the typed text use the Persian calendar.                |
+| `locale`    | `'fa-IR'`         | Names, numerals and the order of a typed date follow Persian.            |
+| `direction` | `'rtl'`           | The layout is mirrored, and the arrow keys follow the reading direction. |
+| `plugins`   | `[persianPlugin]` | Adds the Persian calendar rules from `@calendrix/persian`.               |
+
+Define the `plugins` array once, outside the component, as in the examples. A new array on every render makes the picker rebuild its state.
+
+The same props work for [DateTimePicker](/date-time-picker) and [TimeField](/time-field) (which takes `locale` and `direction` only).

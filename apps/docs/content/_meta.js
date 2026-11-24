@@ -4,4 +4,5 @@ export default {
   'date-picker': 'DatePicker',
   'date-time-picker': 'DateTimePicker',
   'time-field': 'TimeField',
+  'persian-rtl': 'Persian and RTL',
 };
