@@ -1,0 +1,79 @@
+# Theming
+
+The components are styled by one optional stylesheet. Every colour, size and font in it is a CSS variable that starts with `--calendrix-`, so you restyle the pickers by overriding variables, not by overriding selectors. The stylesheet is shared by all three adapters, and you import it from the adapter package. In React:
+
+```ts
+import '@calendrix/react/styles.css';
+```
+
+## Variables
+
+| Variable                | Light default                                                           | What it is                    |
+| ----------------------- | ----------------------------------------------------------------------- | ----------------------------- |
+| `--calendrix-font`      | `system-ui, -apple-system, 'Segoe UI', Roboto, 'Vazirmatn', sans-serif` | Font family of the pickers    |
+| `--calendrix-bg`        | `#ffffff`                                                               | Background                    |
+| `--calendrix-fg`        | `#1f2328`                                                               | Text                          |
+| `--calendrix-muted`     | `#6b7280`                                                               | Secondary text                |
+| `--calendrix-border`    | `#d0d7de`                                                               | Borders                       |
+| `--calendrix-hover`     | `#f3f4f6`                                                               | Hover background              |
+| `--calendrix-accent`    | `#2563eb`                                                               | Selected day and focus colour |
+| `--calendrix-accent-fg` | `#ffffff`                                                               | Text on the accent colour     |
+| `--calendrix-danger`    | `#d1242f`                                                               | Invalid state                 |
+| `--calendrix-radius`    | `8px`                                                                   | Corner radius                 |
+| `--calendrix-cell-size` | `2.75rem`                                                               | Size of a day cell            |
+| `--calendrix-gap`       | `0.25rem`                                                               | Space between day cells       |
+| `--calendrix-z-popover` | `1000`                                                                  | `z-index` of the popover      |
+
+The font stack lists Vazirmatn, so Persian text uses it when your page provides it.
+
+## Dark mode
+
+Dark mode follows the system setting (`prefers-color-scheme`). To choose a theme yourself, set `data-theme="dark"` or `data-theme="light"` on any element. It applies to everything inside that element, so you can wire it to a theme switch in your application, or force one theme for one part of a page.
+
+```html
+<html data-theme="dark">
+  ...
+</html>
+```
+
+## The popover
+
+The popover is rendered in `document.body`, outside your component tree. When it opens it takes the `data-theme` of the nearest ancestor of the input, so a themed section of your page gives a themed popover.
+
+CSS variables that you set with a class on some other ancestor do not reach the popover. Set them on `:root` (`<html>`) or `<body>`, or pass `portal={false}` to render the popover next to the input.
+
+## Styling the parts
+
+Every part has a `calendrix-*` class. The days carry data attributes that you can use as selectors: `data-today`, `data-selected`, `data-outside-month`, `data-disabled`, `data-unavailable`, `data-range-start`, `data-range-end`, `data-in-range` and `data-in-preview`.
+
+```css
+.calendrix-calendar [data-unavailable] {
+  text-decoration: line-through;
+}
+```
+
+## Changing the look
+
+Override the variables you want. The dark theme has its own values for the colours, so set the colours for both themes. Mirror the selectors of the stylesheet:
+
+```css
+:root {
+  --calendrix-accent: #0f766e;
+  --calendrix-accent-fg: #ffffff;
+  --calendrix-radius: 4px;
+}
+
+@media (prefers-color-scheme: dark) {
+  :root:not([data-theme='light']) {
+    --calendrix-accent: #2dd4bf;
+    --calendrix-accent-fg: #042f2e;
+  }
+}
+
+[data-theme='dark'] {
+  --calendrix-accent: #2dd4bf;
+  --calendrix-accent-fg: #042f2e;
+}
+```
+
+Sizes (`--calendrix-radius`, `--calendrix-cell-size`, `--calendrix-gap`) and the font are the same in both themes, so they only need to be set once.

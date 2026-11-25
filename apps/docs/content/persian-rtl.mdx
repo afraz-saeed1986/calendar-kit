@@ -7,7 +7,7 @@ The pickers show the Persian (Jalali) calendar, Persian month names and numerals
 
 <Example name="persian-rtl" />
 
-The value is a `CalendarDate` in the Persian system, for example `{ system: 'persian', year: 1405, month: 9, day: 3 }`. Use `convertDate` from `@calendrix/core` to store it as a Gregorian date.
+The value is a `CalendarDate` in the Persian system, for example `{ system: 'persian', year: 1405, month: 1, day: 1 }` (1 Farvardin 1405, which is 21 March 2026). Use `convertDate` from `@calendrix/core` to store it as a Gregorian date.
 
 <Tabs items={['React', 'Vue', 'Angular']}>
   <Tabs.Tab>
@@ -79,8 +79,14 @@ export class Example {
 | `system`    | `'persian'`       | The calendar and the typed text use the Persian calendar.                |
 | `locale`    | `'fa-IR'`         | Names, numerals and the order of a typed date follow Persian.            |
 | `direction` | `'rtl'`           | The layout is mirrored, and the arrow keys follow the reading direction. |
-| `plugins`   | `[persianPlugin]` | Adds the Persian calendar rules from `@calendrix/persian`.               |
+| `plugins`   | `[persianPlugin]` | Registers the Persian calendar, which comes from `@calendrix/persian`.   |
 
 Define the `plugins` array once, outside the component, as in the examples. A new array on every render makes the picker rebuild its state.
+
+## Notes
+
+- With `locale="fa-IR"` the week starts on Saturday.
+- Months 1 to 6 have 31 days, months 7 to 11 have 30 days, and Esfand has 29 days, or 30 in a leap year.
+- Leap years follow the ICU data of the runtime, so in rare years they can differ from the official calendar. The runtime needs full ICU data (Node 13 or newer, and modern browsers).
 
 The same props work for [DateTimePicker](/date-time-picker) and [TimeField](/time-field) (which takes `locale` and `direction` only).
