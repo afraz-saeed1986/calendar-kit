@@ -1,0 +1,46 @@
+# Accessibility
+
+The pickers are built on the ARIA patterns for a date grid, a spin button and a popover dialog, and they work with the keyboard alone. This page lists what they expose to assistive technology.
+
+## Structure
+
+| Part                | What it exposes                                                                                                |
+| ------------------- | -------------------------------------------------------------------------------------------------------------- |
+| Input               | `aria-haspopup="dialog"`, `aria-expanded` and `aria-controls` for the popover                                  |
+| Popover             | A name from `labels` (the `dialog` text)                                                                       |
+| Visible months      | A `group` named by the label of the visible months                                                             |
+| Month grid          | `grid` with `row`, `columnheader` and `gridcell`; `aria-multiselectable` when many days can be selected        |
+| Day                 | A full label, `aria-selected`, `aria-disabled` for days that cannot be picked, `aria-current="date"` for today |
+| Month and year view | The title buttons carry `aria-expanded`; each month or year is a labelled button                               |
+| Month title         | A polite live region, so a change of month is announced                                                        |
+| Time segments       | `spinbutton` with `aria-valuemin`, `aria-valuemax`, `aria-valuenow` and `aria-valuetext`                       |
+| Typed text          | `aria-invalid` after the input loses the focus, when the text is a date that cannot be selected                |
+
+Icons, separators and the empty days of neighbouring months are hidden from assistive technology. With more than one visible month, a week row that has no days of its own month is hidden too, so a screen reader does not meet an empty row.
+
+## Keyboard
+
+| Key               | In the days                                      |
+| ----------------- | ------------------------------------------------ |
+| `Enter` / `Space` | Do what a click does                             |
+| `Escape`          | Cancel a range start that is waiting for its end |
+
+| Key                   | In the months and years views                              |
+| --------------------- | ---------------------------------------------------------- |
+| Arrow keys            | One cell left or right, one row up or down                 |
+| `PageUp` / `PageDown` | One year (ten years in the years view)                     |
+| `Home` / `End`        | First and last month, or first and last year of the decade |
+| `Enter` / `Space`     | Choose the focused cell                                    |
+| `Escape`              | Back to the days (in a picker, a second press closes it)   |
+
+In a picker, `Tab` and `Shift+Tab` stay inside the popover. `Escape` and the Done button close it and return the focus to the input. In a time field, type digits to fill a segment, and use the up and down arrows to step it.
+
+## Texts
+
+Every text that a screen reader speaks (button names, the dialog name, the time segments) comes from `labels`. They follow the locale, and you can replace any of them with the `labels` prop, for example to translate them. See [DatePicker](/date-picker#props).
+
+## Tests
+
+The tests of the React, Vue and Angular adapters run [axe-core](https://github.com/dequelabs/axe-core) against rendered pickers, with the WCAG 2.x A and AA rules. The colour contrast rule is off there, because jsdom has no layout, so check your own theme's contrast.
+
+Manual testing with screen readers (NVDA and VoiceOver) is not done yet.

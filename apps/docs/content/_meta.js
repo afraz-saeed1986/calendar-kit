@@ -6,4 +6,5 @@ export default {
   'time-field': 'TimeField',
   'persian-rtl': 'Persian and RTL',
   theming: 'Theming',
+  accessibility: 'Accessibility',
 };
