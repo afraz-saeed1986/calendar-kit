@@ -25,7 +25,13 @@ Set `selection="range"` (in Angular, `[selection]="'range'"`). The value becomes
 
 A range takes two clicks. The first sets the start, the pointer or the arrow keys preview the range, and the second completes it. If the second day is before the first, the two swap. You can also type a range, for example `11/18/2026 – 11/25/2026`: the separator can be an en dash or an em dash, a hyphen with spaces around it, or the word `to`.
 
-`selection="multiple"` selects many days: the value is a list of dates. Its input is read-only: it lists the dates when there are at most three and shows a count otherwise.
+## Multiple days
+
+Set `selection="multiple"` (in Angular, `[selection]="'multiple'"`). The value is a list of dates. Each click toggles a day, and the list is sorted from the oldest day to the newest. An empty list means that nothing is selected.
+
+<Example name="date-picker-multiple" />
+
+The input is read-only: it lists the dates when there are at most three and shows a count otherwise. The popover stays open while you pick, so set `closeOnSelect` if you want it to close, and use `maxSelected` to limit how many days can be selected.
 
 ## Days that cannot be picked
 

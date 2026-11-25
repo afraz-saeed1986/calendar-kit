@@ -1,5 +1,6 @@
 import type { Type } from '@angular/core';
 import { DatePickerExample } from './date-picker';
+import { DatePickerMultipleExample } from './date-picker-multiple';
 import { DatePickerRangeExample } from './date-picker-range';
 import { DateTimePickerExample } from './date-time-picker';
 import { DateTimePickerRangeExample } from './date-time-picker-range';
@@ -10,6 +11,7 @@ import { TimeFieldExample } from './time-field';
 export const examples: Record<string, Type<unknown>> = {
   'date-picker': DatePickerExample,
   'date-picker-range': DatePickerRangeExample,
+  'date-picker-multiple': DatePickerMultipleExample,
   'date-time-picker': DateTimePickerExample,
   'date-time-picker-range': DateTimePickerRangeExample,
   'time-field': TimeFieldExample,
