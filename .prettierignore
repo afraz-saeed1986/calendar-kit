@@ -7,3 +7,5 @@ pnpm-lock.yaml
 .next
 apps/docs/out
 apps/docs/public/demos
+apps/docs/content/api.md
+apps/docs/content/adr/

@@ -7,4 +7,6 @@ export default {
   'persian-rtl': 'Persian and RTL',
   theming: 'Theming',
   accessibility: 'Accessibility',
+  api: 'API reference',
+  adr: 'Decisions (ADRs)',
 };

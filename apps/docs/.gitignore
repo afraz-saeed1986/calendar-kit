@@ -1,3 +1,5 @@
 .next/
 out/
 public/demos/
+content/api.md
+content/adr/

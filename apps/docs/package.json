@@ -4,6 +4,8 @@
   "private": true,
   "scripts": {
     "demos": "node scripts/copy-demos.mjs",
+    "predev": "node scripts/copy-docs.mjs",
+    "prebuild": "node scripts/copy-docs.mjs",
     "dev": "next dev",
     "build": "next build",
     "postbuild": "pagefind --site .next/server/app --output-path out/_pagefind"
