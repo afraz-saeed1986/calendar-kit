@@ -1,6 +1,6 @@
 # ADR 0027: A documentation site with live demos
 
-Status: proposed
+Status: accepted
 
 ## Context
 
@@ -71,3 +71,52 @@ Three things shape the choice:
    API, and the ADRs.
 4. The Turborepo task for the demos and the site, and the CI job.
 5. Hosting, the roadmap tick and the Result section.
+
+## Result
+
+The site is in `apps/docs` and CI builds it. It differs from the decisions above in these ways, and
+some parts are not done.
+
+**As decided**
+
+- Nextra 4 on Next.js 15 and React 19 worked, so Fumadocs was not needed. The site is a static
+  export (`output: 'export'`), the base path comes from `DOCS_BASE_PATH`, and Pagefind builds the
+  search index in `postbuild`.
+- Every live demo is an `iframe` of a real build, for all three frameworks. `apps/angular-demo` is
+  new and uses Angular 22. The three demos share one list of examples, chosen by the URL hash.
+- CI has a separate `docs` job that builds the demos and the site. It does not publish anything.
+
+**Different from the decisions**
+
+- Decision 7: the demos are built with a relative base (`--base ./` for Vite, `--base-href ./`
+  for Angular), not `/demos/<framework>/`, so the same build works under any base path. A script
+  copies them (`pnpm --filter @calendrix/docs demos`, `apps/docs/scripts/copy-demos.mjs`). It is
+  not a Turborepo task, because it runs Turborepo itself to build the packages first. The root
+  `build` skips the site (`--filter=!@calendrix/docs`), and the `docs` job runs the script and then
+  the site build.
+- The theme of a demo follows the site. The page sends the theme with `postMessage` (same origin),
+  and each demo sets `data-theme` and the colour scheme. Iframes have a fixed height, because
+  resizing them by their content was fragile.
+- Range, multiple selection and time are sections of the pages of the pickers, not pages of
+  their own.
+
+**Found on the way**
+
+- `zod` 4.6.6 breaks the layout of the Nextra theme ("expected nonoptional ... at children"). It is
+  pinned to 4.1.12 with `pnpm.overrides` in the root `package.json`. Newer pnpm versions read
+  overrides from `pnpm-workspace.yaml` instead, so this must be checked when pnpm is updated.
+- Nextra gives `[""]` as the static parameter of the home page, and Next.js expects `[]` for the
+  root of an optional catch-all route. `generateStaticParams` filters the empty segment.
+- Building the demos from packed tarballs showed that Vue and Angular need
+  `@floating-ui/dom`. It moved from a peer dependency to a dependency in both packages (with
+  `allowedNonPeerDependencies` for ng-packagr).
+
+**Not done**
+
+- Decision 6: the snippets in the pages are written in the MDX files, not imported from the demo
+  sources. They can drift from the demos.
+- The API reference and the ADRs are not in the site yet, and the source of the API reference is
+  still undecided.
+- Hosting is not decided.
+- The widened Angular peer range (`^21.2.0 || ^22.0.0`): the Angular demo works on 22, but the
+  library tests were not run on it.
