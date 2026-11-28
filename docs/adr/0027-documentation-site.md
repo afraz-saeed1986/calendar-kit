@@ -56,8 +56,6 @@ Three things shape the choice:
 
 - **Where the site is hosted** (GitHub Pages or another static host) and whether it has its own
   domain. Decision 3 keeps both open.
-- **The source of the API reference:** the existing `docs/api.md` copied or linked into the site,
-  or generated from the types. One source, not two, is the aim.
 - **The version of Angular in `apps/angular-demo`.** It follows the peer range of the Angular
   package, which is being widened to include 22 (tested with a fresh project).
 - **Versioned documentation and a Persian translation** of the site. Not for `0.1.0`.
@@ -115,8 +113,11 @@ some parts are not done.
 
 - Decision 6: the snippets in the pages are written in the MDX files, not imported from the demo
   sources. They can drift from the demos.
-- The API reference and the ADRs are not in the site yet, and the source of the API reference is
-  still undecided.
+- The API reference and the ADRs are in the site. `apps/docs/scripts/copy-docs.mjs` copies
+  `docs/api.md` and `docs/adr/*.md` into `content/` before `dev` and `build`. The copies are ignored
+  by git, so the Markdown in `docs/` is the only source. Links between ADRs point to the site, and
+  links to other Markdown files become plain text. The other files of `docs/` (the guides for React
+  and the text input, the architecture, the roadmap) are not in the site.
 - Hosting is not decided.
 - The widened Angular peer range (`^21.2.0 || ^22.0.0`): the Angular demo works on 22, but the
   library tests were not run on it.
