@@ -9,3 +9,4 @@ apps/docs/out
 apps/docs/public/demos
 apps/docs/content/api.md
 apps/docs/content/adr/
+apps/docs/components/snippets.json

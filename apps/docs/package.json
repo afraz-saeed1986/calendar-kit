@@ -18,6 +18,7 @@
     "react-dom": "^19.3.1"
   },
   "devDependencies": {
-    "pagefind": "^1.6.0"
+    "pagefind": "^1.6.0",
+    "shiki": "^4.6.0"
   }
 }
